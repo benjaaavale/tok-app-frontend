@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
-import { esES } from "@clerk/localizations";
+import { esMX } from "@clerk/localizations";
 import { ThemeProvider } from "next-themes";
 import { QueryProvider } from "@/lib/query-provider";
 import { Toaster } from "sonner";
@@ -19,7 +19,7 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider
-      localization={esES}
+      localization={esMX}
       signInUrl="/login"
       signInFallbackRedirectUrl="/dashboard"
       appearance={{
