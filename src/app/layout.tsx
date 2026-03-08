@@ -1,16 +1,10 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { esES } from "@clerk/localizations";
 import { ThemeProvider } from "next-themes";
 import { QueryProvider } from "@/lib/query-provider";
 import { Toaster } from "sonner";
 import "./globals.css";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-sans",
-});
 
 export const metadata: Metadata = {
   title: "ToK - Panel de gesti\u00f3n",
@@ -34,7 +28,7 @@ export default function RootLayout({
       }}
     >
       <html lang="es" suppressHydrationWarning>
-        <body className={`${inter.variable} font-sans antialiased`}>
+        <body className="font-sans antialiased">
           <ThemeProvider
             attribute="class"
             defaultTheme="light"
