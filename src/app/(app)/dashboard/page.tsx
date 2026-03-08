@@ -84,7 +84,7 @@ export default function DashboardPage() {
         </>
       ) : (
         <div className="text-center py-20 text-text-muted text-[14px]">
-          No hay datos para el per&iacute;odo seleccionado
+          No hay datos para el período seleccionado
         </div>
       )}
     </div>

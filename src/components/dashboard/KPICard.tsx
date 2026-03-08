@@ -90,7 +90,7 @@ export function KPIGrid({
         icon={CalendarCheck}
       />
       <KPICard
-        title="Conversi\u00f3n"
+        title="Conversión"
         value={`${conversionRate}%`}
         icon={TrendingUp}
       />

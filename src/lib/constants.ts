@@ -11,20 +11,20 @@ export const ETAPA_COLORS: Record<string, string> = {
 };
 
 export const ETAPA_LABELS: Record<string, string> = {
-  frio: "Fr\u00edo",
+  frio: "Frío",
   interesado: "Interesado",
   calificado: "Calificado",
-  alta_intencion: "Alta intenci\u00f3n",
+  alta_intencion: "Alta intención",
   no_encaja: "No encaja",
   pausado: "Pausado",
   agendado: "Agendado",
 };
 
 export const LEAD_OPTIONS = [
-  { value: "frio", label: "Fr\u00edo" },
+  { value: "frio", label: "Frío" },
   { value: "interesado", label: "Interesado" },
   { value: "calificado", label: "Calificado" },
-  { value: "alta_intencion", label: "Alta intenci\u00f3n" },
+  { value: "alta_intencion", label: "Alta intención" },
   { value: "no_encaja", label: "No encaja" },
   { value: "pausado", label: "Pausado" },
   { value: "agendado", label: "Agendado" },

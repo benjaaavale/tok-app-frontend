@@ -36,7 +36,7 @@ export function ChatWindow() {
             💬
           </div>
           <p className="text-[14px] text-text-secondary">
-            Selecciona una conversaci&oacute;n
+            Selecciona una conversación
           </p>
           <p className="text-[12px] text-text-muted mt-1">
             Elige un chat de la lista para ver los mensajes
@@ -104,7 +104,7 @@ export function ChatWindow() {
           </>
         ) : (
           <div className="text-center py-10 text-[13px] text-text-muted">
-            No hay mensajes a&uacute;n
+            No hay mensajes aún
           </div>
         )}
       </div>

@@ -46,7 +46,7 @@ export function ConversationList() {
           />
           <input
             type="text"
-            placeholder="Buscar conversaci\u00f3n..."
+            placeholder="Buscar conversación..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-8 pr-3 py-2 rounded-xl bg-bg-primary border border-border-secondary text-[13px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all"
@@ -70,10 +70,10 @@ export function ConversationList() {
             className="flex-1 px-2 py-1.5 rounded-lg bg-bg-primary border border-border-secondary text-[11px] text-text-secondary focus:outline-none"
           >
             <option value="">Etapa</option>
-            <option value="frio">Fr\u00edo</option>
+            <option value="frio">Frío</option>
             <option value="interesado">Interesado</option>
             <option value="calificado">Calificado</option>
-            <option value="alta_intencion">Alta intenci\u00f3n</option>
+            <option value="alta_intencion">Alta intención</option>
             <option value="agendado">Agendado</option>
             <option value="no_encaja">No encaja</option>
             <option value="pausado">Pausado</option>

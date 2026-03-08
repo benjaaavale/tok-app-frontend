@@ -7,8 +7,8 @@ import { Toaster } from "sonner";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ToK - Panel de gesti\u00f3n",
-  description: "Panel de gesti\u00f3n WhatsApp para empresas",
+  title: "ToK - Panel de gestión",
+  description: "Panel de gestión WhatsApp para empresas",
   icons: { icon: "/favicon.png" },
 };
 

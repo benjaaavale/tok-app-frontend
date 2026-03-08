@@ -21,7 +21,7 @@ export function FunnelChart({ data }: FunnelChartProps) {
   }
 
   return (
-    <ChartCard title="Funnel de conversi\u00f3n">
+    <ChartCard title="Funnel de conversión">
       <ResponsiveContainer width="100%" height={220}>
         <BarChart data={data} layout="vertical" barCategoryGap="25%">
           <CartesianGrid

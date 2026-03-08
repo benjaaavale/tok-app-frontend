@@ -16,17 +16,19 @@ import {
   Moon,
 } from "lucide-react";
 
-const navItems = [
+const mainNavItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/conversations", label: "Mensajes", icon: MessageCircle },
   { href: "/calendar", label: "Agenda", icon: CalendarDays },
-  { href: "/settings", label: "Configuración", icon: Settings },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const { companyNombre, userAvatarUrl, userInitials } = useAuthStore();
+
+  const isSettingsActive =
+    pathname === "/settings" || pathname.startsWith("/settings/");
 
   return (
     <aside className="hidden lg:flex flex-col w-[210px] h-screen bg-bg-sidebar border-r border-border-secondary">
@@ -49,9 +51,9 @@ export function Sidebar() {
         </span>
       </div>
 
-      {/* ── Navigation ── */}
+      {/* ── Main Navigation ── */}
       <nav className="flex-1 px-2.5 pt-1 space-y-0.5">
-        {navItems.map((item) => {
+        {mainNavItems.map((item) => {
           const isActive =
             pathname === item.href || pathname.startsWith(item.href + "/");
           return (
@@ -72,19 +74,33 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* ── Footer ── */}
-      <div className="px-2.5 pb-4 space-y-2">
+      {/* ── Bottom area ── */}
+      <div className="px-2.5 pb-4 space-y-1">
+        {/* Settings */}
+        <Link
+          href="/settings"
+          className={cn(
+            "flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-[13px] font-medium transition-all duration-150 border",
+            isSettingsActive
+              ? "bg-accent-light text-accent border-accent-muted font-semibold"
+              : "text-text-secondary hover:bg-bg-hover hover:text-text-primary border-transparent hover:border-border-secondary"
+          )}
+        >
+          <Settings size={18} strokeWidth={isSettingsActive ? 2 : 1.5} />
+          Configuración
+        </Link>
+
         {/* Theme toggle */}
         <button
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="flex items-center gap-2 w-full px-2.5 py-2 rounded-xl text-[12px] text-text-muted hover:bg-bg-hover hover:text-text-secondary transition-all duration-150"
+          className="flex items-center gap-2.5 w-full px-2.5 py-2 rounded-xl text-[12px] text-text-muted hover:bg-bg-hover hover:text-text-secondary transition-all duration-150"
         >
           {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
           {theme === "dark" ? "Modo claro" : "Modo oscuro"}
         </button>
 
         {/* User profile */}
-        <div className="flex items-center gap-2.5 px-2.5 py-2.5 border-t border-border-secondary pt-3">
+        <div className="flex items-center gap-2.5 px-2.5 py-2.5 border-t border-border-secondary pt-3 mt-1">
           {userAvatarUrl ? (
             <img
               src={resolveMediaUrl(userAvatarUrl)}

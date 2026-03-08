@@ -15,7 +15,7 @@ export default function LoginPage() {
           priority
         />
         <p className="text-white/60 text-sm">
-          Panel de gesti&oacute;n para empresas
+          Panel de gestión para empresas
         </p>
         <SignIn
           appearance={{
