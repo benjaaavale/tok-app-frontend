@@ -24,13 +24,16 @@ FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV PORT=3000
+
+# Accept PORT from Easypanel (passed as build-arg) and default to 3000
+ARG PORT=3000
+ENV PORT=$PORT
 
 # Copy standalone output
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 
-EXPOSE 3000
+EXPOSE $PORT
 
 CMD ["node", "server.js"]
