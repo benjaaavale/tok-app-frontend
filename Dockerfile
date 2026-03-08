@@ -16,6 +16,7 @@ COPY . .
 ENV NEXT_PUBLIC_API_URL=https://api.tok-ai.cl
 ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_Y2xlcmsudG9rLWFpLmNsJA
 
+ENV NODE_OPTIONS="--max-old-space-size=2048"
 RUN npm run build
 
 # ── Production runner ──
