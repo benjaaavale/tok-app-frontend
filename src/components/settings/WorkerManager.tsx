@@ -1,0 +1,171 @@
+"use client";
+
+import { useState } from "react";
+import { useAuth } from "@clerk/nextjs";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useWorkers } from "@/hooks/useWorkers";
+import { authFetch } from "@/lib/api";
+import { toast } from "sonner";
+import { SettingsSection } from "./SettingsSection";
+import { WORKER_COLORS } from "@/lib/constants";
+import { Plus, Trash2, UserPlus } from "lucide-react";
+
+export function WorkerManager() {
+  const { getToken } = useAuth();
+  const queryClient = useQueryClient();
+  const { data: workers, isLoading } = useWorkers();
+
+  const [showForm, setShowForm] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [newColor, setNewColor] = useState(WORKER_COLORS[0]);
+
+  const addWorker = useMutation({
+    mutationFn: async () => {
+      if (!newName.trim()) throw new Error("Nombre requerido");
+      await authFetch(
+        "/workers",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            nombre: newName.trim(),
+            email: newEmail.trim() || undefined,
+            color: newColor,
+          }),
+        },
+        () => getToken()
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["workers"] });
+      setNewName("");
+      setNewEmail("");
+      setNewColor(WORKER_COLORS[0]);
+      setShowForm(false);
+      toast.success("Trabajador agregado");
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const deleteWorker = useMutation({
+    mutationFn: async (id: number) => {
+      await authFetch(`/workers/${id}`, { method: "DELETE" }, () => getToken());
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["workers"] });
+      toast.success("Trabajador eliminado");
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  if (isLoading) {
+    return (
+      <div className="h-[200px] bg-bg-secondary rounded-2xl animate-pulse" />
+    );
+  }
+
+  return (
+    <SettingsSection
+      title="Equipo"
+      description="Gestiona los trabajadores y asignación de citas"
+    >
+      {/* Worker list */}
+      <div className="space-y-2">
+        {workers && workers.length > 0 ? (
+          workers.map((w) => (
+            <div
+              key={w.id}
+              className="flex items-center gap-3 px-3 py-2.5 bg-bg-primary rounded-xl border border-border-secondary"
+            >
+              <div
+                className="w-3 h-3 rounded-full flex-shrink-0"
+                style={{ backgroundColor: w.color }}
+              />
+              <div className="flex-1 min-w-0">
+                <p className="text-[12px] font-medium text-text-primary">
+                  {w.nombre}
+                </p>
+                {w.calcom_email && (
+                  <p className="text-[10px] text-text-muted truncate">
+                    {w.calcom_email}
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={() => {
+                  if (confirm(`¿Eliminar a ${w.nombre}?`)) {
+                    deleteWorker.mutate(w.id);
+                  }
+                }}
+                className="p-1.5 rounded-lg text-text-muted hover:text-danger hover:bg-danger/10 transition-all"
+              >
+                <Trash2 size={13} />
+              </button>
+            </div>
+          ))
+        ) : (
+          <p className="text-[12px] text-text-muted text-center py-4">
+            No hay trabajadores registrados
+          </p>
+        )}
+      </div>
+
+      {/* Add form */}
+      {showForm ? (
+        <div className="mt-3 p-3 bg-bg-primary rounded-xl border border-border-secondary space-y-2">
+          <input
+            type="text"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            placeholder="Nombre"
+            className="w-full px-3 py-2 rounded-lg bg-bg-secondary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30"
+          />
+          <input
+            type="email"
+            value={newEmail}
+            onChange={(e) => setNewEmail(e.target.value)}
+            placeholder="Email Cal.com (opcional)"
+            className="w-full px-3 py-2 rounded-lg bg-bg-secondary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30"
+          />
+          <div className="flex gap-1.5 flex-wrap">
+            {WORKER_COLORS.map((c) => (
+              <button
+                key={c}
+                onClick={() => setNewColor(c)}
+                className={`w-6 h-6 rounded-full transition-all ${
+                  newColor === c
+                    ? "ring-2 ring-offset-2 ring-offset-bg-primary ring-accent scale-110"
+                    : "hover:scale-105"
+                }`}
+                style={{ backgroundColor: c }}
+              />
+            ))}
+          </div>
+          <div className="flex gap-2 pt-1">
+            <button
+              onClick={() => addWorker.mutate()}
+              disabled={addWorker.isPending}
+              className="flex-1 py-2 rounded-lg bg-accent text-white text-[12px] font-medium hover:bg-accent/90 transition-all disabled:opacity-50"
+            >
+              {addWorker.isPending ? "Agregando..." : "Agregar"}
+            </button>
+            <button
+              onClick={() => setShowForm(false)}
+              className="px-4 py-2 rounded-lg bg-bg-secondary text-text-secondary text-[12px] hover:bg-bg-hover transition-all"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={() => setShowForm(true)}
+          className="flex items-center gap-2 mt-3 px-4 py-2 rounded-xl bg-bg-primary border border-border-secondary text-[12px] font-medium text-text-primary hover:bg-bg-hover transition-all"
+        >
+          <UserPlus size={13} />
+          Agregar trabajador
+        </button>
+      )}
+    </SettingsSection>
+  );
+}
