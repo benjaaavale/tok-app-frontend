@@ -12,12 +12,9 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Build args for env vars needed at build time
-ARG NEXT_PUBLIC_API_URL
-ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+# Public env vars baked into the Next.js bundle at build time
+ENV NEXT_PUBLIC_API_URL=https://api.tok-ai.cl
+ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_Y2xlcmsudG9rLWFpLmNsJA
 
 RUN npm run build
 
