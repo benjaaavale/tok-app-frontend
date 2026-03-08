@@ -1,7 +1,7 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 const isPublicRoute = createRouteMatcher([
-  "/sign-in(.*)",
+  "/login(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
