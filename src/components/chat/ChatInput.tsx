@@ -172,7 +172,7 @@ export function ChatInput() {
         <button
           onClick={handleSend}
           disabled={isSending || (!text.trim() && !file)}
-          className="p-2.5 rounded-xl bg-accent text-white hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
+          className="btn-gradient w-[44px] h-[44px] flex items-center justify-center rounded-xl disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
         >
           <Send size={16} />
         </button>

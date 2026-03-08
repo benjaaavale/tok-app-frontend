@@ -32,11 +32,12 @@ export function MessageBubble({ message, onImageClick }: MessageBubbleProps) {
     >
       <div
         className={cn(
-          "max-w-[75%] rounded-2xl px-3.5 py-2 text-[13px] leading-relaxed shadow-sm",
+          "max-w-[75%] rounded-2xl px-3.5 py-2 text-[13px] leading-relaxed",
           isOutbound
-            ? "bg-accent text-white rounded-br-md"
-            : "bg-bg-secondary border border-border-secondary text-text-primary rounded-bl-md"
+            ? "text-white rounded-br-md shadow-sm"
+            : "bg-bg-secondary border border-border-secondary text-text-primary rounded-bl-md shadow-sm"
         )}
+        style={isOutbound ? { background: "var(--gradient-accent)" } : undefined}
       >
         {/* Content by type */}
         {message.tipo === "imagen" ? (

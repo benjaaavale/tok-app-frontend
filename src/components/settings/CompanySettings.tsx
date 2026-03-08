@@ -22,7 +22,6 @@ export function CompanySettings() {
   const [horarioInicio, setHorarioInicio] = useState("");
   const [horarioFin, setHorarioFin] = useState("");
   const [diasLaborales, setDiasLaborales] = useState("");
-  const [botAutoDesactivar, setBotAutoDesactivar] = useState(false);
 
   useEffect(() => {
     if (settings) {
@@ -30,7 +29,6 @@ export function CompanySettings() {
       setHorarioInicio(settings.horario_inicio || "");
       setHorarioFin(settings.horario_fin || "");
       setDiasLaborales(settings.dias_laborales || "");
-      setBotAutoDesactivar(settings.bot_auto_desactivar || false);
     }
   }, [settings]);
 
@@ -45,7 +43,6 @@ export function CompanySettings() {
             horario_inicio: horarioInicio,
             horario_fin: horarioFin,
             dias_laborales: diasLaborales,
-            bot_auto_desactivar: botAutoDesactivar,
           }),
         },
         () => getToken()
@@ -69,7 +66,7 @@ export function CompanySettings() {
   return (
     <SettingsSection
       title="Empresa"
-      description="Nombre, horarios y comportamiento del bot"
+      description="Nombre y horarios de atención"
     >
       <div className="space-y-1">
         <FieldRow label="Nombre" htmlFor="company-name">
@@ -107,33 +104,13 @@ export function CompanySettings() {
             placeholder="lunes a viernes"
           />
         </FieldRow>
-
-        <FieldRow label="Bot auto-desactivar">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setBotAutoDesactivar(!botAutoDesactivar)}
-              className={`relative w-10 h-5.5 rounded-full transition-colors duration-200 ${
-                botAutoDesactivar ? "bg-accent" : "bg-border-primary"
-              }`}
-            >
-              <div
-                className={`absolute top-0.5 w-4.5 h-4.5 rounded-full bg-white shadow transition-transform duration-200 ${
-                  botAutoDesactivar ? "left-[20px]" : "left-0.5"
-                }`}
-              />
-            </button>
-            <span className="text-[11px] text-text-muted">
-              Desactivar bot al responder manualmente
-            </span>
-          </div>
-        </FieldRow>
       </div>
 
       <div className="pt-3 border-t border-border-secondary mt-3">
         <button
           onClick={() => save.mutate()}
           disabled={save.isPending}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent text-white text-[12px] font-medium hover:bg-accent/90 transition-all disabled:opacity-50"
+          className="btn-gradient flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-medium disabled:opacity-50"
         >
           <Save size={13} />
           {save.isPending ? "Guardando..." : "Guardar cambios"}

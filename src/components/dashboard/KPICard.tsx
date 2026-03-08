@@ -20,11 +20,12 @@ export function KPICard({ title, value, icon: Icon, accent }: KPICardProps) {
   return (
     <div
       className={cn(
-        "rounded-2xl p-5 transition-shadow duration-200",
+        "rounded-2xl p-5 transition-all duration-200 hover:-translate-y-0.5",
         accent
-          ? "bg-accent text-white shadow-md"
+          ? "text-white shadow-md"
           : "bg-bg-secondary border border-border-secondary shadow-sm hover:shadow-md"
       )}
+      style={accent ? { background: "var(--gradient-dark)" } : undefined}
     >
       <div className="flex items-center justify-between">
         <div>

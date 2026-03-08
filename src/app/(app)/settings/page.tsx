@@ -1,6 +1,7 @@
 "use client";
 
 import { CompanySettings } from "@/components/settings/CompanySettings";
+import { AgentSettings } from "@/components/settings/AgentSettings";
 import { IntegrationSettings } from "@/components/settings/IntegrationSettings";
 import { WorkerManager } from "@/components/settings/WorkerManager";
 import { UserProfileSettings } from "@/components/settings/UserProfileSettings";
@@ -20,6 +21,7 @@ export default function SettingsPage() {
       {/* Sections */}
       <UserProfileSettings />
       <CompanySettings />
+      <AgentSettings />
       <WorkerManager />
       <IntegrationSettings />
     </div>

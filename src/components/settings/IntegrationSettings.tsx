@@ -97,7 +97,7 @@ export function IntegrationSettings() {
         <button
           onClick={() => save.mutate()}
           disabled={save.isPending}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent text-white text-[12px] font-medium hover:bg-accent/90 transition-all disabled:opacity-50"
+          className="btn-gradient flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-medium disabled:opacity-50"
         >
           <Save size={13} />
           {save.isPending ? "Guardando..." : "Guardar cambios"}

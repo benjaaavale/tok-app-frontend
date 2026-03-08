@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useAuthStore } from "@/stores/auth-store";
+import { resolveMediaUrl } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -19,7 +20,7 @@ const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/conversations", label: "Mensajes", icon: MessageCircle },
   { href: "/calendar", label: "Agenda", icon: CalendarDays },
-  { href: "/settings", label: "Configuraci\u00f3n", icon: Settings },
+  { href: "/settings", label: "Configuración", icon: Settings },
 ];
 
 export function Sidebar() {
@@ -28,23 +29,28 @@ export function Sidebar() {
   const { companyNombre, userAvatarUrl, userInitials } = useAuthStore();
 
   return (
-    <aside className="hidden lg:flex flex-col w-[220px] h-screen bg-bg-sidebar border-r border-border-secondary">
+    <aside className="hidden lg:flex flex-col w-[210px] h-screen bg-bg-sidebar border-r border-border-secondary">
       {/* ── Logo ── */}
-      <div className="flex items-center gap-2 px-5 pt-5 pb-2">
+      <div className="px-4 pt-4 pb-1">
         <Image
           src={theme === "dark" ? "/logo-blanco.png" : "/logo-negro.png"}
           alt="ToK"
-          width={36}
-          height={36}
-          className="rounded-lg"
+          width={140}
+          height={56}
+          className="h-14 w-auto"
+          priority
         />
-        <span className="text-[15px] font-semibold text-text-primary tracking-tight">
-          ToK
+      </div>
+
+      {/* ── Section label ── */}
+      <div className="px-5 pt-4 pb-1">
+        <span className="text-[10px] font-bold uppercase tracking-[1.2px] text-text-muted">
+          Menú
         </span>
       </div>
 
       {/* ── Navigation ── */}
-      <nav className="flex-1 px-3 pt-4 space-y-1">
+      <nav className="flex-1 px-2.5 pt-1 space-y-0.5">
         {navItems.map((item) => {
           const isActive =
             pathname === item.href || pathname.startsWith(item.href + "/");
@@ -53,10 +59,10 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-150",
+                "flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-[13px] font-medium transition-all duration-150 border",
                 isActive
-                  ? "bg-accent text-white shadow-sm"
-                  : "text-text-secondary hover:bg-bg-hover hover:text-text-primary"
+                  ? "bg-accent-light text-accent border-accent-muted font-semibold"
+                  : "text-text-secondary hover:bg-bg-hover hover:text-text-primary border-transparent hover:border-border-secondary"
               )}
             >
               <item.icon size={18} strokeWidth={isActive ? 2 : 1.5} />
@@ -66,27 +72,30 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* ── Footer: theme toggle + user ── */}
-      <div className="px-3 pb-4 space-y-3">
+      {/* ── Footer ── */}
+      <div className="px-2.5 pb-4 space-y-2">
         {/* Theme toggle */}
         <button
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-[12px] text-text-muted hover:bg-bg-hover hover:text-text-secondary transition-all duration-150"
+          className="flex items-center gap-2 w-full px-2.5 py-2 rounded-xl text-[12px] text-text-muted hover:bg-bg-hover hover:text-text-secondary transition-all duration-150"
         >
           {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
           {theme === "dark" ? "Modo claro" : "Modo oscuro"}
         </button>
 
         {/* User profile */}
-        <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl">
+        <div className="flex items-center gap-2.5 px-2.5 py-2.5 border-t border-border-secondary pt-3">
           {userAvatarUrl ? (
             <img
-              src={userAvatarUrl}
+              src={resolveMediaUrl(userAvatarUrl)}
               alt="Avatar"
-              className="w-8 h-8 rounded-full object-cover"
+              className="w-[34px] h-[34px] rounded-full object-cover"
             />
           ) : (
-            <div className="w-8 h-8 rounded-full bg-accent/15 text-accent flex items-center justify-center text-[11px] font-semibold">
+            <div
+              className="w-[34px] h-[34px] rounded-full flex items-center justify-center text-[11px] font-semibold text-white"
+              style={{ background: "var(--gradient-accent)" }}
+            >
               {userInitials || "TK"}
             </div>
           )}
