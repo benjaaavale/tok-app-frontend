@@ -12,7 +12,7 @@ import {
 const COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#06B6D4", "#84CC16"];
 
 interface ServiciosChartProps {
-  data: { name: string; value: number }[];
+  data: { nombre: string; cantidad: number }[];
 }
 
 export function ServiciosChart({ data }: ServiciosChartProps) {
@@ -20,12 +20,14 @@ export function ServiciosChart({ data }: ServiciosChartProps) {
     return <ChartEmpty label="Sin datos de servicios" />;
   }
 
+  const chartData = data.map((d) => ({ name: d.nombre, value: d.cantidad }));
+
   return (
-    <ChartCard title="Servicios">
+    <ChartCard title="Servicios más solicitados">
       <ResponsiveContainer width="100%" height={220}>
         <PieChart>
           <Pie
-            data={data}
+            data={chartData}
             cx="50%"
             cy="50%"
             innerRadius={50}
@@ -34,7 +36,7 @@ export function ServiciosChart({ data }: ServiciosChartProps) {
             dataKey="value"
             strokeWidth={0}
           >
-            {data.map((_, i) => (
+            {chartData.map((_, i) => (
               <Cell key={i} fill={COLORS[i % COLORS.length]} />
             ))}
           </Pie>

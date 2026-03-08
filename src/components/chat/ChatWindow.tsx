@@ -6,7 +6,7 @@ import { useChatStore } from "@/stores/chat-store";
 import { MessageBubble } from "./MessageBubble";
 import { ChatInput } from "./ChatInput";
 import { getInitials } from "@/lib/utils";
-import { ArrowLeft, PanelRightOpen, PanelRightClose } from "lucide-react";
+import { ArrowLeft, MessageCircle, PanelRightOpen, PanelRightClose } from "lucide-react";
 
 export function ChatWindow() {
   const {
@@ -30,15 +30,15 @@ export function ChatWindow() {
 
   if (!activeConversationId) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-bg-primary">
-        <div className="text-center">
-          <div className="w-16 h-16 rounded-2xl bg-accent/10 text-accent flex items-center justify-center mx-auto mb-4">
-            💬
+      <div className="flex-1 flex items-center justify-center bg-bg-primary min-h-0 h-full">
+        <div className="text-center px-6 max-w-[280px]">
+          <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-5" style={{ background: "var(--gradient-accent)" }}>
+            <MessageCircle size={36} className="text-white" />
           </div>
-          <p className="text-[14px] text-text-secondary">
+          <h2 className="text-[18px] font-semibold text-text-primary">
             Selecciona una conversación
-          </p>
-          <p className="text-[12px] text-text-muted mt-1">
+          </h2>
+          <p className="text-[13px] text-text-muted mt-2 leading-relaxed">
             Elige un chat de la lista para ver los mensajes
           </p>
         </div>

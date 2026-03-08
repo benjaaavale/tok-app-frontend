@@ -49,10 +49,10 @@ export default function DashboardPage() {
         <>
           {/* KPIs */}
           <KPIGrid
-            totalConversations={stats.total_conversations}
-            qualifiedLeads={stats.qualified_leads}
-            scheduledAppointments={stats.scheduled_appointments}
-            conversionRate={stats.conversion_rate}
+            totalConversations={stats.conversaciones_recibidas}
+            qualifiedLeads={stats.leads_calificados}
+            scheduledAppointments={stats.citas_generadas}
+            conversionRate={stats.conversion_a_cita}
           />
 
           {/* Mini stats */}
@@ -60,26 +60,26 @@ export default function DashboardPage() {
             <MiniStat
               icon={<MessageSquare size={14} />}
               label="Total mensajes"
-              value={stats.total_messages}
+              value={stats.mensajes_totales}
             />
             <MiniStat
               icon={<BarChart3 size={14} />}
               label="Promedio msg/conv"
-              value={stats.avg_messages_per_conversation}
+              value={stats.promedio_mensajes}
             />
             <MiniStat
               icon={<Clock size={14} />}
               label="Leads fuera de horario"
-              value={stats.off_hours_leads}
+              value={stats.leads_fuera_de_horario}
             />
           </div>
 
           {/* Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <ServiciosChart data={stats.servicios} />
-            <HorariosChart data={stats.horarios} />
+            <ServiciosChart data={stats.servicios_mas_solicitados} />
+            <HorariosChart data={stats.horarios_mas_actividad} />
             <FunnelChart data={stats.funnel} />
-            <LeadsChart data={stats.leads} />
+            <LeadsChart data={stats.funnel} />
           </div>
         </>
       ) : (

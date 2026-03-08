@@ -9,10 +9,11 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
+import { ETAPA_LABELS } from "@/lib/constants";
 import { ChartCard, ChartEmpty } from "./ServiciosChart";
 
 interface FunnelChartProps {
-  data: { stage: string; count: number }[];
+  data: { etapa: string; cantidad: number }[];
 }
 
 export function FunnelChart({ data }: FunnelChartProps) {
@@ -20,10 +21,15 @@ export function FunnelChart({ data }: FunnelChartProps) {
     return <ChartEmpty label="Sin datos del funnel" />;
   }
 
+  const chartData = data.map((d) => ({
+    stage: ETAPA_LABELS[d.etapa] || d.etapa,
+    count: d.cantidad,
+  }));
+
   return (
     <ChartCard title="Funnel de conversión">
       <ResponsiveContainer width="100%" height={220}>
-        <BarChart data={data} layout="vertical" barCategoryGap="25%">
+        <BarChart data={chartData} layout="vertical" barCategoryGap="25%">
           <CartesianGrid
             strokeDasharray="3 3"
             stroke="var(--border-secondary)"
@@ -41,7 +47,7 @@ export function FunnelChart({ data }: FunnelChartProps) {
             tick={{ fontSize: 11, fill: "var(--text-secondary)" }}
             axisLine={false}
             tickLine={false}
-            width={90}
+            width={100}
           />
           <Tooltip
             contentStyle={{

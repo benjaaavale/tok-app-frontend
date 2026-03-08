@@ -13,6 +13,35 @@ import {
 } from "./SettingsSection";
 import { Save } from "lucide-react";
 
+const DIAS = [
+  { key: "lunes", label: "Lun" },
+  { key: "martes", label: "Mar" },
+  { key: "miercoles", label: "Mié" },
+  { key: "jueves", label: "Jue" },
+  { key: "viernes", label: "Vie" },
+  { key: "sabado", label: "Sáb" },
+  { key: "domingo", label: "Dom" },
+];
+
+function parseDiasLaborales(str: string): string[] {
+  if (!str) return [];
+  // Support formats: "lunes,martes,miercoles" or "lunes a viernes"
+  const lower = str.toLowerCase().trim();
+  if (lower.includes(" a ")) {
+    const parts = lower.split(" a ").map((s) => s.trim());
+    const startIdx = DIAS.findIndex((d) => d.key === parts[0]);
+    const endIdx = DIAS.findIndex((d) => d.key === parts[1]);
+    if (startIdx >= 0 && endIdx >= 0) {
+      return DIAS.slice(startIdx, endIdx + 1).map((d) => d.key);
+    }
+  }
+  return lower.split(",").map((s) => s.trim()).filter(Boolean);
+}
+
+function serializeDiasLaborales(selected: string[]): string {
+  return selected.join(",");
+}
+
 export function CompanySettings() {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
@@ -21,16 +50,22 @@ export function CompanySettings() {
   const [nombre, setNombre] = useState("");
   const [horarioInicio, setHorarioInicio] = useState("");
   const [horarioFin, setHorarioFin] = useState("");
-  const [diasLaborales, setDiasLaborales] = useState("");
+  const [selectedDias, setSelectedDias] = useState<string[]>([]);
 
   useEffect(() => {
     if (settings) {
       setNombre(settings.company_nombre || "");
       setHorarioInicio(settings.horario_inicio || "");
       setHorarioFin(settings.horario_fin || "");
-      setDiasLaborales(settings.dias_laborales || "");
+      setSelectedDias(parseDiasLaborales(settings.dias_laborales || ""));
     }
   }, [settings]);
+
+  const toggleDia = (dia: string) => {
+    setSelectedDias((prev) =>
+      prev.includes(dia) ? prev.filter((d) => d !== dia) : [...prev, dia]
+    );
+  };
 
   const save = useMutation({
     mutationFn: async () => {
@@ -42,7 +77,7 @@ export function CompanySettings() {
             nombre,
             horario_inicio: horarioInicio,
             horario_fin: horarioFin,
-            dias_laborales: diasLaborales,
+            dias_laborales: serializeDiasLaborales(selectedDias),
           }),
         },
         () => getToken()
@@ -97,12 +132,25 @@ export function CompanySettings() {
         </FieldRow>
 
         <FieldRow label="Días laborales" htmlFor="dias-laborales">
-          <InputField
-            id="dias-laborales"
-            value={diasLaborales}
-            onChange={setDiasLaborales}
-            placeholder="lunes a viernes"
-          />
+          <div className="grid grid-cols-7 gap-1.5 w-full">
+            {DIAS.map((dia) => {
+              const isActive = selectedDias.includes(dia.key);
+              return (
+                <button
+                  key={dia.key}
+                  type="button"
+                  onClick={() => toggleDia(dia.key)}
+                  className={`py-2 rounded-lg text-[11px] font-semibold transition-all duration-150 ${
+                    isActive
+                      ? "bg-accent text-white shadow-sm"
+                      : "bg-bg-primary border border-border-secondary text-text-muted hover:border-accent/40 hover:text-text-secondary"
+                  }`}
+                >
+                  {dia.label}
+                </button>
+              );
+            })}
+          </div>
         </FieldRow>
       </div>
 

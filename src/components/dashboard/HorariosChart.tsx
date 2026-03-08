@@ -12,7 +12,7 @@ import {
 import { ChartCard, ChartEmpty } from "./ServiciosChart";
 
 interface HorariosChartProps {
-  data: { hour: string; count: number }[];
+  data: { hora: number; cantidad: number }[];
 }
 
 export function HorariosChart({ data }: HorariosChartProps) {
@@ -20,10 +20,15 @@ export function HorariosChart({ data }: HorariosChartProps) {
     return <ChartEmpty label="Sin datos de actividad" />;
   }
 
+  const chartData = data.map((d) => ({
+    hour: `${d.hora.toString().padStart(2, "0")}:00`,
+    count: d.cantidad,
+  }));
+
   return (
     <ChartCard title="Actividad por hora">
       <ResponsiveContainer width="100%" height={220}>
-        <BarChart data={data} barCategoryGap="20%">
+        <BarChart data={chartData} barCategoryGap="20%">
           <CartesianGrid
             strokeDasharray="3 3"
             stroke="var(--border-secondary)"

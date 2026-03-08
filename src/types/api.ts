@@ -81,17 +81,16 @@ export interface CompanySettings {
 }
 
 export interface DashboardStats {
-  total_conversations: number;
-  qualified_leads: number;
-  scheduled_appointments: number;
-  conversion_rate: number;
-  total_messages: number;
-  avg_messages_per_conversation: number;
-  off_hours_leads: number;
-  servicios: { name: string; value: number }[];
-  horarios: { hour: string; count: number }[];
-  funnel: { stage: string; count: number }[];
-  leads: { etapa: string; count: number }[];
+  conversaciones_recibidas: number;
+  leads_calificados: number;
+  citas_generadas: number;
+  conversion_a_cita: number;
+  mensajes_totales: number;
+  promedio_mensajes: number;
+  leads_fuera_de_horario: number;
+  servicios_mas_solicitados: { nombre: string; cantidad: number }[];
+  horarios_mas_actividad: { hora: number; cantidad: number }[];
+  funnel: { etapa: string; cantidad: number }[];
 }
 
 export interface UserProfile {

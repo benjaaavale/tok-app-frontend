@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { authFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { SettingsSection } from "./SettingsSection";
-import { Bot, Save } from "lucide-react";
+import { Bot } from "lucide-react";
 
 export function AgentSettings() {
   const { getToken } = useAuth();
@@ -23,22 +23,35 @@ export function AgentSettings() {
   }, [settings]);
 
   const save = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (newValue: boolean) => {
       await authFetch(
         "/company/settings",
         {
           method: "PUT",
-          body: JSON.stringify({ bot_auto_desactivar: botAutoDesactivar }),
+          body: JSON.stringify({ bot_auto_desactivar: newValue }),
         },
         () => getToken()
       );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["companySettings"] });
-      toast.success("Configuración del agente guardada");
+      toast.success("Cambios guardados", {
+        style: { background: "#10B981", color: "white", border: "none" },
+        duration: 2000,
+      });
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (err: Error) => {
+      // Revert on error
+      setBotAutoDesactivar((prev) => !prev);
+      toast.error(err.message);
+    },
   });
+
+  const handleToggle = () => {
+    const newValue = !botAutoDesactivar;
+    setBotAutoDesactivar(newValue);
+    save.mutate(newValue);
+  };
 
   if (isLoading) {
     return (
@@ -67,27 +80,17 @@ export function AgentSettings() {
         </div>
 
         <button
-          onClick={() => setBotAutoDesactivar(!botAutoDesactivar)}
-          className={`relative w-[40px] h-[22px] rounded-full transition-colors duration-250 flex-shrink-0 ${
+          onClick={handleToggle}
+          disabled={save.isPending}
+          className={`relative w-[44px] h-[24px] rounded-full transition-colors duration-200 flex-shrink-0 disabled:opacity-60 ${
             botAutoDesactivar ? "bg-accent" : "bg-border-primary"
           }`}
         >
           <div
-            className={`absolute top-[3px] w-4 h-4 rounded-full bg-white shadow transition-transform duration-250 ${
-              botAutoDesactivar ? "left-[20px]" : "left-[3px]"
+            className={`absolute top-[3px] w-[18px] h-[18px] rounded-full bg-white shadow transition-transform duration-200 ${
+              botAutoDesactivar ? "left-[22px]" : "left-[3px]"
             }`}
           />
-        </button>
-      </div>
-
-      <div className="pt-3 mt-3">
-        <button
-          onClick={() => save.mutate()}
-          disabled={save.isPending}
-          className="btn-gradient flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-medium disabled:opacity-50"
-        >
-          <Save size={13} />
-          {save.isPending ? "Guardando..." : "Guardar"}
         </button>
       </div>
     </SettingsSection>

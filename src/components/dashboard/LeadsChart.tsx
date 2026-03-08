@@ -12,7 +12,7 @@ import { ETAPA_COLORS, ETAPA_LABELS } from "@/lib/constants";
 import { ChartCard, ChartEmpty } from "./ServiciosChart";
 
 interface LeadsChartProps {
-  data: { etapa: string; count: number }[];
+  data: { etapa: string; cantidad: number }[];
 }
 
 export function LeadsChart({ data }: LeadsChartProps) {
@@ -22,7 +22,7 @@ export function LeadsChart({ data }: LeadsChartProps) {
 
   const chartData = data.map((d) => ({
     name: ETAPA_LABELS[d.etapa] || d.etapa,
-    value: d.count,
+    value: d.cantidad,
     color: ETAPA_COLORS[d.etapa] || "#94A3B8",
   }));
 
