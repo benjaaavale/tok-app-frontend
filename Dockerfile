@@ -24,6 +24,8 @@ FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
+# Bind to all interfaces so Easypanel's proxy can reach the container
+ENV HOSTNAME=0.0.0.0
 
 # Accept PORT from Easypanel (passed as build-arg) and default to 3000
 ARG PORT=3000
