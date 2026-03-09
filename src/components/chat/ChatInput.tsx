@@ -5,7 +5,7 @@ import { useAuth } from "@clerk/nextjs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { authFetch } from "@/lib/api";
 import { useChatStore } from "@/stores/chat-store";
-import { formatFileSize } from "@/lib/utils";
+import { formatFileSize, resolveMediaUrl } from "@/lib/utils";
 import { Send, Paperclip, X, Image, Video, FileText } from "lucide-react";
 import { toast } from "sonner";
 
@@ -25,7 +25,9 @@ export function ChatInput() {
         "/messages/send",
         {
           method: "POST",
-          body: JSON.stringify({ phone: activePhone, mensaje }),
+          body: JSON.stringify({
+            whatsappMessage: { to: activePhone, text: { body: mensaje } },
+          }),
         },
         () => getToken()
       );
@@ -50,14 +52,23 @@ export function ChatInput() {
       );
       const uploadData = await uploadRes.json();
 
+      const absoluteUrl = resolveMediaUrl(uploadData.url);
+      let mediaPayload: Record<string, unknown>;
+      if (uploadData.tipo === "video") {
+        mediaPayload = { video: { link: absoluteUrl } };
+      } else if (uploadData.tipo === "documento") {
+        mediaPayload = { document: { link: absoluteUrl, filename: uploadData.filename } };
+      } else {
+        // imagen (default)
+        mediaPayload = { image: { link: absoluteUrl } };
+      }
+
       await authFetch(
         "/messages/send",
         {
           method: "POST",
           body: JSON.stringify({
-            phone: activePhone,
-            mensaje: "",
-            media_url: uploadData.url || uploadData.path,
+            whatsappMessage: { to: activePhone, ...mediaPayload },
           }),
         },
         () => getToken()
