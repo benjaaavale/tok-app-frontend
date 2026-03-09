@@ -26,7 +26,7 @@ export function ChatInput() {
         {
           method: "POST",
           body: JSON.stringify({
-            whatsappMessage: { to: activePhone, text: { body: mensaje } },
+            whatsappMessage: { to: activePhone, type: "text", text: { body: mensaje } },
           }),
         },
         () => getToken()
@@ -54,12 +54,15 @@ export function ChatInput() {
 
       const absoluteUrl = resolveMediaUrl(uploadData.url);
       let mediaPayload: Record<string, unknown>;
+      let type: string;
       if (uploadData.tipo === "video") {
+        type = "video";
         mediaPayload = { video: { link: absoluteUrl } };
       } else if (uploadData.tipo === "documento") {
+        type = "document";
         mediaPayload = { document: { link: absoluteUrl, filename: uploadData.filename } };
       } else {
-        // imagen (default)
+        type = "image";
         mediaPayload = { image: { link: absoluteUrl } };
       }
 
@@ -68,7 +71,7 @@ export function ChatInput() {
         {
           method: "POST",
           body: JSON.stringify({
-            whatsappMessage: { to: activePhone, ...mediaPayload },
+            whatsappMessage: { to: activePhone, type, ...mediaPayload },
           }),
         },
         () => getToken()
