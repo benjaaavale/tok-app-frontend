@@ -16,7 +16,14 @@ export function useContact(phone: string | null) {
         {},
         () => getToken()
       );
-      return res.json();
+      const data = await res.json();
+      // Backend returns { contact, next_appointment, history }
+      // Flatten into a single Contact object
+      return {
+        ...data.contact,
+        next_appointment: data.next_appointment ?? null,
+        history: data.history ?? [],
+      } as Contact;
     },
     enabled: !!phone,
   });
