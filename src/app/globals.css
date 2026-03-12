@@ -5,7 +5,7 @@
   /* Backgrounds */
   --bg-primary: #F0F4F8;
   --bg-secondary: #FFFFFF;
-  --bg-sidebar: #FFFFFF;
+  --bg-sidebar: #F1F5F9;
   --bg-hover: #F1F5F9;
   --bg-active: #EFF6FF;
 
@@ -56,7 +56,7 @@
 .dark {
   --bg-primary: #0F172A;
   --bg-secondary: #1E293B;
-  --bg-sidebar: #0F172A;
+  --bg-sidebar: #080D1A;
   --bg-hover: #1E293B;
   --bg-active: #1E3A5F;
 
