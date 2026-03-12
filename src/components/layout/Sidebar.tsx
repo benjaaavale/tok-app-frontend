@@ -46,33 +46,28 @@ export function Sidebar() {
         onMouseLeave={() => setOpen(false)}
       >
         {/* ── Logo ── */}
-        <div className="flex items-center h-[68px] px-4">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center">
-              <Image
-                src="/logo-blanco.png"
-                alt="ToK"
-                width={52}
-                height={52}
-                className="w-7 h-7 object-contain"
-                priority
-              />
-            </div>
-            <motion.span
-              animate={{
-                display: open ? "inline-block" : "none",
-                opacity: open ? 1 : 0,
-              }}
-              transition={{ duration: 0.2 }}
-              className="font-semibold text-sm text-white whitespace-pre"
-            >
-              ToK
-            </motion.span>
-          </div>
+        <div className="flex items-center justify-center h-[68px]">
+          <motion.div
+            animate={{
+              width: open ? 44 : 28,
+              height: open ? 44 : 28,
+            }}
+            transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+            className="flex-shrink-0"
+          >
+            <Image
+              src={theme === "dark" ? "/logo-blanco.png" : "/logo-negro.png"}
+              alt="ToK"
+              width={52}
+              height={52}
+              className="w-full h-full object-contain"
+              priority
+            />
+          </motion.div>
         </div>
 
         {/* ── Main Navigation ── */}
-        <nav className="flex-1 px-2.5 pt-3 space-y-0.5">
+        <nav className="flex-1 px-2 pt-3 space-y-0.5">
           {mainNavItems.map((item) => {
             const isActive =
               pathname === item.href || pathname.startsWith(item.href + "/");
@@ -82,11 +77,14 @@ export function Sidebar() {
                 href={item.href}
                 title={!open ? item.label : undefined}
                 className={cn(
-                  "flex items-center gap-3 px-2.5 py-2.5 rounded-xl text-[13px] font-medium",
-                  "transition-colors duration-150",
+                  "flex items-center rounded-xl text-[13px] font-medium",
+                  "transition-all duration-200",
+                  open
+                    ? "gap-3 px-2.5 py-2.5"
+                    : "justify-center w-[44px] h-[44px] mx-auto p-0",
                   isActive
-                    ? "bg-white/15 text-white font-semibold"
-                    : "text-white/60 hover:bg-white/10 hover:text-white/90"
+                    ? "bg-accent-light text-accent font-semibold"
+                    : "text-text-secondary hover:bg-bg-hover hover:text-text-primary"
                 )}
               >
                 <item.icon
@@ -110,17 +108,20 @@ export function Sidebar() {
         </nav>
 
         {/* ── Bottom area ── */}
-        <div className="px-2.5 pb-4 space-y-0.5">
+        <div className="px-2 pb-4 space-y-0.5">
           {/* Settings */}
           <Link
             href="/settings"
             title={!open ? "Configuración" : undefined}
             className={cn(
-              "flex items-center gap-3 px-2.5 py-2.5 rounded-xl text-[13px] font-medium",
-              "transition-colors duration-150",
+              "flex items-center rounded-xl text-[13px] font-medium",
+              "transition-all duration-200",
+              open
+                ? "gap-3 px-2.5 py-2.5"
+                : "justify-center w-[44px] h-[44px] mx-auto p-0",
               isSettingsActive
-                ? "bg-white/15 text-white font-semibold"
-                : "text-white/60 hover:bg-white/10 hover:text-white/90"
+                ? "bg-accent-light text-accent font-semibold"
+                : "text-text-secondary hover:bg-bg-hover hover:text-text-primary"
             )}
           >
             <Settings
@@ -150,7 +151,12 @@ export function Sidebar() {
                   : "Modo oscuro"
                 : undefined
             }
-            className="flex items-center gap-3 w-full px-2.5 py-2.5 rounded-xl text-[12px] text-white/40 hover:bg-white/10 hover:text-white/70 transition-colors duration-150"
+            className={cn(
+              "flex items-center rounded-xl text-[12px] text-text-muted hover:bg-bg-hover hover:text-text-secondary transition-all duration-200",
+              open
+                ? "gap-3 w-full px-2.5 py-2.5"
+                : "justify-center w-[44px] h-[44px] mx-auto p-0"
+            )}
           >
             {theme === "dark" ? (
               <Sun size={18} className="flex-shrink-0" />
@@ -170,10 +176,13 @@ export function Sidebar() {
           </button>
 
           {/* Separator */}
-          <div className="border-t border-white/10 pt-1 mt-1" />
+          <div className="border-t border-border-secondary pt-1 mt-1" />
 
           {/* User profile */}
-          <div className="flex items-center gap-3 px-2.5 py-2">
+          <div className={cn(
+            "flex items-center py-2",
+            open ? "gap-3 px-2.5" : "justify-center"
+          )}>
             {userAvatarUrl ? (
               <img
                 src={resolveMediaUrl(userAvatarUrl)}
@@ -182,7 +191,8 @@ export function Sidebar() {
               />
             ) : (
               <div
-                className="w-[34px] h-[34px] rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0 bg-white/20"
+                className="w-[34px] h-[34px] rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0"
+                style={{ background: "var(--gradient-accent)" }}
               >
                 {userInitials || "TK"}
               </div>
@@ -195,10 +205,10 @@ export function Sidebar() {
               transition={{ duration: 0.2 }}
               className="min-w-0"
             >
-              <p className="text-[12px] font-medium text-white/90 truncate">
+              <p className="text-[12px] font-medium text-text-primary truncate">
                 {companyNombre || "Mi empresa"}
               </p>
-              <p className="text-[11px] text-white/50 truncate">
+              <p className="text-[11px] text-text-muted truncate">
                 Administrador
               </p>
             </motion.div>
@@ -247,16 +257,16 @@ function MobileSidebar({
   return (
     <>
       {/* Toggle bar */}
-      <div className="h-14 px-4 flex items-center justify-between lg:hidden bg-bg-sidebar w-full">
+      <div className="h-14 px-4 flex items-center justify-between lg:hidden bg-bg-sidebar border-b border-border-secondary w-full">
         <Image
-          src="/logo-blanco.png"
+          src={theme === "dark" ? "/logo-blanco.png" : "/logo-negro.png"}
           alt="ToK"
           width={28}
           height={28}
           priority
         />
         <Menu
-          className="text-white/70 cursor-pointer"
+          className="text-text-secondary cursor-pointer"
           size={24}
           onClick={() => setOpen(true)}
         />
@@ -275,7 +285,7 @@ function MobileSidebar({
             {/* Close */}
             <div className="flex justify-end mb-6">
               <X
-                className="text-white/70 cursor-pointer"
+                className="text-text-secondary cursor-pointer"
                 size={24}
                 onClick={() => setOpen(false)}
               />
@@ -295,8 +305,8 @@ function MobileSidebar({
                     className={cn(
                       "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium",
                       isActive
-                        ? "bg-white/15 text-white font-semibold"
-                        : "text-white/60 hover:bg-white/10"
+                        ? "bg-accent-light text-accent font-semibold"
+                        : "text-text-secondary hover:bg-bg-hover"
                     )}
                   >
                     <item.icon size={20} strokeWidth={isActive ? 2 : 1.5} />
@@ -307,15 +317,15 @@ function MobileSidebar({
             </nav>
 
             {/* Bottom */}
-            <div className="space-y-1 pt-4 border-t border-white/10">
+            <div className="space-y-1 pt-4 border-t border-border-secondary">
               <Link
                 href="/settings"
                 onClick={() => setOpen(false)}
                 className={cn(
                   "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium",
                   isSettingsActive
-                    ? "bg-white/15 text-white font-semibold"
-                    : "text-white/60 hover:bg-white/10"
+                    ? "bg-accent-light text-accent font-semibold"
+                    : "text-text-secondary hover:bg-bg-hover"
                 )}
               >
                 <Settings
@@ -329,7 +339,7 @@ function MobileSidebar({
                 onClick={() =>
                   setTheme(theme === "dark" ? "light" : "dark")
                 }
-                className="flex items-center gap-3 w-full px-3 py-3 rounded-xl text-sm text-white/40 hover:bg-white/10"
+                className="flex items-center gap-3 w-full px-3 py-3 rounded-xl text-sm text-text-muted hover:bg-bg-hover"
               >
                 {theme === "dark" ? (
                   <Sun size={20} />
@@ -348,16 +358,17 @@ function MobileSidebar({
                   />
                 ) : (
                   <div
-                    className="w-[34px] h-[34px] rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0 bg-white/20"
+                    className="w-[34px] h-[34px] rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0"
+                    style={{ background: "var(--gradient-accent)" }}
                   >
                     {userInitials || "TK"}
                   </div>
                 )}
                 <div>
-                  <p className="text-sm font-medium text-white/90">
+                  <p className="text-sm font-medium text-text-primary">
                     {companyNombre || "Mi empresa"}
                   </p>
-                  <p className="text-xs text-white/50">Administrador</p>
+                  <p className="text-xs text-text-muted">Administrador</p>
                 </div>
               </div>
             </div>
