@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuthStore } from "@/stores/auth-store";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -10,15 +11,19 @@ import {
   Settings,
 } from "lucide-react";
 
-const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/conversations", label: "Mensajes", icon: MessageCircle },
-  { href: "/calendar", label: "Agenda", icon: CalendarDays },
-  { href: "/settings", label: "Ajustes", icon: Settings },
+const allNavItems = [
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, adminOnly: false },
+  { href: "/conversations", label: "Mensajes", icon: MessageCircle, adminOnly: false },
+  { href: "/calendar", label: "Agenda", icon: CalendarDays, adminOnly: false },
+  { href: "/settings", label: "Ajustes", icon: Settings, adminOnly: true },
 ];
 
 export function BottomNav() {
   const pathname = usePathname();
+  const { role } = useAuthStore();
+  const isAdmin = role !== "worker";
+
+  const navItems = allNavItems.filter((item) => !item.adminOnly || isAdmin);
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden bg-bg-sidebar/80 backdrop-blur-xl border-t border-border-secondary">

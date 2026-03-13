@@ -197,7 +197,7 @@ export function AppointmentModal({
           </button>
           <button
             onClick={() => {
-              if (confirm("¿Cancelar esta cita? Se cancelará también en Cal.com.")) {
+              if (confirm("¿Cancelar esta cita? Se eliminará del Google Calendar.")) {
                 cancel.mutate();
               }
             }}

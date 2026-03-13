@@ -8,7 +8,7 @@ import { authFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { SettingsSection } from "./SettingsSection";
 import { WORKER_COLORS } from "@/lib/constants";
-import { Plus, Trash2, UserPlus } from "lucide-react";
+import { Trash2, UserPlus, Mail, Check } from "lucide-react";
 
 export function WorkerManager() {
   const { getToken } = useAuth();
@@ -20,21 +20,26 @@ export function WorkerManager() {
   const [newEmail, setNewEmail] = useState("");
   const [newColor, setNewColor] = useState(WORKER_COLORS[0]);
 
-  const addWorker = useMutation({
+  const inviteWorker = useMutation({
     mutationFn: async () => {
       if (!newName.trim()) throw new Error("Nombre requerido");
-      await authFetch(
-        "/workers",
+      if (!newEmail.trim()) throw new Error("Email requerido");
+      const res = await authFetch(
+        "/admin/invite-worker",
         {
           method: "POST",
           body: JSON.stringify({
             nombre: newName.trim(),
-            email: newEmail.trim() || undefined,
+            email: newEmail.trim(),
             color: newColor,
           }),
         },
         () => getToken()
       );
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Error invitando worker");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["workers"] });
@@ -42,7 +47,7 @@ export function WorkerManager() {
       setNewEmail("");
       setNewColor(WORKER_COLORS[0]);
       setShowForm(false);
-      toast.success("Trabajador agregado");
+      toast.success("Trabajador invitado. Se envió un email de invitación.");
     },
     onError: (err: Error) => toast.error(err.message),
   });
@@ -85,12 +90,21 @@ export function WorkerManager() {
                 <p className="text-[12px] font-medium text-text-primary">
                   {w.nombre}
                 </p>
-                {w.calcom_email && (
-                  <p className="text-[10px] text-text-muted truncate">
-                    {w.calcom_email}
-                  </p>
-                )}
+                <p className="text-[10px] text-text-muted truncate">
+                  {w.email || w.calcom_email || "Sin email"}
+                </p>
               </div>
+              {w.user_id ? (
+                <span className="flex items-center gap-1 text-[10px] text-success px-2 py-0.5 rounded-full bg-success/10">
+                  <Check size={10} />
+                  Cuenta activa
+                </span>
+              ) : (
+                <span className="flex items-center gap-1 text-[10px] text-text-muted px-2 py-0.5 rounded-full bg-bg-secondary">
+                  <Mail size={10} />
+                  Invitado
+                </span>
+              )}
               <button
                 onClick={() => {
                   if (confirm(`¿Eliminar a ${w.nombre}?`)) {
@@ -117,14 +131,14 @@ export function WorkerManager() {
             type="text"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
-            placeholder="Nombre"
+            placeholder="Nombre del trabajador"
             className="w-full px-3 py-2 rounded-lg bg-bg-secondary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30"
           />
           <input
             type="email"
             value={newEmail}
             onChange={(e) => setNewEmail(e.target.value)}
-            placeholder="Email Cal.com (opcional)"
+            placeholder="Email del trabajador"
             className="w-full px-3 py-2 rounded-lg bg-bg-secondary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30"
           />
           <div className="flex gap-1.5 flex-wrap">
@@ -141,13 +155,16 @@ export function WorkerManager() {
               />
             ))}
           </div>
+          <p className="text-[10px] text-text-muted">
+            Se enviará un email de invitación para que el trabajador cree su cuenta.
+          </p>
           <div className="flex gap-2 pt-1">
             <button
-              onClick={() => addWorker.mutate()}
-              disabled={addWorker.isPending}
+              onClick={() => inviteWorker.mutate()}
+              disabled={inviteWorker.isPending}
               className="flex-1 py-2 rounded-lg bg-accent text-white text-[12px] font-medium hover:bg-accent/90 transition-all disabled:opacity-50"
             >
-              {addWorker.isPending ? "Agregando..." : "Agregar"}
+              {inviteWorker.isPending ? "Invitando..." : "Invitar trabajador"}
             </button>
             <button
               onClick={() => setShowForm(false)}
@@ -163,7 +180,7 @@ export function WorkerManager() {
           className="flex items-center gap-2 mt-3 px-4 py-2 rounded-xl bg-bg-primary border border-border-secondary text-[12px] font-medium text-text-primary hover:bg-bg-hover transition-all"
         >
           <UserPlus size={13} />
-          Agregar trabajador
+          Invitar trabajador
         </button>
       )}
     </SettingsSection>

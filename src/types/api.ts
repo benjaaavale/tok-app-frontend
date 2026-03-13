@@ -55,18 +55,27 @@ export interface Appointment {
   estado: string;
   calcom_uid: string | null;
   calcom_booking_id: number | null;
+  google_event_id: string | null;
   nombre_real: string | null;
   telefono: string;
   correo: string | null;
   worker_nombre: string | null;
   worker_color: string | null;
+  client_email: string | null;
+  notas: string | null;
+  duracion: number;
+  reminder_sent: boolean;
+  confirmation_sent: boolean;
 }
 
 export interface Worker {
   id: number;
   nombre: string;
   calcom_email: string | null;
+  email: string | null;
   color: string;
+  google_calendar_id: string | null;
+  user_id: number | null;
 }
 
 export interface CompanySettings {
@@ -78,6 +87,9 @@ export interface CompanySettings {
   calcom_api_key: string;
   ycloud_apikey: string;
   bot_auto_desactivar: boolean;
+  google_connected: boolean;
+  reminder_enabled: boolean;
+  reminder_hours_before: number;
 }
 
 export interface DashboardStats {
@@ -100,4 +112,6 @@ export interface UserProfile {
   company_nombre: string;
   email: string;
   avatar_url: string | null;
+  role: "admin" | "worker";
+  worker_id: number | null;
 }

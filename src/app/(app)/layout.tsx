@@ -34,6 +34,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           companyNombre: meData.company_nombre,
           avatarUrl: meData.avatar_url,
           email: user.emailAddresses[0]?.emailAddress,
+          role: meData.role || "admin",
+          workerId: meData.worker_id || null,
         });
       } catch (err) {
         console.error("[Auth Sync Error]", err);

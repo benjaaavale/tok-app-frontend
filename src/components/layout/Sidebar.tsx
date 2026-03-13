@@ -30,7 +30,8 @@ export function Sidebar() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
-  const { companyNombre, userAvatarUrl, userInitials } = useAuthStore();
+  const { companyNombre, userAvatarUrl, userInitials, role } = useAuthStore();
+  const isAdmin = role !== "worker";
 
   const isSettingsActive =
     pathname === "/settings" || pathname.startsWith("/settings/");
@@ -109,37 +110,39 @@ export function Sidebar() {
 
         {/* ── Bottom area ── */}
         <div className="px-2 pb-4 space-y-0.5">
-          {/* Settings */}
-          <Link
-            href="/settings"
-            title={!open ? "Configuración" : undefined}
-            className={cn(
-              "flex items-center rounded-xl text-[13px] font-medium",
-              "transition-all duration-200",
-              open
-                ? "gap-3 px-2.5 py-2.5"
-                : "justify-center w-[44px] h-[44px] mx-auto p-0",
-              isSettingsActive
-                ? "bg-accent-light text-accent font-semibold"
-                : "text-text-secondary hover:bg-bg-hover hover:text-text-primary"
-            )}
-          >
-            <Settings
-              size={20}
-              strokeWidth={isSettingsActive ? 2 : 1.5}
-              className="flex-shrink-0"
-            />
-            <motion.span
-              animate={{
-                display: open ? "inline-block" : "none",
-                opacity: open ? 1 : 0,
-              }}
-              transition={{ duration: 0.2 }}
-              className="whitespace-pre !p-0 !m-0"
+          {/* Settings (admin only) */}
+          {isAdmin && (
+            <Link
+              href="/settings"
+              title={!open ? "Configuración" : undefined}
+              className={cn(
+                "flex items-center rounded-xl text-[13px] font-medium",
+                "transition-all duration-200",
+                open
+                  ? "gap-3 px-2.5 py-2.5"
+                  : "justify-center w-[44px] h-[44px] mx-auto p-0",
+                isSettingsActive
+                  ? "bg-accent-light text-accent font-semibold"
+                  : "text-text-secondary hover:bg-bg-hover hover:text-text-primary"
+              )}
             >
-              Configuración
-            </motion.span>
-          </Link>
+              <Settings
+                size={20}
+                strokeWidth={isSettingsActive ? 2 : 1.5}
+                className="flex-shrink-0"
+              />
+              <motion.span
+                animate={{
+                  display: open ? "inline-block" : "none",
+                  opacity: open ? 1 : 0,
+                }}
+                transition={{ duration: 0.2 }}
+                className="whitespace-pre !p-0 !m-0"
+              >
+                Configuración
+              </motion.span>
+            </Link>
+          )}
 
           {/* Theme toggle */}
           <button
@@ -209,7 +212,7 @@ export function Sidebar() {
                 {companyNombre || "Mi empresa"}
               </p>
               <p className="text-[11px] text-text-muted truncate">
-                Administrador
+                {isAdmin ? "Administrador" : "Trabajador"}
               </p>
             </motion.div>
           </div>
@@ -227,6 +230,7 @@ export function Sidebar() {
         userAvatarUrl={userAvatarUrl}
         userInitials={userInitials}
         isSettingsActive={isSettingsActive}
+        isAdmin={isAdmin}
       />
     </>
   );
@@ -243,6 +247,7 @@ function MobileSidebar({
   userAvatarUrl,
   userInitials,
   isSettingsActive,
+  isAdmin,
 }: {
   open: boolean;
   setOpen: (v: boolean) => void;
@@ -253,6 +258,7 @@ function MobileSidebar({
   userAvatarUrl: string | null;
   userInitials: string | null;
   isSettingsActive: boolean;
+  isAdmin: boolean;
 }) {
   return (
     <>
@@ -318,22 +324,24 @@ function MobileSidebar({
 
             {/* Bottom */}
             <div className="space-y-1 pt-4 border-t border-border-secondary">
-              <Link
-                href="/settings"
-                onClick={() => setOpen(false)}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium",
-                  isSettingsActive
-                    ? "bg-accent-light text-accent font-semibold"
-                    : "text-text-secondary hover:bg-bg-hover"
-                )}
-              >
-                <Settings
-                  size={20}
-                  strokeWidth={isSettingsActive ? 2 : 1.5}
-                />
-                Configuración
-              </Link>
+              {isAdmin && (
+                <Link
+                  href="/settings"
+                  onClick={() => setOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium",
+                    isSettingsActive
+                      ? "bg-accent-light text-accent font-semibold"
+                      : "text-text-secondary hover:bg-bg-hover"
+                  )}
+                >
+                  <Settings
+                    size={20}
+                    strokeWidth={isSettingsActive ? 2 : 1.5}
+                  />
+                  Configuración
+                </Link>
+              )}
 
               <button
                 onClick={() =>
@@ -368,7 +376,7 @@ function MobileSidebar({
                   <p className="text-sm font-medium text-text-primary">
                     {companyNombre || "Mi empresa"}
                   </p>
-                  <p className="text-xs text-text-muted">Administrador</p>
+                  <p className="text-xs text-text-muted">{isAdmin ? "Administrador" : "Trabajador"}</p>
                 </div>
               </div>
             </div>

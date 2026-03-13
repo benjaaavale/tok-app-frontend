@@ -3,10 +3,12 @@
 import { useMemo, useState } from "react";
 import { useAppointments } from "@/hooks/useAppointments";
 import { useCalendarStore } from "@/stores/calendar-store";
+import { useAuthStore } from "@/stores/auth-store";
 import { WeeklyGrid } from "@/components/calendar/WeeklyGrid";
 import { WorkerFilter } from "@/components/calendar/WorkerFilter";
 import { AppointmentModal } from "@/components/calendar/AppointmentModal";
-import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
+import { CreateAppointmentModal } from "@/components/calendar/CreateAppointmentModal";
+import { ChevronLeft, ChevronRight, CalendarDays, Plus } from "lucide-react";
 import type { Appointment } from "@/types/api";
 
 function getWeekRange(offset: number) {
@@ -27,8 +29,11 @@ function getWeekRange(offset: number) {
 
 export default function CalendarPage() {
   const { weekOffset, changeWeek, goToday } = useCalendarStore();
+  const { role } = useAuthStore();
+  const isAdmin = role !== "worker";
   const [selectedAppointment, setSelectedAppointment] =
     useState<Appointment | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const range = useMemo(() => getWeekRange(weekOffset), [weekOffset]);
   const { data: appointments, isLoading } = useAppointments(
@@ -48,6 +53,15 @@ export default function CalendarPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          {isAdmin && (
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="btn-gradient flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium"
+            >
+              <Plus size={14} />
+              Nueva cita
+            </button>
+          )}
           <button
             onClick={() => goToday()}
             className="px-3 py-1.5 rounded-lg text-[11px] font-medium bg-bg-primary border border-border-secondary text-text-primary hover:bg-bg-hover transition-all"
@@ -89,11 +103,18 @@ export default function CalendarPage() {
         />
       )}
 
-      {/* Modal */}
+      {/* Appointment detail modal */}
       {selectedAppointment && (
         <AppointmentModal
           appointment={selectedAppointment}
           onClose={() => setSelectedAppointment(null)}
+        />
+      )}
+
+      {/* Create appointment modal */}
+      {showCreateModal && (
+        <CreateAppointmentModal
+          onClose={() => setShowCreateModal(false)}
         />
       )}
     </div>

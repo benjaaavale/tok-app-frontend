@@ -1,15 +1,32 @@
 "use client";
 
+import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { useClerk } from "@clerk/nextjs";
+import { toast } from "sonner";
 import { CompanySettings } from "@/components/settings/CompanySettings";
 import { AgentSettings } from "@/components/settings/AgentSettings";
 import { IntegrationSettings } from "@/components/settings/IntegrationSettings";
+import { GoogleCalendarSettings } from "@/components/settings/GoogleCalendarSettings";
+import { NotificationSettings } from "@/components/settings/NotificationSettings";
 import { WorkerManager } from "@/components/settings/WorkerManager";
 import { UserProfileSettings } from "@/components/settings/UserProfileSettings";
 import { Settings, LogOut } from "lucide-react";
 
 export default function SettingsPage() {
   const { signOut } = useClerk();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const googleStatus = searchParams.get("google");
+    if (googleStatus === "connected") {
+      toast.success("Google Calendar conectado exitosamente");
+      window.history.replaceState({}, "", "/settings");
+    } else if (googleStatus === "error") {
+      toast.error("Error conectando Google Calendar");
+      window.history.replaceState({}, "", "/settings");
+    }
+  }, [searchParams]);
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-6 space-y-6">
@@ -26,6 +43,8 @@ export default function SettingsPage() {
       <CompanySettings />
       <AgentSettings />
       <WorkerManager />
+      <GoogleCalendarSettings />
+      <NotificationSettings />
       <IntegrationSettings />
 
       {/* Cerrar sesión */}

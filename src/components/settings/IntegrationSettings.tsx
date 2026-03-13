@@ -7,7 +7,7 @@ import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { authFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { SettingsSection, FieldRow, InputField } from "./SettingsSection";
-import { Save, Link2 } from "lucide-react";
+import { Save } from "lucide-react";
 
 export function IntegrationSettings() {
   const { getToken } = useAuth();
@@ -15,13 +15,11 @@ export function IntegrationSettings() {
   const { data: settings, isLoading } = useCompanySettings();
 
   const [n8nUrl, setN8nUrl] = useState("");
-  const [calcomKey, setCalcomKey] = useState("");
   const [ycloudKey, setYcloudKey] = useState("");
 
   useEffect(() => {
     if (settings) {
       setN8nUrl(settings.n8n_webhook_url || "");
-      setCalcomKey(settings.calcom_api_key || "");
       setYcloudKey(settings.ycloud_apikey || "");
     }
   }, [settings]);
@@ -34,7 +32,6 @@ export function IntegrationSettings() {
           method: "PUT",
           body: JSON.stringify({
             n8n_webhook_url: n8nUrl,
-            calcom_api_key: calcomKey,
             ycloud_apikey: ycloudKey,
           }),
         },
@@ -66,15 +63,6 @@ export function IntegrationSettings() {
             value={n8nUrl}
             onChange={setN8nUrl}
             placeholder="https://n8n.example.com/webhook/..."
-          />
-        </FieldRow>
-
-        <FieldRow label="Cal.com API Key" htmlFor="calcom-key">
-          <InputField
-            id="calcom-key"
-            value={calcomKey}
-            onChange={setCalcomKey}
-            placeholder="cal_live_..."
           />
         </FieldRow>
 
