@@ -4,11 +4,13 @@ import { useMemo, useState } from "react";
 import { useAppointments } from "@/hooks/useAppointments";
 import { useCalendarStore } from "@/stores/calendar-store";
 import { useAuthStore } from "@/stores/auth-store";
+import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { WeeklyGrid } from "@/components/calendar/WeeklyGrid";
 import { WorkerFilter } from "@/components/calendar/WorkerFilter";
 import { AppointmentModal } from "@/components/calendar/AppointmentModal";
 import { CreateAppointmentModal } from "@/components/calendar/CreateAppointmentModal";
-import { ChevronLeft, ChevronRight, CalendarDays, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, CalendarDays, Plus, Settings } from "lucide-react";
+import Link from "next/link";
 import type { Appointment } from "@/types/api";
 
 function getWeekRange(offset: number) {
@@ -35,6 +37,9 @@ export default function CalendarPage() {
     useState<Appointment | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
+  const { data: settings, isLoading: settingsLoading } = useCompanySettings();
+  const isGoogleConnected = settings?.google_connected ?? false;
+
   const range = useMemo(() => getWeekRange(weekOffset), [weekOffset]);
   const { data: appointments, isLoading } = useAppointments(
     range.from,
@@ -53,7 +58,7 @@ export default function CalendarPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          {isAdmin && (
+          {isAdmin && isGoogleConnected && (
             <button
               onClick={() => setShowCreateModal(true)}
               className="btn-gradient flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium"
@@ -91,8 +96,46 @@ export default function CalendarPage() {
         <WorkerFilter />
       </div>
 
-      {/* Grid */}
-      {isLoading ? (
+      {/* Not connected state */}
+      {!settingsLoading && !isGoogleConnected ? (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4 max-w-sm text-center px-6">
+            {/* Google Calendar icon */}
+            <div className="w-16 h-16 rounded-2xl bg-bg-secondary border border-border-secondary flex items-center justify-center">
+              <svg viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg" className="w-9 h-9">
+                <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
+                <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/>
+                <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/>
+                <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/>
+                <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/>
+                <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-[15px] font-semibold text-text-primary mb-1">
+                Conecta Google Calendar
+              </h3>
+              <p className="text-[12px] text-text-muted leading-relaxed">
+                Para ver y gestionar la agenda, primero debes conectar tu cuenta de Google Calendar desde la configuración.
+              </p>
+            </div>
+            {isAdmin && (
+              <Link
+                href="/settings"
+                className="btn-gradient flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-medium"
+              >
+                <Settings size={13} />
+                Ir a Configuración
+              </Link>
+            )}
+            {!isAdmin && (
+              <p className="text-[11px] text-text-muted bg-bg-secondary border border-border-secondary rounded-xl px-4 py-2">
+                Contacta al administrador para conectar Google Calendar
+              </p>
+            )}
+          </div>
+        </div>
+      ) : isLoading || settingsLoading ? (
         <div className="flex-1 flex items-center justify-center">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-border-primary border-t-accent" />
         </div>
