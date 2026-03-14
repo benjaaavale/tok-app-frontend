@@ -9,14 +9,7 @@ import { ServiciosChart } from "@/components/dashboard/ServiciosChart";
 import { HorariosChart } from "@/components/dashboard/HorariosChart";
 import { FunnelChart } from "@/components/dashboard/FunnelChart";
 import { LeadsChart } from "@/components/dashboard/LeadsChart";
-import {
-  MessageSquare,
-  BarChart3,
-  Clock,
-  ArrowUpRight,
-  ArrowDownRight,
-  Minus,
-} from "lucide-react";
+import { MessageSquare, BarChart3, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function DashboardPage() {
@@ -129,22 +122,33 @@ function MiniStat({
         <div className="flex items-center gap-2">
           <p className="text-[16px] font-semibold text-text-primary">{value}</p>
           {delta !== undefined && (
-            <span
-              className={cn(
-                "inline-flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-md",
-                delta === 0 && "bg-gray-100 text-gray-500",
-                delta > 0 && "bg-emerald-50 text-emerald-600",
-                delta < 0 && "bg-red-50 text-red-600"
-              )}
-            >
-              {delta === 0 ? (
-                <Minus size={8} />
-              ) : delta > 0 ? (
-                <ArrowUpRight size={8} />
-              ) : (
-                <ArrowDownRight size={8} />
-              )}
-              {Math.abs(delta)}%
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-md border border-border-secondary bg-bg-primary">
+              <svg
+                width="6"
+                height="5"
+                viewBox={delta === 0 ? "0 0 6 8" : "0 0 8 6"}
+                fill="currentColor"
+                className={cn(
+                  delta === 0 && "text-gray-400",
+                  delta > 0 && "text-emerald-500",
+                  delta < 0 && "text-red-500"
+                )}
+              >
+                {delta === 0 ? (
+                  <path d="M6 4L0 8V0L6 4Z" />
+                ) : delta > 0 ? (
+                  <path d="M4 0L8 6H0L4 0Z" />
+                ) : (
+                  <path d="M4 6L0 0H8L4 6Z" />
+                )}
+              </svg>
+              <span className={cn(
+                delta === 0 && "text-gray-400",
+                delta > 0 && "text-emerald-500",
+                delta < 0 && "text-red-500"
+              )}>
+                {Math.abs(delta)}%
+              </span>
             </span>
           )}
         </div>

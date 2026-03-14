@@ -6,9 +6,6 @@ import {
   UserCheck,
   CalendarCheck,
   TrendingUp,
-  ArrowUpRight,
-  ArrowDownRight,
-  Minus,
   type LucideIcon,
 } from "lucide-react";
 
@@ -20,27 +17,57 @@ interface KPICardProps {
   delta?: number;
 }
 
-function DeltaBadge({ delta }: { delta: number }) {
+function TriangleUp({ className }: { className?: string }) {
+  return (
+    <svg width="8" height="6" viewBox="0 0 8 6" fill="currentColor" className={className}>
+      <path d="M4 0L8 6H0L4 0Z" />
+    </svg>
+  );
+}
+
+function TriangleDown({ className }: { className?: string }) {
+  return (
+    <svg width="8" height="6" viewBox="0 0 8 6" fill="currentColor" className={className}>
+      <path d="M4 6L0 0H8L4 6Z" />
+    </svg>
+  );
+}
+
+function TriangleRight({ className }: { className?: string }) {
+  return (
+    <svg width="6" height="8" viewBox="0 0 6 8" fill="currentColor" className={className}>
+      <path d="M6 4L0 8V0L6 4Z" />
+    </svg>
+  );
+}
+
+function DeltaBadge({ delta, onDark }: { delta: number; onDark?: boolean }) {
   const isPositive = delta > 0;
   const isNeutral = delta === 0;
+
+  const colorClass = isNeutral
+    ? onDark ? "text-white/50" : "text-gray-400"
+    : isPositive
+    ? "text-emerald-500"
+    : "text-red-500";
 
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-0.5 text-[11px] font-semibold px-1.5 py-0.5 rounded-md",
-        isNeutral && "bg-gray-100 text-gray-500",
-        isPositive && "bg-emerald-50 text-emerald-600",
-        !isPositive && !isNeutral && "bg-red-50 text-red-600"
+        "inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md border",
+        onDark
+          ? "border-white/15 bg-white/5"
+          : "border-border-secondary bg-bg-primary"
       )}
     >
       {isNeutral ? (
-        <Minus size={10} />
+        <TriangleRight className={colorClass} />
       ) : isPositive ? (
-        <ArrowUpRight size={10} />
+        <TriangleUp className={colorClass} />
       ) : (
-        <ArrowDownRight size={10} />
+        <TriangleDown className={colorClass} />
       )}
-      {Math.abs(delta)}%
+      <span className={colorClass}>{Math.abs(delta)}%</span>
     </span>
   );
 }
@@ -71,27 +98,7 @@ export function KPICard({ title, value, icon: Icon, accent, delta }: KPICardProp
           </p>
           {delta !== undefined && (
             <div className="mt-1.5">
-              {accent ? (
-                <span
-                  className={cn(
-                    "inline-flex items-center gap-0.5 text-[11px] font-semibold px-1.5 py-0.5 rounded-md",
-                    delta === 0 && "bg-white/15 text-white/70",
-                    delta > 0 && "bg-emerald-400/20 text-emerald-300",
-                    delta < 0 && "bg-red-400/20 text-red-300"
-                  )}
-                >
-                  {delta === 0 ? (
-                    <Minus size={10} />
-                  ) : delta > 0 ? (
-                    <ArrowUpRight size={10} />
-                  ) : (
-                    <ArrowDownRight size={10} />
-                  )}
-                  {Math.abs(delta)}%
-                </span>
-              ) : (
-                <DeltaBadge delta={delta} />
-              )}
+              <DeltaBadge delta={delta} onDark={accent} />
             </div>
           )}
         </div>
