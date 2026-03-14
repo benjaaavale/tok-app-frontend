@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { useAuth } from "@clerk/nextjs";
+// Note: socket auth uses companyToken (non-expiring), not Clerk JWT
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/stores/auth-store";
 import { API_URL } from "@/lib/constants";
@@ -30,7 +31,7 @@ export function useSocket() {
 }
 
 export function SocketProvider({ children }: { children: ReactNode }) {
-  const { getToken, isSignedIn } = useAuth();
+  const { isSignedIn } = useAuth();
   const companyToken = useAuthStore((s) => s.companyToken);
   const synced = useAuthStore((s) => s.synced);
   const queryClient = useQueryClient();
@@ -40,28 +41,22 @@ export function SocketProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!isSignedIn || !synced || !companyToken) return;
 
-    const connectSocket = async () => {
-      const token = await getToken();
-      if (!token) return;
+    // Disconnect existing socket if any
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+    }
 
-      // Disconnect existing socket
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-      }
+    const socket = io(API_URL, {
+      auth: { token: companyToken },
+      transports: ["websocket", "polling"],
+      reconnection: true,
+      reconnectionDelay: 2000,
+      reconnectionAttempts: 20,
+    });
 
-      const socket = io(API_URL, {
-        auth: { token },
-        transports: ["websocket", "polling"],
-        reconnection: true,
-        reconnectionDelay: 2000,
-        reconnectionAttempts: 10,
-      });
-
-      socket.on("connect", () => {
-        setConnected(true);
-        // Join company room
-        socket.emit("join", companyToken);
-      });
+    socket.on("connect", () => {
+      setConnected(true);
+    });
 
       socket.on("disconnect", () => {
         setConnected(false);
@@ -89,18 +84,13 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       });
 
       socketRef.current = socket;
-    };
-
-    connectSocket();
 
     return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-        socketRef.current = null;
-        setConnected(false);
-      }
+      socket.disconnect();
+      socketRef.current = null;
+      setConnected(false);
     };
-  }, [isSignedIn, synced, companyToken, getToken, queryClient]);
+  }, [isSignedIn, synced, companyToken, queryClient]);
 
   return (
     <SocketContext.Provider value={{ socket: socketRef.current, connected }}>

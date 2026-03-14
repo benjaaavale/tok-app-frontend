@@ -7,9 +7,11 @@ import { useWorkers } from "@/hooks/useWorkers";
 import { useServiceTypes } from "@/hooks/useServiceTypes";
 import { useAvailability } from "@/hooks/useAvailability";
 import { useCreateAppointment } from "@/hooks/useCreateAppointment";
+import { authFetch } from "@/lib/api";
+import { useAuth } from "@clerk/nextjs";
 import { DatePicker } from "@/components/ui/date-picker";
 import { toast } from "sonner";
-import { X, Clock, Loader2 } from "lucide-react";
+import { X, Clock, Loader2, UserPlus, Search } from "lucide-react";
 
 interface Props {
   onClose: () => void;
@@ -22,6 +24,7 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
   const { data: workers } = useWorkers();
   const { data: serviceTypes } = useServiceTypes();
   const createAppointment = useCreateAppointment();
+  const { getToken } = useAuth();
 
   const [contactId, setContactId] = useState<number | "">("");
   const [workerId, setWorkerId] = useState<number | "">("");
@@ -35,6 +38,13 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
   const [clientEmail, setClientEmail] = useState("");
   const [notas, setNotas] = useState("");
   const [searchContact, setSearchContact] = useState("");
+
+  // New contact mode
+  const [newContactMode, setNewContactMode] = useState(false);
+  const [newContactName, setNewContactName] = useState("");
+  const [newContactPhone, setNewContactPhone] = useState("");
+  const [newContactEmail, setNewContactEmail] = useState("");
+  const [creatingContact, setCreatingContact] = useState(false);
 
   const fechaStr = fecha ? format(fecha, "yyyy-MM-dd") : "";
 
@@ -66,6 +76,29 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
       )
       .slice(0, 20);
   }, [conversations, searchContact]);
+
+  const handleCreateContact = async () => {
+    if (!newContactName || !newContactPhone) {
+      toast.error("Nombre y teléfono son obligatorios");
+      return;
+    }
+    setCreatingContact(true);
+    try {
+      const res = await authFetch("/contacts/create", {
+        method: "POST",
+        body: JSON.stringify({ nombre_real: newContactName, telefono: newContactPhone, correo: newContactEmail || undefined }),
+      }, getToken);
+      setContactId(res.id);
+      setSearchContact(newContactName);
+      if (newContactEmail) setClientEmail(newContactEmail);
+      setNewContactMode(false);
+      toast.success("Contacto creado");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Error creando contacto");
+    } finally {
+      setCreatingContact(false);
+    }
+  };
 
   const handleSelectWorker = (id: number | "") => {
     setWorkerId(id);
@@ -146,7 +179,31 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
         <div className="px-5 py-4 space-y-4">
           {/* 1. Contacto */}
           <div>
-            <label className={labelCls}>Contacto *</label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className={labelCls + " mb-0"}>Contacto *</label>
+              <button
+                onClick={() => { setNewContactMode(!newContactMode); setContactId(""); setSearchContact(""); }}
+                className="flex items-center gap-1 text-[10px] font-medium text-accent hover:underline"
+              >
+                {newContactMode ? <><Search size={11} /> Buscar existente</> : <><UserPlus size={11} /> Nuevo contacto</>}
+              </button>
+            </div>
+
+            {newContactMode ? (
+              <div className="space-y-2">
+                <input type="text" value={newContactName} onChange={(e) => setNewContactName(e.target.value)} placeholder="Nombre *" className={inputCls} />
+                <input type="tel" value={newContactPhone} onChange={(e) => setNewContactPhone(e.target.value)} placeholder="Teléfono * (ej: +56912345678)" className={inputCls} />
+                <input type="email" value={newContactEmail} onChange={(e) => setNewContactEmail(e.target.value)} placeholder="Email (opcional)" className={inputCls} />
+                <button
+                  onClick={handleCreateContact}
+                  disabled={creatingContact || !newContactName || !newContactPhone}
+                  className="w-full py-2 rounded-lg bg-accent/10 border border-accent/20 text-accent text-[12px] font-medium hover:bg-accent/20 transition-all disabled:opacity-50"
+                >
+                  {creatingContact ? "Creando..." : "Crear y seleccionar contacto"}
+                </button>
+              </div>
+            ) : (
+              <>
             <input
               type="text"
               value={searchContact}
@@ -175,6 +232,8 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
               <button onClick={() => { setContactId(""); setSearchContact(""); }} className="text-[10px] text-accent mt-1 hover:underline">
                 Cambiar contacto
               </button>
+            )}
+              </>
             )}
           </div>
 
