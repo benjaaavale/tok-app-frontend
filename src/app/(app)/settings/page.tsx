@@ -10,6 +10,7 @@ import { IntegrationSettings } from "@/components/settings/IntegrationSettings";
 import { GoogleCalendarSettings } from "@/components/settings/GoogleCalendarSettings";
 import { NotificationSettings } from "@/components/settings/NotificationSettings";
 import { WorkerManager } from "@/components/settings/WorkerManager";
+import { ServiceTypeManager } from "@/components/settings/ServiceTypeManager";
 import { UserProfileSettings } from "@/components/settings/UserProfileSettings";
 import { Settings, LogOut } from "lucide-react";
 
@@ -43,6 +44,7 @@ export default function SettingsPage() {
       <CompanySettings />
       <AgentSettings />
       <WorkerManager />
+      <ServiceTypeManager />
       <GoogleCalendarSettings />
       <NotificationSettings />
       <IntegrationSettings />

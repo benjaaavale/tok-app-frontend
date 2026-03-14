@@ -135,3 +135,13 @@ export interface UserProfile {
   role: "admin" | "worker";
   worker_id: number | null;
 }
+
+
+export interface ServiceType {
+  id: number;
+  company_id: number;
+  nombre: string;
+  duracion: number;
+  worker_ids: number[];
+  created_at: string;
+}

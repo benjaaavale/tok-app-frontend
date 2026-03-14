@@ -1,10 +1,14 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { useConversations } from "@/hooks/useConversations";
 import { useWorkers } from "@/hooks/useWorkers";
+import { useServiceTypes } from "@/hooks/useServiceTypes";
 import { useAvailability } from "@/hooks/useAvailability";
 import { useCreateAppointment } from "@/hooks/useCreateAppointment";
+import { DatePicker } from "@/components/ui/date-picker";
 import { toast } from "sonner";
 import { X, Clock, Loader2 } from "lucide-react";
 
@@ -17,11 +21,15 @@ interface Props {
 export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Props) {
   const { data: conversations } = useConversations();
   const { data: workers } = useWorkers();
+  const { data: serviceTypes } = useServiceTypes();
   const createAppointment = useCreateAppointment();
 
   const [contactId, setContactId] = useState<number | "">("");
   const [workerId, setWorkerId] = useState<number | "">("");
-  const [fecha, setFecha] = useState(defaultDate || new Date().toISOString().split("T")[0]);
+  const [serviceTypeId, setServiceTypeId] = useState<number | "">("");
+  const [fecha, setFecha] = useState<Date | undefined>(
+    defaultDate ? new Date(defaultDate + "T12:00:00") : new Date()
+  );
   const [hora, setHora] = useState(defaultTime || "");
   const [eventType, setEventType] = useState("");
   const [duracion, setDuracion] = useState(30);
@@ -29,10 +37,21 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
   const [notas, setNotas] = useState("");
   const [searchContact, setSearchContact] = useState("");
 
+  const fechaStr = fecha ? format(fecha, "yyyy-MM-dd") : "";
+
   const { data: availability, isLoading: loadingSlots } = useAvailability(
     workerId ? Number(workerId) : null,
-    fecha
+    fechaStr
   );
+
+  // Filter workers by selected service type
+  const availableWorkers = useMemo(() => {
+    if (!workers) return [];
+    if (!serviceTypeId) return workers;
+    const st = serviceTypes?.find((s) => s.id === Number(serviceTypeId));
+    if (!st || !st.worker_ids || st.worker_ids.length === 0) return workers;
+    return workers.filter((w) => st.worker_ids.includes(w.id));
+  }, [workers, serviceTypeId, serviceTypes]);
 
   // Filter contacts by search
   const filteredContacts = useMemo(() => {
@@ -49,21 +68,45 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
       .slice(0, 20);
   }, [conversations, searchContact]);
 
+  const handleSelectServiceType = (id: number | "") => {
+    setServiceTypeId(id);
+    if (id) {
+      const st = serviceTypes?.find((s) => s.id === Number(id));
+      if (st) {
+        setEventType(st.nombre);
+        setDuracion(st.duracion);
+        // Reset worker if not compatible
+        if (st.worker_ids && st.worker_ids.length > 0 && workerId && !st.worker_ids.includes(Number(workerId))) {
+          setWorkerId("");
+          setHora("");
+        }
+      }
+    }
+  };
+
   const handleSubmit = () => {
-    if (!contactId || !workerId || !fecha || !hora) {
+    if (!contactId || !workerId || !fechaStr || !hora) {
       toast.error("Completa los campos requeridos: contacto, trabajador, fecha y hora");
+      return;
+    }
+    if (!clientEmail) {
+      toast.error("El email del cliente es obligatorio para enviar la confirmación");
+      return;
+    }
+    if (!eventType) {
+      toast.error("El tipo de servicio es obligatorio");
       return;
     }
     createAppointment.mutate(
       {
         contact_id: Number(contactId),
         worker_id: Number(workerId),
-        event_type: eventType || "Cita",
-        fecha,
+        event_type: eventType,
+        fecha: fechaStr,
         hora: hora + ":00",
         duracion,
         notas: notas || undefined,
-        client_email: clientEmail || undefined,
+        client_email: clientEmail,
       },
       {
         onSuccess: () => {
@@ -89,7 +132,7 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
 
         {/* Form */}
         <div className="px-5 py-4 space-y-4">
-          {/* Contact selector */}
+          {/* 1. Contact selector */}
           <div>
             <label className="text-[11px] font-medium text-text-secondary uppercase tracking-wider mb-1.5 block">
               Contacto *
@@ -97,7 +140,7 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
             <input
               type="text"
               value={searchContact}
-              onChange={(e) => setSearchContact(e.target.value)}
+              onChange={(e) => { setSearchContact(e.target.value); setContactId(""); }}
               placeholder="Buscar contacto por nombre o teléfono..."
               className="w-full px-3 py-2 rounded-lg bg-bg-primary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30"
             />
@@ -112,92 +155,121 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
                     }}
                     className="w-full text-left px-3 py-2 text-[12px] hover:bg-bg-hover transition-all border-b border-border-secondary last:border-0"
                   >
-                    <span className="text-text-primary font-medium">
-                      {c.nombre_real || c.nombre_whatsapp}
-                    </span>
+                    <span className="text-text-primary font-medium">{c.nombre_real || c.nombre_whatsapp}</span>
                     <span className="text-text-muted ml-2">{c.telefono}</span>
                   </button>
                 ))}
               </div>
             )}
             {contactId && (
-              <button
-                onClick={() => {
-                  setContactId("");
-                  setSearchContact("");
-                }}
-                className="text-[10px] text-accent mt-1 hover:underline"
-              >
+              <button onClick={() => { setContactId(""); setSearchContact(""); }} className="text-[10px] text-accent mt-1 hover:underline">
                 Cambiar contacto
               </button>
             )}
           </div>
 
-          {/* Worker selector */}
+          {/* 2. Worker selector */}
           <div>
             <label className="text-[11px] font-medium text-text-secondary uppercase tracking-wider mb-1.5 block">
               Trabajador *
             </label>
             <select
               value={workerId}
-              onChange={(e) => {
-                setWorkerId(e.target.value ? Number(e.target.value) : "");
-                setHora("");
-              }}
+              onChange={(e) => { setWorkerId(e.target.value ? Number(e.target.value) : ""); setHora(""); }}
               className="w-full px-3 py-2 rounded-lg bg-bg-primary border border-border-secondary text-[12px] text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/30"
             >
               <option value="">Seleccionar trabajador</option>
-              {workers?.map((w) => (
-                <option key={w.id} value={w.id}>
-                  {w.nombre}
-                </option>
+              {availableWorkers.map((w) => (
+                <option key={w.id} value={w.id}>{w.nombre}</option>
               ))}
             </select>
           </div>
 
-          {/* Date + Duration row */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-[11px] font-medium text-text-secondary uppercase tracking-wider mb-1.5 block">
-                Fecha *
-              </label>
-              <input
-                type="date"
-                value={fecha}
-                onChange={(e) => {
-                  setFecha(e.target.value);
-                  setHora("");
-                }}
-                className="w-full px-3 py-2 rounded-lg bg-bg-primary border border-border-secondary text-[12px] text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/30"
-              />
-            </div>
-            <div>
-              <label className="text-[11px] font-medium text-text-secondary uppercase tracking-wider mb-1.5 block">
-                Duración
-              </label>
+          {/* 3. Service type */}
+          <div>
+            <label className="text-[11px] font-medium text-text-secondary uppercase tracking-wider mb-1.5 block">
+              Tipo de servicio *
+            </label>
+            {serviceTypes && serviceTypes.length > 0 ? (
               <select
-                value={duracion}
-                onChange={(e) => setDuracion(Number(e.target.value))}
+                value={serviceTypeId}
+                onChange={(e) => handleSelectServiceType(e.target.value ? Number(e.target.value) : "")}
                 className="w-full px-3 py-2 rounded-lg bg-bg-primary border border-border-secondary text-[12px] text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/30"
               >
-                <option value={15}>15 min</option>
-                <option value={30}>30 min</option>
-                <option value={45}>45 min</option>
-                <option value={60}>60 min</option>
-                <option value={90}>90 min</option>
+                <option value="">Seleccionar tipo de servicio</option>
+                {serviceTypes.map((st) => (
+                  <option key={st.id} value={st.id}>
+                    {st.nombre} — {st.duracion} min
+                  </option>
+                ))}
               </select>
-            </div>
+            ) : (
+              <input
+                type="text"
+                value={eventType}
+                onChange={(e) => setEventType(e.target.value)}
+                placeholder="Ej: Consulta, Evaluación, Control..."
+                className="w-full px-3 py-2 rounded-lg bg-bg-primary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30"
+              />
+            )}
+            {serviceTypeId && (
+              <div className="mt-2 space-y-2">
+                <div>
+                  <label className="text-[11px] font-medium text-text-secondary uppercase tracking-wider mb-1 block">
+                    Nombre del servicio
+                  </label>
+                  <input
+                    type="text"
+                    value={eventType}
+                    onChange={(e) => setEventType(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg bg-bg-primary border border-border-secondary text-[12px] text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/30"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-medium text-text-secondary uppercase tracking-wider mb-1 block">
+                    Duración
+                  </label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[15, 20, 30, 45, 60, 90, 120].map((d) => (
+                      <button
+                        key={d}
+                        onClick={() => setDuracion(d)}
+                        className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
+                          duracion === d
+                            ? "bg-accent text-white"
+                            : "bg-bg-primary border border-border-secondary text-text-primary hover:bg-bg-hover"
+                        }`}
+                      >
+                        <Clock size={10} />
+                        {d} min
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Time slots */}
+          {/* 4. Date picker */}
+          <div>
+            <label className="text-[11px] font-medium text-text-secondary uppercase tracking-wider mb-1.5 block">
+              Fecha *
+            </label>
+            <DatePicker
+              date={fecha}
+              onDateChange={(d) => { setFecha(d); setHora(""); }}
+              placeholder="Seleccionar fecha"
+              disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
+            />
+          </div>
+
+          {/* 5. Time slots */}
           <div>
             <label className="text-[11px] font-medium text-text-secondary uppercase tracking-wider mb-1.5 block">
               Hora disponible *
             </label>
-            {!workerId || !fecha ? (
-              <p className="text-[11px] text-text-muted py-2">
-                Selecciona un trabajador y fecha para ver horarios disponibles
-              </p>
+            {!workerId || !fechaStr ? (
+              <p className="text-[11px] text-text-muted py-2">Selecciona un trabajador y fecha para ver horarios disponibles</p>
             ) : loadingSlots ? (
               <div className="flex items-center gap-2 py-2">
                 <Loader2 size={14} className="animate-spin text-text-muted" />
@@ -221,30 +293,14 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
                 ))}
               </div>
             ) : (
-              <p className="text-[11px] text-text-muted py-2">
-                {availability?.message || "No hay horarios disponibles para esta fecha"}
-              </p>
+              <p className="text-[11px] text-text-muted py-2">{availability?.message || "No hay horarios disponibles para esta fecha"}</p>
             )}
           </div>
 
-          {/* Event type */}
+          {/* 6. Client email (required) */}
           <div>
             <label className="text-[11px] font-medium text-text-secondary uppercase tracking-wider mb-1.5 block">
-              Tipo de cita
-            </label>
-            <input
-              type="text"
-              value={eventType}
-              onChange={(e) => setEventType(e.target.value)}
-              placeholder="Ej: Consulta, Evaluación, Control..."
-              className="w-full px-3 py-2 rounded-lg bg-bg-primary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30"
-            />
-          </div>
-
-          {/* Client email */}
-          <div>
-            <label className="text-[11px] font-medium text-text-secondary uppercase tracking-wider mb-1.5 block">
-              Email del cliente (para confirmación)
+              Email del cliente * <span className="text-text-muted normal-case font-normal">(para confirmación)</span>
             </label>
             <input
               type="email"
@@ -255,7 +311,7 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
             />
           </div>
 
-          {/* Notes */}
+          {/* 7. Notes */}
           <div>
             <label className="text-[11px] font-medium text-text-secondary uppercase tracking-wider mb-1.5 block">
               Notas
@@ -272,15 +328,12 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
 
         {/* Footer */}
         <div className="flex justify-end gap-2 px-5 py-4 border-t border-border-secondary">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 rounded-xl bg-bg-primary border border-border-secondary text-[12px] font-medium text-text-secondary hover:bg-bg-hover transition-all"
-          >
+          <button onClick={onClose} className="px-4 py-2 rounded-xl bg-bg-primary border border-border-secondary text-[12px] font-medium text-text-secondary hover:bg-bg-hover transition-all">
             Cancelar
           </button>
           <button
             onClick={handleSubmit}
-            disabled={createAppointment.isPending || !contactId || !workerId || !hora}
+            disabled={createAppointment.isPending || !contactId || !workerId || !hora || !clientEmail || !eventType}
             className="btn-gradient px-4 py-2.5 rounded-xl text-[12px] font-medium disabled:opacity-50"
           >
             {createAppointment.isPending ? "Creando..." : "Crear cita"}
