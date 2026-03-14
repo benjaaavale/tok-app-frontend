@@ -44,14 +44,14 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
     fechaStr
   );
 
-  // Filter workers by selected service type
-  const availableWorkers = useMemo(() => {
-    if (!workers) return [];
-    if (!serviceTypeId) return workers;
-    const st = serviceTypes?.find((s) => s.id === Number(serviceTypeId));
-    if (!st || !st.worker_ids || st.worker_ids.length === 0) return workers;
-    return workers.filter((w) => st.worker_ids.includes(w.id));
-  }, [workers, serviceTypeId, serviceTypes]);
+  // Service types filtered by selected worker
+  const availableServiceTypes = useMemo(() => {
+    if (!serviceTypes) return [];
+    if (!workerId) return serviceTypes;
+    return serviceTypes.filter(
+      (st) => !st.worker_ids || st.worker_ids.length === 0 || st.worker_ids.includes(Number(workerId))
+    );
+  }, [serviceTypes, workerId]);
 
   // Filter contacts by search
   const filteredContacts = useMemo(() => {
@@ -68,6 +68,20 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
       .slice(0, 20);
   }, [conversations, searchContact]);
 
+  const handleSelectWorker = (id: number | "") => {
+    setWorkerId(id);
+    setHora("");
+    // Reset service type if it's no longer compatible with new worker
+    if (id && serviceTypeId) {
+      const st = serviceTypes?.find((s) => s.id === Number(serviceTypeId));
+      if (st && st.worker_ids && st.worker_ids.length > 0 && !st.worker_ids.includes(Number(id))) {
+        setServiceTypeId("");
+        setEventType("");
+        setDuracion(30);
+      }
+    }
+  };
+
   const handleSelectServiceType = (id: number | "") => {
     setServiceTypeId(id);
     if (id) {
@@ -75,12 +89,10 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
       if (st) {
         setEventType(st.nombre);
         setDuracion(st.duracion);
-        // Reset worker if not compatible
-        if (st.worker_ids && st.worker_ids.length > 0 && workerId && !st.worker_ids.includes(Number(workerId))) {
-          setWorkerId("");
-          setHora("");
-        }
       }
+    } else {
+      setEventType("");
+      setDuracion(30);
     }
   };
 
@@ -130,9 +142,8 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
           </button>
         </div>
 
-        {/* Form */}
         <div className="px-5 py-4 space-y-4">
-          {/* 1. Contact selector */}
+          {/* 1. Contacto */}
           <div>
             <label className="text-[11px] font-medium text-text-secondary uppercase tracking-wider mb-1.5 block">
               Contacto *
@@ -168,41 +179,86 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
             )}
           </div>
 
-          {/* 2. Worker selector */}
+          {/* 2. Trabajador */}
           <div>
             <label className="text-[11px] font-medium text-text-secondary uppercase tracking-wider mb-1.5 block">
               Trabajador *
             </label>
             <select
               value={workerId}
-              onChange={(e) => { setWorkerId(e.target.value ? Number(e.target.value) : ""); setHora(""); }}
+              onChange={(e) => handleSelectWorker(e.target.value ? Number(e.target.value) : "")}
               className="w-full px-3 py-2 rounded-lg bg-bg-primary border border-border-secondary text-[12px] text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/30"
             >
               <option value="">Seleccionar trabajador</option>
-              {availableWorkers.map((w) => (
+              {workers?.map((w) => (
                 <option key={w.id} value={w.id}>{w.nombre}</option>
               ))}
             </select>
           </div>
 
-          {/* 3. Service type */}
+          {/* 3. Tipo de servicio */}
           <div>
             <label className="text-[11px] font-medium text-text-secondary uppercase tracking-wider mb-1.5 block">
               Tipo de servicio *
             </label>
             {serviceTypes && serviceTypes.length > 0 ? (
-              <select
-                value={serviceTypeId}
-                onChange={(e) => handleSelectServiceType(e.target.value ? Number(e.target.value) : "")}
-                className="w-full px-3 py-2 rounded-lg bg-bg-primary border border-border-secondary text-[12px] text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/30"
-              >
-                <option value="">Seleccionar tipo de servicio</option>
-                {serviceTypes.map((st) => (
-                  <option key={st.id} value={st.id}>
-                    {st.nombre} — {st.duracion} min
+              <>
+                <select
+                  value={serviceTypeId}
+                  onChange={(e) => handleSelectServiceType(e.target.value ? Number(e.target.value) : "")}
+                  className="w-full px-3 py-2 rounded-lg bg-bg-primary border border-border-secondary text-[12px] text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/30"
+                >
+                  <option value="">
+                    {workerId
+                      ? availableServiceTypes.length === 0
+                        ? "Este trabajador no tiene servicios asignados"
+                        : "Seleccionar tipo de servicio"
+                      : "Seleccionar tipo de servicio"}
                   </option>
-                ))}
-              </select>
+                  {availableServiceTypes.map((st) => (
+                    <option key={st.id} value={st.id}>
+                      {st.nombre} — {st.duracion} min
+                    </option>
+                  ))}
+                </select>
+                {/* Editable name + duration after selection */}
+                {serviceTypeId && (
+                  <div className="mt-2 space-y-2">
+                    <div>
+                      <label className="text-[11px] font-medium text-text-muted mb-1 block">
+                        Nombre (editable)
+                      </label>
+                      <input
+                        type="text"
+                        value={eventType}
+                        onChange={(e) => setEventType(e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg bg-bg-primary border border-border-secondary text-[12px] text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/30"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-medium text-text-muted mb-1 block">
+                        Duración (editable)
+                      </label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {[15, 20, 30, 45, 60, 90, 120].map((d) => (
+                          <button
+                            key={d}
+                            onClick={() => setDuracion(d)}
+                            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
+                              duracion === d
+                                ? "bg-accent text-white"
+                                : "bg-bg-primary border border-border-secondary text-text-primary hover:bg-bg-hover"
+                            }`}
+                          >
+                            <Clock size={10} />
+                            {d} min
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </>
             ) : (
               <input
                 type="text"
@@ -212,45 +268,9 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
                 className="w-full px-3 py-2 rounded-lg bg-bg-primary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30"
               />
             )}
-            {serviceTypeId && (
-              <div className="mt-2 space-y-2">
-                <div>
-                  <label className="text-[11px] font-medium text-text-secondary uppercase tracking-wider mb-1 block">
-                    Nombre del servicio
-                  </label>
-                  <input
-                    type="text"
-                    value={eventType}
-                    onChange={(e) => setEventType(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-bg-primary border border-border-secondary text-[12px] text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/30"
-                  />
-                </div>
-                <div>
-                  <label className="text-[11px] font-medium text-text-secondary uppercase tracking-wider mb-1 block">
-                    Duración
-                  </label>
-                  <div className="flex flex-wrap gap-1.5">
-                    {[15, 20, 30, 45, 60, 90, 120].map((d) => (
-                      <button
-                        key={d}
-                        onClick={() => setDuracion(d)}
-                        className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
-                          duracion === d
-                            ? "bg-accent text-white"
-                            : "bg-bg-primary border border-border-secondary text-text-primary hover:bg-bg-hover"
-                        }`}
-                      >
-                        <Clock size={10} />
-                        {d} min
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
 
-          {/* 4. Date picker */}
+          {/* 4. Fecha */}
           <div>
             <label className="text-[11px] font-medium text-text-secondary uppercase tracking-wider mb-1.5 block">
               Fecha *
@@ -263,7 +283,7 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
             />
           </div>
 
-          {/* 5. Time slots */}
+          {/* 5. Hora */}
           <div>
             <label className="text-[11px] font-medium text-text-secondary uppercase tracking-wider mb-1.5 block">
               Hora disponible *
@@ -297,7 +317,7 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
             )}
           </div>
 
-          {/* 6. Client email (required) */}
+          {/* 6. Email */}
           <div>
             <label className="text-[11px] font-medium text-text-secondary uppercase tracking-wider mb-1.5 block">
               Email del cliente * <span className="text-text-muted normal-case font-normal">(para confirmación)</span>
@@ -311,7 +331,7 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
             />
           </div>
 
-          {/* 7. Notes */}
+          {/* 7. Notas */}
           <div>
             <label className="text-[11px] font-medium text-text-secondary uppercase tracking-wider mb-1.5 block">
               Notas
