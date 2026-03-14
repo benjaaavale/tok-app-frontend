@@ -66,7 +66,7 @@ export function IntegrationSettings() {
           />
         </FieldRow>
 
-        <FieldRow label="yCloud API Key" htmlFor="ycloud-key">
+        <FieldRow label="YCloud API Key" htmlFor="ycloud-key">
           <InputField
             id="ycloud-key"
             value={ycloudKey}

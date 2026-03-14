@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from "react";
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
 import { useConversations } from "@/hooks/useConversations";
 import { useWorkers } from "@/hooks/useWorkers";
 import { useServiceTypes } from "@/hooks/useServiceTypes";
@@ -71,7 +70,6 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
   const handleSelectWorker = (id: number | "") => {
     setWorkerId(id);
     setHora("");
-    // Reset service type if it's no longer compatible with new worker
     if (id && serviceTypeId) {
       const st = serviceTypes?.find((s) => s.id === Number(serviceTypeId));
       if (st && st.worker_ids && st.worker_ids.length > 0 && !st.worker_ids.includes(Number(id))) {
@@ -102,7 +100,7 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
       return;
     }
     if (!clientEmail) {
-      toast.error("El email del cliente es obligatorio para enviar la confirmación");
+      toast.error("El email del cliente es obligatorio para enviar la confirmacion");
       return;
     }
     if (!eventType) {
@@ -130,6 +128,9 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
     );
   };
 
+  const inputCls = "w-full px-3 py-2 rounded-lg bg-bg-primary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30";
+  const labelCls = "text-[11px] font-medium text-text-secondary uppercase tracking-wider mb-1.5 block";
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
@@ -145,15 +146,13 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
         <div className="px-5 py-4 space-y-4">
           {/* 1. Contacto */}
           <div>
-            <label className="text-[11px] font-medium text-text-secondary uppercase tracking-wider mb-1.5 block">
-              Contacto *
-            </label>
+            <label className={labelCls}>Contacto *</label>
             <input
               type="text"
               value={searchContact}
               onChange={(e) => { setSearchContact(e.target.value); setContactId(""); }}
-              placeholder="Buscar contacto por nombre o teléfono..."
-              className="w-full px-3 py-2 rounded-lg bg-bg-primary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30"
+              placeholder="Buscar por nombre o telefono..."
+              className={inputCls}
             />
             {searchContact && filteredContacts.length > 0 && !contactId && (
               <div className="mt-1 max-h-32 overflow-y-auto rounded-lg border border-border-secondary bg-bg-primary">
@@ -181,13 +180,11 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
 
           {/* 2. Trabajador */}
           <div>
-            <label className="text-[11px] font-medium text-text-secondary uppercase tracking-wider mb-1.5 block">
-              Trabajador *
-            </label>
+            <label className={labelCls}>Trabajador *</label>
             <select
               value={workerId}
               onChange={(e) => handleSelectWorker(e.target.value ? Number(e.target.value) : "")}
-              className="w-full px-3 py-2 rounded-lg bg-bg-primary border border-border-secondary text-[12px] text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/30"
+              className={inputCls}
             >
               <option value="">Seleccionar trabajador</option>
               {workers?.map((w) => (
@@ -198,83 +195,67 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
 
           {/* 3. Tipo de servicio */}
           <div>
-            <label className="text-[11px] font-medium text-text-secondary uppercase tracking-wider mb-1.5 block">
-              Tipo de servicio *
-            </label>
-            {serviceTypes && serviceTypes.length > 0 ? (
-              <>
-                <select
-                  value={serviceTypeId}
-                  onChange={(e) => handleSelectServiceType(e.target.value ? Number(e.target.value) : "")}
-                  className="w-full px-3 py-2 rounded-lg bg-bg-primary border border-border-secondary text-[12px] text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/30"
-                >
-                  <option value="">
-                    {workerId
-                      ? availableServiceTypes.length === 0
-                        ? "Este trabajador no tiene servicios asignados"
-                        : "Seleccionar tipo de servicio"
-                      : "Seleccionar tipo de servicio"}
-                  </option>
+            <label className={labelCls}>Tipo de servicio *</label>
+            <select
+              value={serviceTypeId}
+              onChange={(e) => handleSelectServiceType(e.target.value ? Number(e.target.value) : "")}
+              className={inputCls}
+              disabled={!workerId}
+            >
+              {!workerId ? (
+                <option value="">Primero selecciona un trabajador</option>
+              ) : availableServiceTypes.length === 0 ? (
+                <option value="">Este trabajador no tiene servicios asignados</option>
+              ) : (
+                <>
+                  <option value="">Seleccionar tipo de servicio</option>
                   {availableServiceTypes.map((st) => (
                     <option key={st.id} value={st.id}>
                       {st.nombre} — {st.duracion} min
                     </option>
                   ))}
-                </select>
-                {/* Editable name + duration after selection */}
-                {serviceTypeId && (
-                  <div className="mt-2 space-y-2">
-                    <div>
-                      <label className="text-[11px] font-medium text-text-muted mb-1 block">
-                        Nombre (editable)
-                      </label>
-                      <input
-                        type="text"
-                        value={eventType}
-                        onChange={(e) => setEventType(e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg bg-bg-primary border border-border-secondary text-[12px] text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/30"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[11px] font-medium text-text-muted mb-1 block">
-                        Duración (editable)
-                      </label>
-                      <div className="flex flex-wrap gap-1.5">
-                        {[15, 20, 30, 45, 60, 90, 120].map((d) => (
-                          <button
-                            key={d}
-                            onClick={() => setDuracion(d)}
-                            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
-                              duracion === d
-                                ? "bg-accent text-white"
-                                : "bg-bg-primary border border-border-secondary text-text-primary hover:bg-bg-hover"
-                            }`}
-                          >
-                            <Clock size={10} />
-                            {d} min
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                </>
+              )}
+            </select>
+            {!serviceTypes?.length && (
+              <p className="text-[10px] text-text-muted mt-1">
+                Sin tipos de servicio.{" "}
+                <a href="/settings" className="text-accent hover:underline">Configurar en Settings</a>
+              </p>
+            )}
+            {/* After selection: editable name + duration */}
+            {serviceTypeId && (
+              <div className="mt-2 space-y-2">
+                <div>
+                  <label className="text-[11px] font-medium text-text-muted mb-1 block">Nombre del servicio (editable)</label>
+                  <input type="text" value={eventType} onChange={(e) => setEventType(e.target.value)} className={inputCls} />
+                </div>
+                <div>
+                  <label className="text-[11px] font-medium text-text-muted mb-1 block">Duracion (editable)</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[15, 20, 30, 45, 60, 90, 120].map((d) => (
+                      <button
+                        key={d}
+                        onClick={() => setDuracion(d)}
+                        className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
+                          duracion === d
+                            ? "bg-accent text-white"
+                            : "bg-bg-primary border border-border-secondary text-text-primary hover:bg-bg-hover"
+                        }`}
+                      >
+                        <Clock size={10} />
+                        {d} min
+                      </button>
+                    ))}
                   </div>
-                )}
-              </>
-            ) : (
-              <input
-                type="text"
-                value={eventType}
-                onChange={(e) => setEventType(e.target.value)}
-                placeholder="Ej: Consulta, Evaluación, Control..."
-                className="w-full px-3 py-2 rounded-lg bg-bg-primary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30"
-              />
+                </div>
+              </div>
             )}
           </div>
 
           {/* 4. Fecha */}
           <div>
-            <label className="text-[11px] font-medium text-text-secondary uppercase tracking-wider mb-1.5 block">
-              Fecha *
-            </label>
+            <label className={labelCls}>Fecha *</label>
             <DatePicker
               date={fecha}
               onDateChange={(d) => { setFecha(d); setHora(""); }}
@@ -285,9 +266,7 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
 
           {/* 5. Hora */}
           <div>
-            <label className="text-[11px] font-medium text-text-secondary uppercase tracking-wider mb-1.5 block">
-              Hora disponible *
-            </label>
+            <label className={labelCls}>Hora disponible *</label>
             {!workerId || !fechaStr ? (
               <p className="text-[11px] text-text-muted py-2">Selecciona un trabajador y fecha para ver horarios disponibles</p>
             ) : loadingSlots ? (
@@ -319,36 +298,37 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
 
           {/* 6. Email */}
           <div>
-            <label className="text-[11px] font-medium text-text-secondary uppercase tracking-wider mb-1.5 block">
-              Email del cliente * <span className="text-text-muted normal-case font-normal">(para confirmación)</span>
+            <label className={labelCls}>
+              Email del cliente * <span className="text-text-muted normal-case font-normal">(para confirmacion)</span>
             </label>
             <input
               type="email"
               value={clientEmail}
               onChange={(e) => setClientEmail(e.target.value)}
               placeholder="cliente@ejemplo.com"
-              className="w-full px-3 py-2 rounded-lg bg-bg-primary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30"
+              className={inputCls}
             />
           </div>
 
           {/* 7. Notas */}
           <div>
-            <label className="text-[11px] font-medium text-text-secondary uppercase tracking-wider mb-1.5 block">
-              Notas
-            </label>
+            <label className={labelCls}>Notas</label>
             <textarea
               value={notas}
               onChange={(e) => setNotas(e.target.value)}
               placeholder="Notas adicionales..."
               rows={2}
-              className="w-full px-3 py-2 rounded-lg bg-bg-primary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 resize-none"
+              className={`${inputCls} resize-none`}
             />
           </div>
         </div>
 
         {/* Footer */}
         <div className="flex justify-end gap-2 px-5 py-4 border-t border-border-secondary">
-          <button onClick={onClose} className="px-4 py-2 rounded-xl bg-bg-primary border border-border-secondary text-[12px] font-medium text-text-secondary hover:bg-bg-hover transition-all">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded-xl bg-bg-primary border border-border-secondary text-[12px] font-medium text-text-secondary hover:bg-bg-hover transition-all"
+          >
             Cancelar
           </button>
           <button
