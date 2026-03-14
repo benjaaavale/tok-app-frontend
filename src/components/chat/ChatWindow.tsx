@@ -49,7 +49,7 @@ export function ChatWindow() {
   return (
     <div className="flex-1 flex flex-col bg-bg-primary h-full">
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-border-secondary bg-bg-sidebar">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-border-secondary bg-bg-secondary">
         <button
           onClick={() => setActiveConversation(null)}
           className="lg:hidden p-1.5 rounded-lg text-text-muted hover:bg-bg-hover"

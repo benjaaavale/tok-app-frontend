@@ -92,6 +92,16 @@ export interface CompanySettings {
   reminder_hours_before: number;
 }
 
+export interface DashboardDeltas {
+  conversaciones: number;
+  leads: number;
+  citas: number;
+  conversion: number;
+  mensajes: number;
+  promedio: number;
+  fuera_horario: number;
+}
+
 export interface DashboardStats {
   conversaciones_recibidas: number;
   leads_calificados: number;
@@ -100,6 +110,16 @@ export interface DashboardStats {
   mensajes_totales: number;
   promedio_mensajes: number;
   leads_fuera_de_horario: number;
+  deltas: DashboardDeltas;
+  previous: {
+    conversaciones: number;
+    leads: number;
+    citas: number;
+    conversion: number;
+    mensajes: number;
+    promedio: number;
+    fuera_horario: number;
+  };
   servicios_mas_solicitados: { nombre: string; cantidad: number }[];
   horarios_mas_actividad: { hora: number; cantidad: number }[];
   funnel: { etapa: string; cantidad: number }[];

@@ -36,7 +36,7 @@ export function ConversationList() {
   const hasFilters = !!search || !!filterEstado || !!filterEtapa;
 
   return (
-    <div className="flex flex-col h-full border-r border-border-secondary bg-bg-sidebar">
+    <div className="flex flex-col h-full border-r border-border-separator bg-bg-secondary">
       {/* Search */}
       <div className="p-3 space-y-2">
         <div className="relative">

@@ -9,7 +9,15 @@ import { ServiciosChart } from "@/components/dashboard/ServiciosChart";
 import { HorariosChart } from "@/components/dashboard/HorariosChart";
 import { FunnelChart } from "@/components/dashboard/FunnelChart";
 import { LeadsChart } from "@/components/dashboard/LeadsChart";
-import { MessageSquare, BarChart3, Clock } from "lucide-react";
+import {
+  MessageSquare,
+  BarChart3,
+  Clock,
+  ArrowUpRight,
+  ArrowDownRight,
+  Minus,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function DashboardPage() {
   const { companyNombre } = useAuthStore();
@@ -53,6 +61,12 @@ export default function DashboardPage() {
             qualifiedLeads={stats.leads_calificados}
             scheduledAppointments={stats.citas_generadas}
             conversionRate={stats.conversion_a_cita}
+            deltas={stats.deltas ? {
+              conversaciones: stats.deltas.conversaciones,
+              leads: stats.deltas.leads,
+              citas: stats.deltas.citas,
+              conversion: stats.deltas.conversion,
+            } : undefined}
           />
 
           {/* Mini stats */}
@@ -61,16 +75,19 @@ export default function DashboardPage() {
               icon={<MessageSquare size={14} />}
               label="Total mensajes"
               value={stats.mensajes_totales}
+              delta={stats.deltas?.mensajes}
             />
             <MiniStat
               icon={<BarChart3 size={14} />}
               label="Promedio msg/conv"
               value={stats.promedio_mensajes}
+              delta={stats.deltas?.promedio}
             />
             <MiniStat
               icon={<Clock size={14} />}
               label="Leads fuera de horario"
               value={stats.leads_fuera_de_horario}
+              delta={stats.deltas?.fuera_horario}
             />
           </div>
 
@@ -95,19 +112,42 @@ function MiniStat({
   icon,
   label,
   value,
+  delta,
 }: {
   icon: React.ReactNode;
   label: string;
   value: number;
+  delta?: number;
 }) {
   return (
     <div className="bg-bg-secondary border border-border-secondary rounded-xl px-4 py-3 flex items-center gap-3 shadow-sm">
       <div className="w-7 h-7 rounded-lg bg-accent/10 text-accent flex items-center justify-center">
         {icon}
       </div>
-      <div>
+      <div className="flex-1">
         <p className="text-[11px] text-text-muted">{label}</p>
-        <p className="text-[16px] font-semibold text-text-primary">{value}</p>
+        <div className="flex items-center gap-2">
+          <p className="text-[16px] font-semibold text-text-primary">{value}</p>
+          {delta !== undefined && (
+            <span
+              className={cn(
+                "inline-flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-md",
+                delta === 0 && "bg-gray-100 text-gray-500",
+                delta > 0 && "bg-emerald-50 text-emerald-600",
+                delta < 0 && "bg-red-50 text-red-600"
+              )}
+            >
+              {delta === 0 ? (
+                <Minus size={8} />
+              ) : delta > 0 ? (
+                <ArrowUpRight size={8} />
+              ) : (
+                <ArrowDownRight size={8} />
+              )}
+              {Math.abs(delta)}%
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -118,7 +158,7 @@ function DashboardSkeleton() {
     <div className="space-y-6 animate-pulse">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="h-[100px] bg-bg-secondary rounded-2xl border border-border-secondary" />
+          <div key={i} className="h-[100px] bg-bg-secondary rounded-xl border border-border-secondary" />
         ))}
       </div>
       <div className="grid grid-cols-3 gap-4">
@@ -128,7 +168,7 @@ function DashboardSkeleton() {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="h-[280px] bg-bg-secondary rounded-2xl border border-border-secondary" />
+          <div key={i} className="h-[280px] bg-bg-secondary rounded-xl border border-border-secondary" />
         ))}
       </div>
     </div>

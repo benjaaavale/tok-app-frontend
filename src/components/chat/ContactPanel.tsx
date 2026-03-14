@@ -79,7 +79,7 @@ export function ContactPanel() {
   if (!showContactPanel || !activePhone) return null;
 
   return (
-    <div className="w-[300px] border-l border-border-secondary bg-bg-sidebar h-full overflow-y-auto hidden lg:block">
+    <div className="w-[300px] border-l border-border-separator bg-bg-secondary h-full overflow-y-auto hidden lg:block">
       {isLoading ? (
         <div className="p-5 space-y-4 animate-pulse">
           <div className="h-16 w-16 rounded-full bg-bg-primary mx-auto" />

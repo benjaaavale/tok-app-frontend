@@ -18,6 +18,7 @@
   /* Borders */
   --border-primary: #E2E8F0;
   --border-secondary: #E2E8F0;
+  --border-separator: #CBD5E1;
 
   /* Accent blues */
   --accent: #2563EB;
@@ -43,10 +44,10 @@
   --shadow-accent: 0 4px 16px rgba(37, 99, 235, 0.25);
 
   /* Radius */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
 
   /* Gradients */
   --gradient-accent: linear-gradient(135deg, #2563EB 0%, #3B82F6 100%);
@@ -67,6 +68,7 @@
 
   --border-primary: #334155;
   --border-secondary: #1E293B;
+  --border-separator: #475569;
 
   --accent: #60A5FA;
   --accent-hover: #3B82F6;
@@ -107,6 +109,7 @@
 
   --color-border-primary: var(--border-primary);
   --color-border-secondary: var(--border-secondary);
+  --color-border-separator: var(--border-separator);
 
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
@@ -133,6 +136,12 @@
   --radius-xl: var(--radius-xl);
 
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", ui-sans-serif, system-ui, sans-serif;
+
+  /* Override default Tailwind border-radius for squarer buttons */
+  --radius-lg: 8px;
+  --radius-xl: 10px;
+  --radius-2xl: 12px;
+  --radius-3xl: 14px;
 }
 
 /* ── Base Styles ── */
