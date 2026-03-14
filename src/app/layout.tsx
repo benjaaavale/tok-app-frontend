@@ -4,7 +4,10 @@ import { esMX } from "@clerk/localizations";
 import { ThemeProvider } from "next-themes";
 import { QueryProvider } from "@/lib/query-provider";
 import { Toaster } from "sonner";
+import { Inter } from "next/font/google";
 import "./globals.css";
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
   title: "ToK - Panel de gestión",
@@ -29,7 +32,7 @@ export default function RootLayout({
         },
       }}
     >
-      <html lang="es" suppressHydrationWarning>
+      <html lang="es" suppressHydrationWarning className={inter.variable}>
         <body className="font-sans antialiased">
           <ThemeProvider
             attribute="class"

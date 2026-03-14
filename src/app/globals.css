@@ -135,7 +135,7 @@
   --radius-lg: var(--radius-lg);
   --radius-xl: var(--radius-xl);
 
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "SF Pro Text", ui-sans-serif, system-ui, sans-serif;
 
   /* Override default Tailwind border-radius for squarer buttons */
   --radius-lg: 8px;
