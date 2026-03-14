@@ -3,10 +3,10 @@
 /* ── ToK Blue Design System ── */
 :root {
   /* Backgrounds */
-  --bg-primary: #F0F4F8;
-  --bg-secondary: #FFFFFF;
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F4F7FB;
   --bg-sidebar: #E5E7EB;
-  --bg-hover: #F1F5F9;
+  --bg-hover: #EDF1F7;
   --bg-active: #EFF6FF;
 
   /* Text */
