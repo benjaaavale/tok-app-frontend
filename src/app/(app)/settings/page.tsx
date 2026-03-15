@@ -19,10 +19,10 @@ import {
   Settings,
   LogOut,
   User,
-  Building2,
   Users,
   CalendarDays,
   Plug,
+  Bot,
   Save,
   Undo2,
 } from "lucide-react";
@@ -30,9 +30,9 @@ import {
 /* ── Tab definitions ── */
 const TABS = [
   { id: "perfil", label: "Perfil", icon: User },
-  { id: "empresa", label: "Empresa", icon: Building2 },
   { id: "equipo", label: "Equipo", icon: Users },
   { id: "calendario", label: "Calendario", icon: CalendarDays },
+  { id: "agente", label: "Agente IA", icon: Bot },
   { id: "integraciones", label: "Integraciones", icon: Plug },
 ] as const;
 
@@ -116,7 +116,7 @@ export default function SettingsPage() {
             Configuración
           </h1>
           <p className="text-[11px] text-text-muted">
-            Administra tu cuenta, empresa e integraciones
+            Administra tu cuenta, equipo e integraciones
           </p>
         </div>
       </div>
@@ -146,13 +146,20 @@ export default function SettingsPage() {
         {/* ── Tab Contents ── */}
         <TabsContent value="perfil" className="space-y-6">
           <UserProfileSettings />
-        </TabsContent>
-
-        <TabsContent value="empresa" className="space-y-6">
-          <CompanySettings onDirtyChange={handleCompanyDirty} />
+          {/* ── Sign out ── */}
+          <div className="pt-2 pb-4">
+            <button
+              onClick={() => signOut({ redirectUrl: "/login" })}
+              className="flex items-center gap-2.5 px-5 py-3 rounded-xl text-[13px] font-medium text-red-500 bg-red-50 border border-red-200 hover:bg-red-100 hover:border-red-300 transition-all duration-150 w-full justify-center dark:bg-red-500/10 dark:border-red-500/20 dark:hover:bg-red-500/20"
+            >
+              <LogOut size={16} />
+              Cerrar sesión
+            </button>
+          </div>
         </TabsContent>
 
         <TabsContent value="equipo" className="space-y-6">
+          <CompanySettings onDirtyChange={handleCompanyDirty} />
           <WorkerManager />
           <ServiceTypeManager />
         </TabsContent>
@@ -162,22 +169,14 @@ export default function SettingsPage() {
           <NotificationSettings onDirtyChange={handleNotifDirty} />
         </TabsContent>
 
-        <TabsContent value="integraciones" className="space-y-6">
+        <TabsContent value="agente" className="space-y-6">
           <AgentSettings />
+        </TabsContent>
+
+        <TabsContent value="integraciones" className="space-y-6">
           <IntegrationSettings onDirtyChange={handleIntegDirty} />
         </TabsContent>
       </Tabs>
-
-      {/* ── Sign out ── */}
-      <div className="pt-6 pb-8">
-        <button
-          onClick={() => signOut({ redirectUrl: "/login" })}
-          className="flex items-center gap-2.5 px-5 py-3 rounded-xl text-[13px] font-medium text-red-500 bg-red-50 border border-red-200 hover:bg-red-100 hover:border-red-300 transition-all duration-150 w-full justify-center dark:bg-red-500/10 dark:border-red-500/20 dark:hover:bg-red-500/20"
-        >
-          <LogOut size={16} />
-          Cerrar sesión
-        </button>
-      </div>
 
       {/* ── Floating unsaved changes bar ── */}
       <AnimatePresence>
