@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
@@ -8,9 +8,13 @@ import { authFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { SettingsSection } from "./SettingsSection";
 import { AnimatedSelect } from "@/components/ui/animated-select";
-import { Bell, Save } from "lucide-react";
+import { Bell } from "lucide-react";
 
-export function NotificationSettings() {
+interface NotificationSettingsProps {
+  onDirtyChange?: (dirty: boolean, save: () => void, discard: () => void) => void;
+}
+
+export function NotificationSettings({ onDirtyChange }: NotificationSettingsProps) {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
   const { data: settings, isLoading } = useCompanySettings();
@@ -45,6 +49,33 @@ export function NotificationSettings() {
     },
     onError: (err: Error) => toast.error(err.message),
   });
+
+  // ── Dirty tracking ──
+  const isDirty = useMemo(() => {
+    if (!settings) return false;
+    return (
+      reminderEnabled !== (settings.reminder_enabled ?? true) ||
+      reminderHours !== (settings.reminder_hours_before ?? 24)
+    );
+  }, [reminderEnabled, reminderHours, settings]);
+
+  const handleSave = useCallback(() => save.mutate(), [save]);
+  const handleDiscard = useCallback(() => {
+    if (!settings) return;
+    setReminderEnabled(settings.reminder_enabled ?? true);
+    setReminderHours(settings.reminder_hours_before ?? 24);
+  }, [settings]);
+
+  const onDirtyChangeRef = useRef(onDirtyChange);
+  onDirtyChangeRef.current = onDirtyChange;
+
+  useEffect(() => {
+    onDirtyChangeRef.current?.(isDirty, handleSave, handleDiscard);
+  }, [isDirty, handleSave, handleDiscard]);
+
+  useEffect(() => {
+    return () => { onDirtyChangeRef.current?.(false, () => {}, () => {}); };
+  }, []);
 
   if (isLoading) {
     return <div className="h-[120px] bg-bg-secondary rounded-2xl animate-pulse" />;
@@ -105,17 +136,6 @@ export function NotificationSettings() {
             />
           </div>
         )}
-      </div>
-
-      <div className="pt-3 border-t border-border-secondary mt-3">
-        <button
-          onClick={() => save.mutate()}
-          disabled={save.isPending}
-          className="btn-gradient flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-medium disabled:opacity-50"
-        >
-          <Save size={13} />
-          {save.isPending ? "Guardando..." : "Guardar"}
-        </button>
       </div>
     </SettingsSection>
   );

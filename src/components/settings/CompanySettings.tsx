@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
@@ -11,7 +11,6 @@ import {
   FieldRow,
   InputField,
 } from "./SettingsSection";
-import { Save } from "lucide-react";
 
 const DIAS = [
   { key: "lunes", label: "Lun" },
@@ -25,7 +24,6 @@ const DIAS = [
 
 function parseDiasLaborales(str: string): string[] {
   if (!str) return [];
-  // Support formats: "lunes,martes,miercoles" or "lunes a viernes"
   const lower = str.toLowerCase().trim();
   if (lower.includes(" a ")) {
     const parts = lower.split(" a ").map((s) => s.trim());
@@ -42,7 +40,11 @@ function serializeDiasLaborales(selected: string[]): string {
   return selected.join(",");
 }
 
-export function CompanySettings() {
+interface CompanySettingsProps {
+  onDirtyChange?: (dirty: boolean, save: () => void, discard: () => void) => void;
+}
+
+export function CompanySettings({ onDirtyChange }: CompanySettingsProps) {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
   const { data: settings, isLoading } = useCompanySettings();
@@ -89,6 +91,37 @@ export function CompanySettings() {
     },
     onError: (err: Error) => toast.error(err.message),
   });
+
+  // ── Dirty tracking ──
+  const isDirty = useMemo(() => {
+    if (!settings) return false;
+    return (
+      nombre !== (settings.company_nombre || "") ||
+      horarioInicio !== (settings.horario_inicio || "") ||
+      horarioFin !== (settings.horario_fin || "") ||
+      serializeDiasLaborales(selectedDias) !== (settings.dias_laborales || "")
+    );
+  }, [nombre, horarioInicio, horarioFin, selectedDias, settings]);
+
+  const handleSave = useCallback(() => save.mutate(), [save]);
+  const handleDiscard = useCallback(() => {
+    if (!settings) return;
+    setNombre(settings.company_nombre || "");
+    setHorarioInicio(settings.horario_inicio || "");
+    setHorarioFin(settings.horario_fin || "");
+    setSelectedDias(parseDiasLaborales(settings.dias_laborales || ""));
+  }, [settings]);
+
+  const onDirtyChangeRef = useRef(onDirtyChange);
+  onDirtyChangeRef.current = onDirtyChange;
+
+  useEffect(() => {
+    onDirtyChangeRef.current?.(isDirty, handleSave, handleDiscard);
+  }, [isDirty, handleSave, handleDiscard]);
+
+  useEffect(() => {
+    return () => { onDirtyChangeRef.current?.(false, () => {}, () => {}); };
+  }, []);
 
   if (isLoading) {
     return (
@@ -152,17 +185,6 @@ export function CompanySettings() {
             })}
           </div>
         </FieldRow>
-      </div>
-
-      <div className="pt-3 border-t border-border-secondary mt-3">
-        <button
-          onClick={() => save.mutate()}
-          disabled={save.isPending}
-          className="btn-gradient flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-medium disabled:opacity-50"
-        >
-          <Save size={13} />
-          {save.isPending ? "Guardando..." : "Guardar cambios"}
-        </button>
       </div>
     </SettingsSection>
   );

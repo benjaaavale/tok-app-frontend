@@ -1,15 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { authFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { SettingsSection, FieldRow, InputField } from "./SettingsSection";
-import { Save } from "lucide-react";
 
-export function IntegrationSettings() {
+interface IntegrationSettingsProps {
+  onDirtyChange?: (dirty: boolean, save: () => void, discard: () => void) => void;
+}
+
+export function IntegrationSettings({ onDirtyChange }: IntegrationSettingsProps) {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
   const { data: settings, isLoading } = useCompanySettings();
@@ -44,6 +47,33 @@ export function IntegrationSettings() {
     },
     onError: (err: Error) => toast.error(err.message),
   });
+
+  // ── Dirty tracking ──
+  const isDirty = useMemo(() => {
+    if (!settings) return false;
+    return (
+      n8nUrl !== (settings.n8n_webhook_url || "") ||
+      ycloudKey !== (settings.ycloud_apikey || "")
+    );
+  }, [n8nUrl, ycloudKey, settings]);
+
+  const handleSave = useCallback(() => save.mutate(), [save]);
+  const handleDiscard = useCallback(() => {
+    if (!settings) return;
+    setN8nUrl(settings.n8n_webhook_url || "");
+    setYcloudKey(settings.ycloud_apikey || "");
+  }, [settings]);
+
+  const onDirtyChangeRef = useRef(onDirtyChange);
+  onDirtyChangeRef.current = onDirtyChange;
+
+  useEffect(() => {
+    onDirtyChangeRef.current?.(isDirty, handleSave, handleDiscard);
+  }, [isDirty, handleSave, handleDiscard]);
+
+  useEffect(() => {
+    return () => { onDirtyChangeRef.current?.(false, () => {}, () => {}); };
+  }, []);
 
   if (isLoading) {
     return (
@@ -80,17 +110,6 @@ export function IntegrationSettings() {
         Las API keys se muestran enmascaradas. Ingresa una nueva para
         reemplazar la actual.
       </p>
-
-      <div className="pt-3 border-t border-border-secondary mt-3">
-        <button
-          onClick={() => save.mutate()}
-          disabled={save.isPending}
-          className="btn-gradient flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-medium disabled:opacity-50"
-        >
-          <Save size={13} />
-          {save.isPending ? "Guardando..." : "Guardar cambios"}
-        </button>
-      </div>
     </SettingsSection>
   );
 }
