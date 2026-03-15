@@ -36,7 +36,8 @@ export const WORKER_COLORS = [
   "#F97316", "#6366F1", "#14B8A6", "#E11D48",
 ];
 
-export const TIMES = Array.from({ length: 21 }, (_, i) => {
+// 07:00 to 20:30 in 30-min increments (28 slots)
+export const TIMES = Array.from({ length: 28 }, (_, i) => {
   const hour = Math.floor(i / 2) + 7;
   const min = i % 2 === 0 ? "00" : "30";
   return `${hour.toString().padStart(2, "0")}:${min}`;

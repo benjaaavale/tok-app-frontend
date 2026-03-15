@@ -13,6 +13,13 @@ import { ChevronLeft, ChevronRight, CalendarDays, Plus, Settings } from "lucide-
 import Link from "next/link";
 import type { Appointment } from "@/types/api";
 
+function toLocalDateStr(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 function getWeekRange(offset: number) {
   const today = new Date();
   const day = today.getDay();
@@ -23,8 +30,8 @@ function getWeekRange(offset: number) {
   sunday.setDate(monday.getDate() + 6);
 
   return {
-    from: monday.toISOString().split("T")[0],
-    to: sunday.toISOString().split("T")[0],
+    from: toLocalDateStr(monday),
+    to: toLocalDateStr(sunday),
     label: `${monday.getDate()} ${monday.toLocaleDateString("es-CL", { month: "short" })} – ${sunday.getDate()} ${sunday.toLocaleDateString("es-CL", { month: "short", year: "numeric" })}`,
   };
 }

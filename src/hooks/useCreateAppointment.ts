@@ -36,7 +36,8 @@ export function useCreateAppointment() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      // Force immediate refetch of all active appointment queries
+      queryClient.refetchQueries({ queryKey: ["appointments"], type: "active" });
     },
   });
 }
