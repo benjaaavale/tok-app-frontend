@@ -10,6 +10,7 @@ import { useCreateAppointment } from "@/hooks/useCreateAppointment";
 import { authFetch } from "@/lib/api";
 import { useAuth } from "@clerk/nextjs";
 import { DatePicker } from "@/components/ui/date-picker";
+import { AnimatedSelect } from "@/components/ui/animated-select";
 import { toast } from "sonner";
 import { X, Clock, Loader2, UserPlus, Search } from "lucide-react";
 
@@ -240,42 +241,33 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
           {/* 2. Trabajador */}
           <div>
             <label className={labelCls}>Trabajador *</label>
-            <select
-              value={workerId}
-              onChange={(e) => handleSelectWorker(e.target.value ? Number(e.target.value) : "")}
-              className={inputCls}
-            >
-              <option value="">Seleccionar trabajador</option>
-              {workers?.map((w) => (
-                <option key={w.id} value={w.id}>{w.nombre}</option>
-              ))}
-            </select>
+            <AnimatedSelect
+              value={String(workerId)}
+              onChange={(v) => handleSelectWorker(v ? Number(v) : "")}
+              options={(workers ?? []).map((w) => ({ value: String(w.id), label: w.nombre }))}
+              placeholder="Seleccionar trabajador"
+            />
           </div>
 
           {/* 3. Tipo de servicio */}
           <div>
             <label className={labelCls}>Tipo de servicio *</label>
-            <select
-              value={serviceTypeId}
-              onChange={(e) => handleSelectServiceType(e.target.value ? Number(e.target.value) : "")}
-              className={inputCls}
+            <AnimatedSelect
+              value={String(serviceTypeId)}
+              onChange={(v) => handleSelectServiceType(v ? Number(v) : "")}
+              options={availableServiceTypes.map((st) => ({
+                value: String(st.id),
+                label: `${st.nombre} — ${st.duracion} min`,
+              }))}
+              placeholder={
+                !workerId
+                  ? "Primero selecciona un trabajador"
+                  : availableServiceTypes.length === 0
+                  ? "Este trabajador no tiene servicios asignados"
+                  : "Seleccionar tipo de servicio"
+              }
               disabled={!workerId}
-            >
-              {!workerId ? (
-                <option value="">Primero selecciona un trabajador</option>
-              ) : availableServiceTypes.length === 0 ? (
-                <option value="">Este trabajador no tiene servicios asignados</option>
-              ) : (
-                <>
-                  <option value="">Seleccionar tipo de servicio</option>
-                  {availableServiceTypes.map((st) => (
-                    <option key={st.id} value={st.id}>
-                      {st.nombre} — {st.duracion} min
-                    </option>
-                  ))}
-                </>
-              )}
-            </select>
+            />
             {!serviceTypes?.length && (
               <p className="text-[10px] text-text-muted mt-1">
                 Sin tipos de servicio.{" "}

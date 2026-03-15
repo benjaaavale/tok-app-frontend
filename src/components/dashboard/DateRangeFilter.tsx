@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { CalendarDays } from "lucide-react";
+import { AnimatedSelect } from "@/components/ui/animated-select";
 
 type Preset = "week" | "month" | "lastmonth" | "custom";
 
@@ -58,37 +59,19 @@ export function DateRangeFilter({ onChange }: DateRangeFilterProps) {
 
   return (
     <div className="flex items-center gap-3 flex-wrap">
-      <div className="relative">
-        <CalendarDays
-          size={14}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
-        />
-        <select
-          value={preset}
-          onChange={(e) => setPreset(e.target.value as Preset)}
-          className="pl-8 pr-8 py-2 rounded-xl text-[12px] font-medium bg-bg-secondary border border-border-secondary text-text-primary appearance-none cursor-pointer hover:border-accent/40 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all"
-        >
-          <option value="week">Esta semana</option>
-          <option value="month">Este mes</option>
-          <option value="lastmonth">Mes anterior</option>
-          <option value="custom">Personalizado</option>
-        </select>
-        <svg
-          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
-          width="12"
-          height="12"
-          viewBox="0 0 12 12"
-          fill="none"
-        >
-          <path
-            d="M3 4.5L6 7.5L9 4.5"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </div>
+      <AnimatedSelect
+        value={preset}
+        onChange={(v) => setPreset(v as Preset)}
+        options={[
+          { value: "week", label: "Esta semana" },
+          { value: "month", label: "Este mes" },
+          { value: "lastmonth", label: "Mes anterior" },
+          { value: "custom", label: "Personalizado" },
+        ]}
+        allowEmpty={false}
+        leftIcon={<CalendarDays size={14} />}
+        className="w-44"
+      />
 
       {preset === "custom" && (
         <div className="flex items-center gap-2">

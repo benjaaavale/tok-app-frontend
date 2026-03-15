@@ -6,6 +6,7 @@ import { useChatStore } from "@/stores/chat-store";
 import { cn, getInitials, timeAgo } from "@/lib/utils";
 import { ETAPA_COLORS, ETAPA_LABELS } from "@/lib/constants";
 import { Search, X, Filter } from "lucide-react";
+import { AnimatedSelect } from "@/components/ui/animated-select";
 
 export function ConversationList() {
   const { data: conversations, isLoading } = useConversations();
@@ -55,29 +56,33 @@ export function ConversationList() {
 
         {/* Filters */}
         <div className="flex gap-1.5">
-          <select
+          <AnimatedSelect
             value={filterEstado}
-            onChange={(e) => setFilterEstado(e.target.value)}
-            className="flex-1 px-2 py-1.5 rounded-lg bg-bg-primary border border-border-secondary text-[11px] text-text-secondary focus:outline-none"
-          >
-            <option value="">Estado</option>
-            <option value="bot">Bot</option>
-            <option value="human">Ayuda humana</option>
-          </select>
-          <select
+            onChange={setFilterEstado}
+            options={[
+              { value: "bot", label: "Bot" },
+              { value: "human", label: "Ayuda humana" },
+            ]}
+            placeholder="Estado"
+            size="sm"
+            className="flex-1"
+          />
+          <AnimatedSelect
             value={filterEtapa}
-            onChange={(e) => setFilterEtapa(e.target.value)}
-            className="flex-1 px-2 py-1.5 rounded-lg bg-bg-primary border border-border-secondary text-[11px] text-text-secondary focus:outline-none"
-          >
-            <option value="">Etapa</option>
-            <option value="frio">Frío</option>
-            <option value="interesado">Interesado</option>
-            <option value="calificado">Calificado</option>
-            <option value="alta_intencion">Alta intención</option>
-            <option value="agendado">Agendado</option>
-            <option value="no_encaja">No encaja</option>
-            <option value="pausado">Pausado</option>
-          </select>
+            onChange={setFilterEtapa}
+            options={[
+              { value: "frio", label: "Frío 🧊" },
+              { value: "interesado", label: "Interesado 🤔" },
+              { value: "calificado", label: "Calificado ✅" },
+              { value: "alta_intencion", label: "Alta intención 🔥" },
+              { value: "agendado", label: "Agendado 🗓️" },
+              { value: "no_encaja", label: "No encaja ⛔" },
+              { value: "pausado", label: "Pausado ⏸️" },
+            ]}
+            placeholder="Etapa"
+            size="sm"
+            className="flex-1"
+          />
           {hasFilters && (
             <button
               onClick={() => {

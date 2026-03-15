@@ -6,6 +6,7 @@ import { useContact } from "@/hooks/useContact";
 import { useChatStore } from "@/stores/chat-store";
 import { authFetch } from "@/lib/api";
 import { ETAPA_COLORS, ETAPA_LABELS, LEAD_OPTIONS } from "@/lib/constants";
+import { AnimatedSelect } from "@/components/ui/animated-select";
 import { getInitials } from "@/lib/utils";
 import { toast } from "sonner";
 import {
@@ -174,23 +175,13 @@ export function ContactPanel() {
           {/* ── Calificación / Etapa ── */}
           <Section title="Calificación">
             <div className="space-y-2">
-              <select
+              <AnimatedSelect
                 value={contact.etapa || ""}
-                onChange={(e) => updateEtapa.mutate(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl bg-bg-primary border border-border-secondary text-[12px] text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/30"
-                style={{
-                  borderLeftColor:
-                    ETAPA_COLORS[contact.etapa || ""] || undefined,
-                  borderLeftWidth: contact.etapa ? "3px" : undefined,
-                }}
-              >
-                <option value="">Sin calificar</option>
-                {LEAD_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+                onChange={(v) => updateEtapa.mutate(v)}
+                options={LEAD_OPTIONS}
+                placeholder="Sin calificar"
+                dotColor={ETAPA_COLORS[contact.etapa || ""] || undefined}
+              />
               {contact.etapa && (
                 <div className="flex items-center gap-2">
                   <div

@@ -7,6 +7,7 @@ import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { authFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { SettingsSection } from "./SettingsSection";
+import { AnimatedSelect } from "@/components/ui/animated-select";
 import { Bell, Save } from "lucide-react";
 
 export function NotificationSettings() {
@@ -88,18 +89,20 @@ export function NotificationSettings() {
             <p className="text-[12px] text-text-primary flex-1">
               Horas antes de la cita
             </p>
-            <select
+            <AnimatedSelect
               value={reminderHours}
-              onChange={(e) => setReminderHours(Number(e.target.value))}
-              className="px-3 py-1.5 rounded-lg bg-bg-secondary border border-border-secondary text-[12px] text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/30"
-            >
-              <option value={1}>1 hora</option>
-              <option value={2}>2 horas</option>
-              <option value={6}>6 horas</option>
-              <option value={12}>12 horas</option>
-              <option value={24}>24 horas</option>
-              <option value={48}>48 horas</option>
-            </select>
+              onChange={(v) => setReminderHours(Number(v))}
+              options={[
+                { value: 1, label: "1 hora" },
+                { value: 2, label: "2 horas" },
+                { value: 6, label: "6 horas" },
+                { value: 12, label: "12 horas" },
+                { value: 24, label: "24 horas" },
+                { value: 48, label: "48 horas" },
+              ]}
+              allowEmpty={false}
+              className="w-32"
+            />
           </div>
         )}
       </div>
