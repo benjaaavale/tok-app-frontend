@@ -55,8 +55,10 @@ export function WeeklyGrid({
           );
 
     for (const appt of filtered) {
-      if (!map[appt.fecha]) map[appt.fecha] = [];
-      map[appt.fecha].push(appt);
+      // PostgreSQL DATE arrives as ISO string "2026-03-15T00:00:00.000Z" — normalize to "2026-03-15"
+      const fechaKey = appt.fecha?.split("T")[0] ?? appt.fecha;
+      if (!map[fechaKey]) map[fechaKey] = [];
+      map[fechaKey].push(appt);
     }
     return map;
   }, [appointments, activeWorkerFilters]);

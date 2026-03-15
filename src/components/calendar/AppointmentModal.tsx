@@ -111,7 +111,7 @@ export function AppointmentModal({
             <InfoRow
               icon={<Calendar size={14} />}
               label="Fecha"
-              value={new Date(appointment.fecha + "T12:00:00").toLocaleDateString(
+              value={new Date(appointment.fecha.split("T")[0] + "T12:00:00").toLocaleDateString(
                 "es-CL",
                 { weekday: "long", day: "numeric", month: "long" }
               )}
