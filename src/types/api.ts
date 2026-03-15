@@ -88,6 +88,7 @@ export interface CompanySettings {
   ycloud_apikey: string;
   bot_auto_desactivar: boolean;
   google_connected: boolean;
+  google_email?: string | null;
   reminder_enabled: boolean;
   reminder_hours_before: number;
 }

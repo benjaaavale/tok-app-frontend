@@ -39,6 +39,7 @@ export function GoogleCalendarSettings() {
   const { data: workers } = useWorkers();
 
   const isConnected = settings?.google_connected ?? false;
+  const googleEmail = settings?.google_email;
 
   const connectGoogle = useMutation({
     mutationFn: async () => {
@@ -106,6 +107,11 @@ export function GoogleCalendarSettings() {
           <p className="text-[12px] font-medium text-text-primary">
             {isConnected ? "Google Calendar conectado" : "No conectado"}
           </p>
+          {isConnected && googleEmail && (
+            <p className="text-[11px] text-accent font-medium">
+              {googleEmail}
+            </p>
+          )}
           <p className="text-[10px] text-text-muted">
             {isConnected
               ? "Los calendarios de tus trabajadores se sincronizan automáticamente"

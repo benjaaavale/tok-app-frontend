@@ -20,6 +20,8 @@ import {
   Trash2,
   Bot,
   Tag,
+  Sparkles,
+  Info,
 } from "lucide-react";
 
 export function ContactPanel() {
@@ -175,6 +177,14 @@ export function ContactPanel() {
           {/* ── Calificación / Etapa ── */}
           <Section title="Calificación">
             <div className="space-y-2">
+              {!contact.bot_desactivado && (
+                <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-accent/5 border border-accent/15 mb-1">
+                  <Sparkles size={13} className="text-accent mt-0.5 flex-shrink-0" />
+                  <p className="text-[10.5px] text-text-secondary leading-relaxed">
+                    El agente IA califica automáticamente este lead. Puedes cambiarlo manualmente si no estás de acuerdo.
+                  </p>
+                </div>
+              )}
               <AnimatedSelect
                 value={contact.etapa || ""}
                 onChange={(v) => updateEtapa.mutate(v)}

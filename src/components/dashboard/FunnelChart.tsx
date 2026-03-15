@@ -23,7 +23,7 @@ export function FunnelChart({ data }: FunnelChartProps) {
 
   const chartData = data.map((d) => ({
     stage: ETAPA_LABELS[d.etapa] || d.etapa,
-    count: d.cantidad,
+    Cantidad: d.cantidad,
   }));
 
   return (
@@ -58,7 +58,7 @@ export function FunnelChart({ data }: FunnelChartProps) {
               fontSize: "12px",
             }}
           />
-          <Bar dataKey="count" fill="#8B5CF6" radius={[0, 6, 6, 0]} />
+          <Bar dataKey="Cantidad" fill="#8B5CF6" radius={[0, 6, 6, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </ChartCard>

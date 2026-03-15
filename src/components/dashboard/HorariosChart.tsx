@@ -22,7 +22,7 @@ export function HorariosChart({ data }: HorariosChartProps) {
 
   const chartData = data.map((d) => ({
     hour: `${d.hora.toString().padStart(2, "0")}:00`,
-    count: d.cantidad,
+    Cantidad: d.cantidad,
   }));
 
   return (
@@ -55,7 +55,7 @@ export function HorariosChart({ data }: HorariosChartProps) {
               fontSize: "12px",
             }}
           />
-          <Bar dataKey="count" fill="#3B82F6" radius={[6, 6, 0, 0]} />
+          <Bar dataKey="Cantidad" fill="#3B82F6" radius={[6, 6, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </ChartCard>
