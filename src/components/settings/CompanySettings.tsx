@@ -103,14 +103,21 @@ export function CompanySettings({ onDirtyChange }: CompanySettingsProps) {
     );
   }, [nombre, horarioInicio, horarioFin, selectedDias, settings]);
 
-  const handleSave = useCallback(() => save.mutate(), [save]);
+  // Use refs to keep callbacks stable and avoid infinite re-render loops
+  const saveRef = useRef(save);
+  saveRef.current = save;
+  const settingsRef = useRef(settings);
+  settingsRef.current = settings;
+
+  const handleSave = useCallback(() => saveRef.current.mutate(), []);
   const handleDiscard = useCallback(() => {
-    if (!settings) return;
-    setNombre(settings.company_nombre || "");
-    setHorarioInicio(settings.horario_inicio || "");
-    setHorarioFin(settings.horario_fin || "");
-    setSelectedDias(parseDiasLaborales(settings.dias_laborales || ""));
-  }, [settings]);
+    const s = settingsRef.current;
+    if (!s) return;
+    setNombre(s.company_nombre || "");
+    setHorarioInicio(s.horario_inicio || "");
+    setHorarioFin(s.horario_fin || "");
+    setSelectedDias(parseDiasLaborales(s.dias_laborales || ""));
+  }, []);
 
   const onDirtyChangeRef = useRef(onDirtyChange);
   onDirtyChangeRef.current = onDirtyChange;

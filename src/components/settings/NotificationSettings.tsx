@@ -59,12 +59,18 @@ export function NotificationSettings({ onDirtyChange }: NotificationSettingsProp
     );
   }, [reminderEnabled, reminderHours, settings]);
 
-  const handleSave = useCallback(() => save.mutate(), [save]);
+  const saveRef = useRef(save);
+  saveRef.current = save;
+  const settingsRef = useRef(settings);
+  settingsRef.current = settings;
+
+  const handleSave = useCallback(() => saveRef.current.mutate(), []);
   const handleDiscard = useCallback(() => {
-    if (!settings) return;
-    setReminderEnabled(settings.reminder_enabled ?? true);
-    setReminderHours(settings.reminder_hours_before ?? 24);
-  }, [settings]);
+    const s = settingsRef.current;
+    if (!s) return;
+    setReminderEnabled(s.reminder_enabled ?? true);
+    setReminderHours(s.reminder_hours_before ?? 24);
+  }, []);
 
   const onDirtyChangeRef = useRef(onDirtyChange);
   onDirtyChangeRef.current = onDirtyChange;

@@ -72,17 +72,18 @@ export default function SettingsPage() {
       (dirty: boolean, save: () => void, discard: () => void) => {
         setDirtyMap((prev) => {
           if (dirty) return { ...prev, [key]: { save, discard } };
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          if (!(key in prev)) return prev; // no change — avoid re-render
           const { [key]: _, ...rest } = prev;
+          void _;
           return rest;
         });
       },
     [],
   );
 
-  const handleCompanyDirty = useCallback(makeDirtyHandler("empresa"), [makeDirtyHandler]);
-  const handleNotifDirty = useCallback(makeDirtyHandler("notificaciones"), [makeDirtyHandler]);
-  const handleIntegDirty = useCallback(makeDirtyHandler("integraciones"), [makeDirtyHandler]);
+  const handleCompanyDirty = makeDirtyHandler("empresa");
+  const handleNotifDirty = makeDirtyHandler("notificaciones");
+  const handleIntegDirty = makeDirtyHandler("integraciones");
 
   /* ── Tab switching with dirty guard ── */
   const handleTabChange = (newTab: string) => {

@@ -57,12 +57,18 @@ export function IntegrationSettings({ onDirtyChange }: IntegrationSettingsProps)
     );
   }, [n8nUrl, ycloudKey, settings]);
 
-  const handleSave = useCallback(() => save.mutate(), [save]);
+  const saveRef = useRef(save);
+  saveRef.current = save;
+  const settingsRef = useRef(settings);
+  settingsRef.current = settings;
+
+  const handleSave = useCallback(() => saveRef.current.mutate(), []);
   const handleDiscard = useCallback(() => {
-    if (!settings) return;
-    setN8nUrl(settings.n8n_webhook_url || "");
-    setYcloudKey(settings.ycloud_apikey || "");
-  }, [settings]);
+    const s = settingsRef.current;
+    if (!s) return;
+    setN8nUrl(s.n8n_webhook_url || "");
+    setYcloudKey(s.ycloud_apikey || "");
+  }, []);
 
   const onDirtyChangeRef = useRef(onDirtyChange);
   onDirtyChangeRef.current = onDirtyChange;
