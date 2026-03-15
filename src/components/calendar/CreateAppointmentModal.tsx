@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { format } from "date-fns";
+import { format, startOfWeek, differenceInWeeks } from "date-fns";
+import { useCalendarStore } from "@/stores/calendar-store";
 import { useConversations } from "@/hooks/useConversations";
 import { useWorkers } from "@/hooks/useWorkers";
 import { useServiceTypes } from "@/hooks/useServiceTypes";
@@ -26,6 +27,7 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
   const { data: serviceTypes } = useServiceTypes();
   const createAppointment = useCreateAppointment();
   const { getToken } = useAuth();
+  const changeWeek = useCalendarStore((s) => s.changeWeek);
 
   const [contactId, setContactId] = useState<number | "">("");
   const [workerId, setWorkerId] = useState<number | "">("");
@@ -89,7 +91,8 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
         method: "POST",
         body: JSON.stringify({ nombre_real: newContactName, telefono: newContactPhone, correo: newContactEmail || undefined }),
       }, getToken);
-      setContactId(res.id);
+      const data = await res.json();
+      setContactId(data.id);
       setSearchContact(newContactName);
       if (newContactEmail) setClientEmail(newContactEmail);
       setNewContactMode(false);
@@ -155,6 +158,15 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
       {
         onSuccess: () => {
           toast.success("Cita creada exitosamente");
+          if (fecha) {
+            const today = new Date();
+            const targetOffset = differenceInWeeks(
+              startOfWeek(fecha, { weekStartsOn: 1 }),
+              startOfWeek(today, { weekStartsOn: 1 })
+            );
+            const currentOffset = useCalendarStore.getState().weekOffset;
+            changeWeek(targetOffset - currentOffset);
+          }
           onClose();
         },
         onError: (err) => toast.error(err.message),
