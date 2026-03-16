@@ -91,8 +91,6 @@ export interface CompanySettings {
   google_email?: string | null;
   reminder_enabled: boolean;
   reminder_hours_before: number;
-  openai_api_key?: string;
-  ycloud_phone_number?: string;
   use_internal_agent?: boolean;
 }
 

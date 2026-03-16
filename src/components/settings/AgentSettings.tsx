@@ -8,7 +8,7 @@ import { useAgentConfig, useUpdateAgentConfig } from "@/hooks/useAgentConfig";
 import { authFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { SettingsSection } from "./SettingsSection";
-import { Bot, Sparkles, MessageSquareText, ListChecks, Zap, Key, Phone } from "lucide-react";
+import { Bot, Sparkles, MessageSquareText, ListChecks, Zap } from "lucide-react";
 
 export function AgentSettings() {
   const { getToken } = useAuth();
@@ -19,8 +19,6 @@ export function AgentSettings() {
 
   const [botAutoDesactivar, setBotAutoDesactivar] = useState(false);
   const [useInternalAgent, setUseInternalAgent] = useState(false);
-  const [openaiKey, setOpenaiKey] = useState("");
-  const [ycloudPhone, setYcloudPhone] = useState("");
 
   // Agent config fields
   const [tone, setTone] = useState("");
@@ -31,8 +29,6 @@ export function AgentSettings() {
     if (settings) {
       setBotAutoDesactivar(settings.bot_auto_desactivar || false);
       setUseInternalAgent(settings.use_internal_agent || false);
-      setOpenaiKey(settings.openai_api_key || "");
-      setYcloudPhone(settings.ycloud_phone_number || "");
     }
   }, [settings]);
 
@@ -75,16 +71,6 @@ export function AgentSettings() {
       { [field]: newValue },
       { onError: () => setter(current) }
     );
-  };
-
-  const handleSaveApiKey = () => {
-    if (!openaiKey || openaiKey.includes("••••")) return;
-    saveCompanySetting.mutate({ openai_api_key: openaiKey });
-  };
-
-  const handleSavePhone = () => {
-    if (!ycloudPhone) return;
-    saveCompanySetting.mutate({ ycloud_phone_number: ycloudPhone });
   };
 
   const handleSaveAgentConfig = () => {
@@ -150,131 +136,69 @@ export function AgentSettings() {
         </div>
       </SettingsSection>
 
-      {/* ── API Keys Section ── */}
+      {/* ── Prompt Customization (only when internal agent is active) ── */}
       {useInternalAgent && (
-        <>
-          <SettingsSection
-            title="Credenciales"
-            description="API keys necesarias para el agente IA integrado"
-          >
-            <div className="space-y-4">
-              <div>
-                <label className="flex items-center gap-2 text-[12px] font-medium text-text-secondary mb-1.5">
-                  <Key size={13} className="text-text-muted" />
-                  OpenAI API Key
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={openaiKey}
-                    onChange={(e) => setOpenaiKey(e.target.value)}
-                    placeholder="sk-..."
-                    className="flex-1 px-3 py-2 rounded-xl bg-bg-primary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all"
-                  />
-                  <button
-                    onClick={handleSaveApiKey}
-                    disabled={!openaiKey || openaiKey.includes("••••")}
-                    className="px-4 py-2 rounded-xl text-[12px] font-medium bg-accent text-white hover:bg-accent-hover transition-all disabled:opacity-40"
-                  >
-                    Guardar
-                  </button>
-                </div>
-                <p className="text-[11px] text-text-muted mt-1">
-                  Se usa para Whisper, Vision, GPT y embeddings
-                </p>
-              </div>
-
-              <div>
-                <label className="flex items-center gap-2 text-[12px] font-medium text-text-secondary mb-1.5">
-                  <Phone size={13} className="text-text-muted" />
-                  Numero WhatsApp (YCloud)
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={ycloudPhone}
-                    onChange={(e) => setYcloudPhone(e.target.value)}
-                    placeholder="+56912345678"
-                    className="flex-1 px-3 py-2 rounded-xl bg-bg-primary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all"
-                  />
-                  <button
-                    onClick={handleSavePhone}
-                    disabled={!ycloudPhone}
-                    className="px-4 py-2 rounded-xl text-[12px] font-medium bg-accent text-white hover:bg-accent-hover transition-all disabled:opacity-40"
-                  >
-                    Guardar
-                  </button>
-                </div>
-                <p className="text-[11px] text-text-muted mt-1">
-                  Numero desde el cual el bot envia mensajes
-                </p>
-              </div>
+        <SettingsSection
+          title="Personalidad del Agente"
+          description="Define como responde el bot a tus clientes"
+        >
+          <div className="space-y-4">
+            <div>
+              <label className="flex items-center gap-2 text-[12px] font-medium text-text-secondary mb-1.5">
+                <Sparkles size={13} className="text-text-muted" />
+                Tono de respuesta
+              </label>
+              <textarea
+                value={tone}
+                onChange={(e) => setTone(e.target.value)}
+                placeholder="Ej: Amigable, profesional, con emojis moderados. Tutea al cliente."
+                rows={2}
+                className="w-full px-3 py-2 rounded-xl bg-bg-primary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all resize-none"
+              />
             </div>
-          </SettingsSection>
 
-          {/* ── Prompt Customization ── */}
-          <SettingsSection
-            title="Personalidad del Agente"
-            description="Define como responde el bot a tus clientes"
-          >
-            <div className="space-y-4">
-              <div>
-                <label className="flex items-center gap-2 text-[12px] font-medium text-text-secondary mb-1.5">
-                  <Sparkles size={13} className="text-text-muted" />
-                  Tono de respuesta
-                </label>
-                <textarea
-                  value={tone}
-                  onChange={(e) => setTone(e.target.value)}
-                  placeholder="Ej: Amigable, profesional, con emojis moderados. Tutea al cliente."
-                  rows={2}
-                  className="w-full px-3 py-2 rounded-xl bg-bg-primary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all resize-none"
-                />
-              </div>
-
-              <div>
-                <label className="flex items-center gap-2 text-[12px] font-medium text-text-secondary mb-1.5">
-                  <MessageSquareText size={13} className="text-text-muted" />
-                  Ejemplos de respuesta importantes
-                </label>
-                <textarea
-                  value={examples}
-                  onChange={(e) => setExamples(e.target.value)}
-                  placeholder={`Ej:\nCliente: "Cuanto sale un corte?"\nBot: "Hola! Un corte vale $8.000. Quieres agendar una hora? 😊"`}
-                  rows={4}
-                  className="w-full px-3 py-2 rounded-xl bg-bg-primary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all resize-none"
-                />
-              </div>
-
-              <div>
-                <label className="flex items-center gap-2 text-[12px] font-medium text-text-secondary mb-1.5">
-                  <ListChecks size={13} className="text-text-muted" />
-                  Estructura de respuesta
-                </label>
-                <textarea
-                  value={responseStructure}
-                  onChange={(e) => setResponseStructure(e.target.value)}
-                  placeholder="Ej: Siempre saluda primero, responde la pregunta, y termina ofreciendo agendar una cita si corresponde."
-                  rows={3}
-                  className="w-full px-3 py-2 rounded-xl bg-bg-primary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all resize-none"
-                />
-              </div>
-
-              <button
-                onClick={handleSaveAgentConfig}
-                disabled={updateConfig.isPending}
-                className="w-full py-2.5 rounded-xl text-[13px] font-semibold bg-accent text-white hover:bg-accent-hover transition-all disabled:opacity-60 flex items-center justify-center gap-2"
-              >
-                {updateConfig.isPending ? (
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <Sparkles size={14} />
-                )}
-                Guardar personalidad
-              </button>
+            <div>
+              <label className="flex items-center gap-2 text-[12px] font-medium text-text-secondary mb-1.5">
+                <MessageSquareText size={13} className="text-text-muted" />
+                Ejemplos de respuesta importantes
+              </label>
+              <textarea
+                value={examples}
+                onChange={(e) => setExamples(e.target.value)}
+                placeholder={`Ej:\nCliente: "Cuanto sale un corte?"\nBot: "Hola! Un corte vale $8.000. Quieres agendar una hora? 😊"`}
+                rows={4}
+                className="w-full px-3 py-2 rounded-xl bg-bg-primary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all resize-none"
+              />
             </div>
-          </SettingsSection>
-        </>
+
+            <div>
+              <label className="flex items-center gap-2 text-[12px] font-medium text-text-secondary mb-1.5">
+                <ListChecks size={13} className="text-text-muted" />
+                Estructura de respuesta
+              </label>
+              <textarea
+                value={responseStructure}
+                onChange={(e) => setResponseStructure(e.target.value)}
+                placeholder="Ej: Siempre saluda primero, responde la pregunta, y termina ofreciendo agendar una cita si corresponde."
+                rows={3}
+                className="w-full px-3 py-2 rounded-xl bg-bg-primary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all resize-none"
+              />
+            </div>
+
+            <button
+              onClick={handleSaveAgentConfig}
+              disabled={updateConfig.isPending}
+              className="w-full py-2.5 rounded-xl text-[13px] font-semibold bg-accent text-white hover:bg-accent-hover transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+            >
+              {updateConfig.isPending ? (
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <Sparkles size={14} />
+              )}
+              Guardar personalidad
+            </button>
+          </div>
+        </SettingsSection>
       )}
     </div>
   );
