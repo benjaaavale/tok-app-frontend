@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { CompanySettings } from "@/components/settings/CompanySettings";
 import { AgentSettings } from "@/components/settings/AgentSettings";
+import { KnowledgeBase } from "@/components/settings/KnowledgeBase";
 import { IntegrationSettings } from "@/components/settings/IntegrationSettings";
 import { GoogleCalendarSettings } from "@/components/settings/GoogleCalendarSettings";
 import { NotificationSettings } from "@/components/settings/NotificationSettings";
@@ -171,6 +172,7 @@ export default function SettingsPage() {
 
         <TabsContent value="agente" className="space-y-6">
           <AgentSettings />
+          <KnowledgeBase />
         </TabsContent>
 
         <TabsContent value="integraciones" className="space-y-6">
