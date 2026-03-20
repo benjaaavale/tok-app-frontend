@@ -83,8 +83,6 @@ export interface CompanySettings {
   horario_inicio: string;
   horario_fin: string;
   dias_laborales: string;
-  n8n_webhook_url: string;
-  calcom_api_key: string;
   ycloud_apikey: string;
   bot_auto_desactivar: boolean;
   google_connected: boolean;

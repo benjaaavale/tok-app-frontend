@@ -17,12 +17,10 @@ export function IntegrationSettings({ onDirtyChange }: IntegrationSettingsProps)
   const queryClient = useQueryClient();
   const { data: settings, isLoading } = useCompanySettings();
 
-  const [n8nUrl, setN8nUrl] = useState("");
   const [ycloudKey, setYcloudKey] = useState("");
 
   useEffect(() => {
     if (settings) {
-      setN8nUrl(settings.n8n_webhook_url || "");
       setYcloudKey(settings.ycloud_apikey || "");
     }
   }, [settings]);
@@ -34,7 +32,6 @@ export function IntegrationSettings({ onDirtyChange }: IntegrationSettingsProps)
         {
           method: "PUT",
           body: JSON.stringify({
-            n8n_webhook_url: n8nUrl,
             ycloud_apikey: ycloudKey,
           }),
         },
@@ -51,11 +48,8 @@ export function IntegrationSettings({ onDirtyChange }: IntegrationSettingsProps)
   // ── Dirty tracking ──
   const isDirty = useMemo(() => {
     if (!settings) return false;
-    return (
-      n8nUrl !== (settings.n8n_webhook_url || "") ||
-      ycloudKey !== (settings.ycloud_apikey || "")
-    );
-  }, [n8nUrl, ycloudKey, settings]);
+    return ycloudKey !== (settings.ycloud_apikey || "");
+  }, [ycloudKey, settings]);
 
   const saveRef = useRef(save);
   saveRef.current = save;
@@ -66,7 +60,6 @@ export function IntegrationSettings({ onDirtyChange }: IntegrationSettingsProps)
   const handleDiscard = useCallback(() => {
     const s = settingsRef.current;
     if (!s) return;
-    setN8nUrl(s.n8n_webhook_url || "");
     setYcloudKey(s.ycloud_apikey || "");
   }, []);
 
@@ -90,18 +83,9 @@ export function IntegrationSettings({ onDirtyChange }: IntegrationSettingsProps)
   return (
     <SettingsSection
       title="Integraciones"
-      description="API keys y URLs de servicios conectados"
+      description="API keys de servicios conectados"
     >
       <div className="space-y-1">
-        <FieldRow label="n8n Webhook URL" htmlFor="n8n-url">
-          <InputField
-            id="n8n-url"
-            value={n8nUrl}
-            onChange={setN8nUrl}
-            placeholder="https://n8n.example.com/webhook/..."
-          />
-        </FieldRow>
-
         <FieldRow label="YCloud API Key" htmlFor="ycloud-key">
           <InputField
             id="ycloud-key"
