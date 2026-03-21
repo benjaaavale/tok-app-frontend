@@ -40,10 +40,21 @@ export function ContactPanel() {
         () => getToken()
       );
     },
-    onSuccess: () => {
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ["contact", activePhone] });
+      const prev = queryClient.getQueryData(["contact", activePhone]);
+      queryClient.setQueryData(["contact", activePhone], (old: any) =>
+        old ? { ...old, bot_desactivado: !old.bot_desactivado } : old
+      );
+      return { prev };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.prev) queryClient.setQueryData(["contact", activePhone], context.prev);
+      toast.error("Error actualizando bot");
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["contact", activePhone] });
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
-      toast.success("Bot actualizado");
     },
   });
 
