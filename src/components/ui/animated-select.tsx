@@ -65,10 +65,13 @@ export function AnimatedSelect({
     return () => document.removeEventListener('mousedown', handle);
   }, [isOpen]);
 
-  // Close on any scroll (dropdown would float away)
+  // Close on outside scroll (dropdown would float away), but allow scrolling inside the dropdown
   useEffect(() => {
     if (!isOpen) return;
-    const handle = () => setIsOpen(false);
+    const handle = (e: Event) => {
+      if (dropdownRef.current?.contains(e.target as Node)) return;
+      setIsOpen(false);
+    };
     window.addEventListener('scroll', handle, true);
     return () => window.removeEventListener('scroll', handle, true);
   }, [isOpen]);
