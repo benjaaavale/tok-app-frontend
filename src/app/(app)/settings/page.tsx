@@ -125,7 +125,7 @@ export default function SettingsPage() {
       {/* ── Tab Navigation ── */}
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <ScrollArea>
-          <TabsList className="mb-6 -space-x-px shadow-sm shadow-black/5">
+          <TabsList className="mb-6 overflow-hidden rounded-lg border border-border-secondary">
             {TABS.map((tab) => {
               const Icon = tab.icon;
               return (
