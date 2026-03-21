@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { SettingsSection } from "./SettingsSection";
 import { AnimatedSelect } from "@/components/ui/animated-select";
 import { Bell } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 
 interface NotificationSettingsProps {
   onDirtyChange?: (dirty: boolean, save: () => void, discard: () => void) => void;
@@ -98,7 +99,9 @@ export function NotificationSettings({ onDirtyChange }: NotificationSettingsProp
           <div className="flex items-center gap-3">
             <Bell size={16} className="text-text-muted" />
             <div>
-              <p className="text-[12px] font-medium text-text-primary">
+              <p className={`text-[12px] font-medium transition-colors duration-200 ${
+                reminderEnabled ? "text-text-primary" : "text-text-muted"
+              }`}>
                 Recordatorios automáticos
               </p>
               <p className="text-[10px] text-text-muted">
@@ -106,18 +109,10 @@ export function NotificationSettings({ onDirtyChange }: NotificationSettingsProp
               </p>
             </div>
           </div>
-          <button
-            onClick={() => setReminderEnabled(!reminderEnabled)}
-            className={`relative w-10 h-[22px] rounded-full transition-all ${
-              reminderEnabled ? "bg-accent" : "bg-bg-hover"
-            }`}
-          >
-            <div
-              className={`absolute top-[3px] w-4 h-4 rounded-full bg-white shadow transition-all ${
-                reminderEnabled ? "left-[22px]" : "left-[3px]"
-              }`}
-            />
-          </button>
+          <Switch
+            checked={reminderEnabled}
+            onCheckedChange={(v) => setReminderEnabled(v)}
+          />
         </div>
 
         {/* Hours before */}

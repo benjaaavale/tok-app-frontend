@@ -8,6 +8,7 @@ import { authFetch } from "@/lib/api";
 import { ETAPA_COLORS, ETAPA_LABELS, LEAD_OPTIONS } from "@/lib/constants";
 import { AnimatedSelect } from "@/components/ui/animated-select";
 import { getInitials } from "@/lib/utils";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import {
   Phone,
@@ -119,27 +120,17 @@ export function ContactPanel() {
               <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
                 <Bot size={15} className="text-accent" />
               </div>
-              <div>
-                <span className="text-[12px] text-text-primary font-medium block">
-                  Agente IA
-                </span>
-                <span className="text-[10px] text-text-muted">
-                  {contact.bot_desactivado ? "Desactivado" : "Activado"}
-                </span>
-              </div>
+              <span className={`text-[12px] font-medium transition-colors duration-200 ${
+                contact.bot_desactivado ? "text-text-muted" : "text-text-primary"
+              }`}>
+                Agente IA
+              </span>
             </div>
-            <button
-              onClick={() => botToggle.mutate()}
-              className={`relative w-[40px] h-[22px] rounded-full transition-colors duration-250 flex-shrink-0 ${
-                contact.bot_desactivado ? "bg-border-primary" : "bg-accent"
-              }`}
-            >
-              <div
-                className={`absolute top-[3px] w-4 h-4 rounded-full bg-white shadow transition-transform duration-250 ${
-                  contact.bot_desactivado ? "left-[3px]" : "left-[20px]"
-                }`}
-              />
-            </button>
+            <Switch
+              checked={!contact.bot_desactivado}
+              onCheckedChange={() => botToggle.mutate()}
+              size="sm"
+            />
           </div>
 
           {/* ── Datos del contacto ── */}

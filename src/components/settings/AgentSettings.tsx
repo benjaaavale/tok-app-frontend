@@ -9,6 +9,7 @@ import { authFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { SettingsSection } from "./SettingsSection";
 import { Bot, Sparkles, MessageSquareText, ListChecks, Zap } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 
 export function AgentSettings() {
   const { getToken } = useAuth();
@@ -122,7 +123,7 @@ export function AgentSettings() {
           <ToggleRow
             icon={Zap}
             label="Agente IA integrado"
-            sublabel="Procesa mensajes con IA directamente en la app (sin n8n)"
+            sublabel="Procesa mensajes con IA directamente en la app"
             checked={useInternalAgent}
             onToggle={() =>
               handleToggle(
@@ -231,19 +232,11 @@ function ToggleRow({
           <p className="text-[11px] text-text-muted mt-0.5">{sublabel}</p>
         </div>
       </div>
-      <button
-        onClick={onToggle}
+      <Switch
+        checked={checked}
+        onCheckedChange={() => onToggle()}
         disabled={disabled}
-        className={`relative w-[44px] h-[24px] rounded-full transition-colors duration-200 flex-shrink-0 disabled:opacity-60 ${
-          checked ? "bg-accent" : "bg-border-primary"
-        }`}
-      >
-        <div
-          className={`absolute top-[3px] w-[18px] h-[18px] rounded-full bg-white shadow transition-transform duration-200 ${
-            checked ? "left-[22px]" : "left-[3px]"
-          }`}
-        />
-      </button>
+      />
     </div>
   );
 }
