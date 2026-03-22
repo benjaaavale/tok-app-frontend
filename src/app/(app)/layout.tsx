@@ -6,6 +6,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { authFetch } from "@/lib/api";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { BottomNav } from "@/components/layout/BottomNav";
+import { MobileHeader } from "@/components/layout/MobileHeader";
 import { SocketProvider } from "@/providers/socket-provider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AppTutorial } from "@/components/AppTutorial";
@@ -59,6 +60,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <SocketProvider>
       <div className="flex flex-col lg:flex-row h-dvh bg-bg-sidebar">
         <Sidebar />
+        <MobileHeader />
         <main className="flex-1 min-h-0 overflow-auto pb-16 lg:pb-0 bg-bg-primary lg:rounded-tl-2xl lg:border-l lg:border-t lg:border-border-secondary">
           <ErrorBoundary>{children}</ErrorBoundary>
         </main>

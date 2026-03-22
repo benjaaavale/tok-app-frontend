@@ -54,10 +54,12 @@ function DeltaBadge({ delta, onDark }: { delta: number; onDark?: boolean }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-0.5 text-[10px] sm:text-[11px] font-semibold px-1.5 sm:px-2 py-0.5 rounded-md border",
+        "inline-flex items-center gap-0.5 text-[10px] font-semibold",
+        // On mobile: plain text, no badge. On sm+: badge with border
+        "sm:px-2 sm:py-0.5 sm:rounded-md sm:border",
         onDark
-          ? "border-white/15 bg-white/5"
-          : "border-border-secondary bg-bg-primary"
+          ? "sm:border-white/15 sm:bg-white/5"
+          : "sm:border-border-secondary sm:bg-bg-primary"
       )}
     >
       {isNeutral ? (
