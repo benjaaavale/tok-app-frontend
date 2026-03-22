@@ -10,6 +10,7 @@ import { AnimatedSelect } from "@/components/ui/animated-select";
 import { getInitials } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import {
   Phone,
   Mail,
@@ -29,6 +30,7 @@ import {
 export function ContactPanel() {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
   const { activePhone, activeName, showContactPanel, setActiveConversation, setShowContactPanel } =
     useChatStore();
   const { data: contact, isLoading } = useContact(activePhone);
@@ -283,14 +285,14 @@ export function ContactPanel() {
           {/* ── Eliminar ── */}
           <div className="pt-2 border-t border-border-secondary">
             <button
-              onClick={() => {
-                if (
-                  confirm(
-                    "¿Eliminar este contacto y toda su información?"
-                  )
-                ) {
-                  deleteContact.mutate();
-                }
+              onClick={async () => {
+                const ok = await confirm({
+                  title: "Eliminar contacto",
+                  description: "¿Eliminar este contacto y toda su información? Esta acción no se puede deshacer.",
+                  confirmText: "Eliminar",
+                  variant: "danger",
+                });
+                if (ok) deleteContact.mutate();
               }}
               className="flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-[12px] text-danger hover:bg-danger-light transition-all"
             >
@@ -350,6 +352,7 @@ function MobileContactContent({
   deleteContact: any;
 }) {
   const { setActiveConversation } = useChatStore();
+  const confirm = useConfirm();
 
   return (
     <div className="p-5 space-y-5 pb-24">
@@ -479,10 +482,14 @@ function MobileContactContent({
       {/* Eliminar */}
       <div className="pt-2 border-t border-border-secondary">
         <button
-          onClick={() => {
-            if (confirm("¿Eliminar este contacto y toda su información?")) {
-              deleteContact.mutate();
-            }
+          onClick={async () => {
+            const ok = await confirm({
+              title: "Eliminar contacto",
+              description: "¿Eliminar este contacto y toda su información? Esta acción no se puede deshacer.",
+              confirmText: "Eliminar",
+              variant: "danger",
+            });
+            if (ok) deleteContact.mutate();
           }}
           className="flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-[12px] text-danger hover:bg-danger-light transition-all"
         >

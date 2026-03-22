@@ -7,6 +7,7 @@ import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { useWorkers } from "@/hooks/useWorkers";
 import { authFetch } from "@/lib/api";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { SettingsSection } from "./SettingsSection";
 import {
   Link2Off,
@@ -35,6 +36,7 @@ function GoogleCalendarIcon({ size = 16 }: { size?: number }) {
 export function GoogleCalendarSettings() {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
   const { data: settings } = useCompanySettings();
   const { data: workers } = useWorkers();
 
@@ -129,10 +131,14 @@ export function GoogleCalendarSettings() {
       <div className="mt-3">
         {isConnected ? (
           <button
-            onClick={() => {
-              if (confirm("¿Desconectar Google Calendar? Los calendarios existentes no se eliminarán.")) {
-                disconnectGoogle.mutate();
-              }
+            onClick={async () => {
+              const ok = await confirm({
+                title: "Desconectar Google Calendar",
+                description: "¿Desconectar Google Calendar? Los calendarios existentes no se eliminarán.",
+                confirmText: "Desconectar",
+                variant: "warning",
+              });
+              if (ok) disconnectGoogle.mutate();
             }}
             disabled={disconnectGoogle.isPending}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-bg-primary border border-border-secondary text-[12px] font-medium text-danger hover:bg-danger/10 transition-all disabled:opacity-50"

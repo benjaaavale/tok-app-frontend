@@ -5,6 +5,7 @@ import { useAuth } from "@clerk/nextjs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { authFetch } from "@/lib/api";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import type { Appointment } from "@/types/api";
 import {
   X,
@@ -28,6 +29,7 @@ export function AppointmentModal({
 }: AppointmentModalProps) {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
   const [rescheduleDate, setRescheduleDate] = useState("");
   const [rescheduleTime, setRescheduleTime] = useState("");
   const [showReschedule, setShowReschedule] = useState(false);
@@ -196,10 +198,14 @@ export function AppointmentModal({
             Reagendar
           </button>
           <button
-            onClick={() => {
-              if (confirm("¿Cancelar esta cita? Se eliminará del Google Calendar.")) {
-                cancel.mutate();
-              }
+            onClick={async () => {
+              const ok = await confirm({
+                title: "Cancelar cita",
+                description: "¿Cancelar esta cita? Se eliminará del Google Calendar.",
+                confirmText: "Cancelar cita",
+                variant: "danger",
+              });
+              if (ok) cancel.mutate();
             }}
             disabled={cancel.isPending}
             className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[12px] font-medium text-danger hover:bg-danger/10 transition-all disabled:opacity-50"

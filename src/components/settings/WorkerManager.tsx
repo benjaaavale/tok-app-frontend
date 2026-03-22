@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useWorkers } from "@/hooks/useWorkers";
 import { authFetch } from "@/lib/api";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { SettingsSection } from "./SettingsSection";
 import { WORKER_COLORS } from "@/lib/constants";
 import { Trash2, UserPlus, Mail, Check } from "lucide-react";
@@ -13,6 +14,7 @@ import { Trash2, UserPlus, Mail, Check } from "lucide-react";
 export function WorkerManager() {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
   const { data: workers, isLoading } = useWorkers();
 
   const [showForm, setShowForm] = useState(false);
@@ -106,10 +108,14 @@ export function WorkerManager() {
                 </span>
               )}
               <button
-                onClick={() => {
-                  if (confirm(`¿Eliminar a ${w.nombre}?`)) {
-                    deleteWorker.mutate(w.id);
-                  }
+                onClick={async () => {
+                  const ok = await confirm({
+                    title: "Eliminar miembro",
+                    description: `¿Eliminar a ${w.nombre} del equipo?`,
+                    confirmText: "Eliminar",
+                    variant: "danger",
+                  });
+                  if (ok) deleteWorker.mutate(w.id);
                 }}
                 className="p-1.5 rounded-lg text-text-muted hover:text-danger hover:bg-danger/10 transition-all"
               >

@@ -63,7 +63,7 @@ export function ConversationList() {
               { value: "bot", label: "Bot" },
               { value: "human", label: "Ayuda humana" },
             ]}
-            placeholder="Estado"
+            placeholder="Sin estado"
             size="sm"
             className="flex-1"
           />
@@ -79,7 +79,7 @@ export function ConversationList() {
               { value: "no_encaja", label: "No encaja ⛔" },
               { value: "pausado", label: "Pausado ⏸️" },
             ]}
-            placeholder="Etapa"
+            placeholder="Sin etapa"
             size="sm"
             className="flex-1"
           />
