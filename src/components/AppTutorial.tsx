@@ -45,7 +45,7 @@ export function AppTutorial() {
         popover: {
           title: "Agenda",
           description:
-            "Calendario semanal con todas las citas. Puedes crear, reprogramar o cancelar citas. Se sincroniza con Google Calendar si lo conectas.",
+            "Calendario semanal con todas las citas. Las citas que agende el agente IA por WhatsApp tambien se reflejan aqui automaticamente. Puedes crear, reprogramar o cancelar citas, y sincronizar con Google Calendar.",
         },
       },
     ];

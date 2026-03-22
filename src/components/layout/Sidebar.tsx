@@ -14,11 +14,10 @@ import {
   MessageCircle,
   CalendarDays,
   Settings,
-  Sun,
-  Moon,
   Menu,
   X,
 } from "lucide-react";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const mainNavItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -147,38 +146,12 @@ export function Sidebar() {
           )}
 
           {/* Theme toggle */}
-          <button
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            title={
-              !open
-                ? theme === "dark"
-                  ? "Modo claro"
-                  : "Modo oscuro"
-                : undefined
-            }
-            className={cn(
-              "flex items-center rounded-xl text-[12px] text-text-muted hover:bg-bg-hover hover:text-text-secondary transition-all duration-200",
-              open
-                ? "gap-3 w-full px-2.5 py-2.5"
-                : "justify-center w-[44px] h-[44px] mx-auto p-0"
-            )}
-          >
-            {theme === "dark" ? (
-              <Sun size={18} className="flex-shrink-0" />
-            ) : (
-              <Moon size={18} className="flex-shrink-0" />
-            )}
-            <motion.span
-              animate={{
-                display: open ? "inline-block" : "none",
-                opacity: open ? 1 : 0,
-              }}
-              transition={{ duration: 0.2 }}
-              className="whitespace-pre !p-0 !m-0"
-            >
-              {theme === "dark" ? "Modo claro" : "Modo oscuro"}
-            </motion.span>
-          </button>
+          <div className={cn(
+            "flex items-center rounded-xl transition-all duration-200",
+            open ? "px-2.5 py-2" : "justify-center w-[44px] h-[44px] mx-auto"
+          )}>
+            <ThemeToggle compact={!open} />
+          </div>
 
           {/* Separator */}
           <div className="border-t border-border-secondary pt-1 mt-1" />
@@ -227,7 +200,6 @@ export function Sidebar() {
         setOpen={setOpen}
         pathname={pathname}
         theme={theme}
-        setTheme={setTheme}
         companyNombre={companyNombre}
         userAvatarUrl={userAvatarUrl}
         userInitials={userInitials}
@@ -244,7 +216,6 @@ function MobileSidebar({
   setOpen,
   pathname,
   theme,
-  setTheme,
   companyNombre,
   userAvatarUrl,
   userInitials,
@@ -255,7 +226,6 @@ function MobileSidebar({
   setOpen: (v: boolean) => void;
   pathname: string;
   theme: string | undefined;
-  setTheme: (t: string) => void;
   companyNombre: string | null;
   userAvatarUrl: string | null;
   userInitials: string | null;
@@ -345,19 +315,9 @@ function MobileSidebar({
                 </Link>
               )}
 
-              <button
-                onClick={() =>
-                  setTheme(theme === "dark" ? "light" : "dark")
-                }
-                className="flex items-center gap-3 w-full px-3 py-3 rounded-xl text-sm text-text-muted hover:bg-bg-hover"
-              >
-                {theme === "dark" ? (
-                  <Sun size={20} />
-                ) : (
-                  <Moon size={20} />
-                )}
-                {theme === "dark" ? "Modo claro" : "Modo oscuro"}
-              </button>
+              <div className="flex items-center gap-3 px-3 py-3">
+                <ThemeToggle />
+              </div>
 
               <div className="flex items-center gap-3 px-3 py-3">
                 {userAvatarUrl ? (

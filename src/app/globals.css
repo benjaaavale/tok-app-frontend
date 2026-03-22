@@ -217,11 +217,13 @@ body {
   border-radius: 16px !important;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15) !important;
   color: var(--text-primary) !important;
+  max-width: 340px !important;
 }
 .tok-tutorial-popover .driver-popover-title {
   font-size: 16px !important;
   font-weight: 600 !important;
   color: var(--text-primary) !important;
+  margin-bottom: 4px !important;
 }
 .tok-tutorial-popover .driver-popover-description {
   font-size: 13px !important;
@@ -232,12 +234,31 @@ body {
   font-size: 11px !important;
   color: var(--text-muted) !important;
 }
+.tok-tutorial-popover .driver-popover-footer {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  margin-top: 12px !important;
+}
+.tok-tutorial-popover .driver-popover-navigation-btns {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
 .tok-tutorial-popover .driver-popover-next-btn,
 .tok-tutorial-popover .driver-popover-prev-btn {
   border-radius: 10px !important;
   font-size: 13px !important;
   font-weight: 500 !important;
-  padding: 6px 16px !important;
+  padding: 8px 18px !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
 }
 .tok-tutorial-popover .driver-popover-next-btn {
   background: var(--accent) !important;
@@ -246,11 +267,18 @@ body {
 }
 .tok-tutorial-popover .driver-popover-next-btn:hover {
   background: var(--accent-hover) !important;
+  box-shadow: var(--shadow-accent) !important;
 }
 .tok-tutorial-popover .driver-popover-prev-btn {
   background: transparent !important;
   color: var(--text-secondary) !important;
   border: 1px solid var(--border-primary) !important;
+}
+.tok-tutorial-popover .driver-popover-prev-btn:hover {
+  background: var(--bg-hover) !important;
+}
+.tok-tutorial-popover .driver-popover-close-btn {
+  color: var(--text-muted) !important;
 }
 .driver-overlay {
   background: rgba(0, 0, 0, 0.5) !important;
