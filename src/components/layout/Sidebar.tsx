@@ -8,7 +8,6 @@ import { useTheme } from "next-themes";
 import { useAuthStore } from "@/stores/auth-store";
 import { resolveMediaUrl } from "@/lib/utils";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
 import {
   LayoutDashboard,
   MessageCircle,
@@ -26,7 +25,7 @@ const mainNavItems = [
 export function Sidebar() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
-  const { theme, setTheme } = useTheme();
+  const { theme } = useTheme();
   const { companyNombre, userAvatarUrl, userInitials, role } = useAuthStore();
   const isAdmin = role !== "worker";
 
@@ -36,22 +35,24 @@ export function Sidebar() {
   return (
     <>
       {/* ── Desktop Sidebar ── */}
-      <motion.aside
+      <aside
         className="hidden lg:flex flex-col h-screen bg-bg-sidebar flex-shrink-0 overflow-hidden"
-        animate={{ width: open ? 220 : 68 }}
-        transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+        style={{
+          width: open ? 220 : 68,
+          transition: "width 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+        }}
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
       >
         {/* ── Logo ── */}
-        <div className="flex items-center justify-center h-[68px]">
-          <motion.div
-            animate={{
+        <div className="flex items-center h-[68px] px-[14px]">
+          <div
+            className="flex-shrink-0"
+            style={{
               width: open ? 44 : 28,
               height: open ? 44 : 28,
+              transition: "width 0.25s cubic-bezier(0.4, 0, 0.2, 1), height 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
-            transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-            className="flex-shrink-0"
           >
             <Image
               src={theme === "dark" ? "/logo-blanco.png" : "/logo-negro.png"}
@@ -61,7 +62,7 @@ export function Sidebar() {
               className="w-full h-full object-contain"
               priority
             />
-          </motion.div>
+          </div>
         </div>
 
         {/* ── Main Navigation ── */}
@@ -76,11 +77,8 @@ export function Sidebar() {
                 title={!open ? item.label : undefined}
                 data-tour={`nav-${item.href.replace('/', '')}`}
                 className={cn(
-                  "flex items-center rounded-xl text-[13px] font-medium",
-                  "transition-all duration-200",
-                  open
-                    ? "gap-3 px-2.5 py-2.5"
-                    : "justify-center w-[44px] h-[44px] mx-auto p-0",
+                  "flex items-center gap-3 h-[44px] px-[12px] rounded-xl text-[13px] font-medium",
+                  "transition-colors duration-150",
                   isActive
                     ? "bg-accent-light text-accent font-semibold"
                     : "text-text-secondary hover:bg-bg-hover hover:text-text-primary"
@@ -91,16 +89,15 @@ export function Sidebar() {
                   strokeWidth={isActive ? 2 : 1.5}
                   className="flex-shrink-0"
                 />
-                <motion.span
-                  animate={{
-                    display: open ? "inline-block" : "none",
+                <span
+                  className="whitespace-nowrap overflow-hidden"
+                  style={{
                     opacity: open ? 1 : 0,
+                    transition: "opacity 0.2s ease",
                   }}
-                  transition={{ duration: 0.2 }}
-                  className="whitespace-pre !p-0 !m-0"
                 >
                   {item.label}
-                </motion.span>
+                </span>
               </Link>
             );
           })}
@@ -115,11 +112,8 @@ export function Sidebar() {
               title={!open ? "Configuración" : undefined}
               data-tour="nav-settings"
               className={cn(
-                "flex items-center rounded-xl text-[13px] font-medium",
-                "transition-all duration-200",
-                open
-                  ? "gap-3 px-2.5 py-2.5"
-                  : "justify-center w-[44px] h-[44px] mx-auto p-0",
+                "flex items-center gap-3 h-[44px] px-[12px] rounded-xl text-[13px] font-medium",
+                "transition-colors duration-150",
                 isSettingsActive
                   ? "bg-accent-light text-accent font-semibold"
                   : "text-text-secondary hover:bg-bg-hover hover:text-text-primary"
@@ -130,16 +124,15 @@ export function Sidebar() {
                 strokeWidth={isSettingsActive ? 2 : 1.5}
                 className="flex-shrink-0"
               />
-              <motion.span
-                animate={{
-                  display: open ? "inline-block" : "none",
+              <span
+                className="whitespace-nowrap overflow-hidden"
+                style={{
                   opacity: open ? 1 : 0,
+                  transition: "opacity 0.2s ease",
                 }}
-                transition={{ duration: 0.2 }}
-                className="whitespace-pre !p-0 !m-0"
               >
                 Configuración
-              </motion.span>
+              </span>
             </Link>
           )}
 
@@ -152,10 +145,7 @@ export function Sidebar() {
           <div className="border-t border-border-secondary pt-1 mt-1" />
 
           {/* User profile */}
-          <div className={cn(
-            "flex items-center py-2",
-            open ? "gap-3 px-2.5" : "justify-center"
-          )}>
+          <div className="flex items-center gap-3 h-[50px] px-[12px]">
             {userAvatarUrl ? (
               <img
                 src={resolveMediaUrl(userAvatarUrl)}
@@ -170,13 +160,12 @@ export function Sidebar() {
                 {userInitials || "TK"}
               </div>
             )}
-            <motion.div
-              animate={{
-                display: open ? "block" : "none",
+            <div
+              className="min-w-0 overflow-hidden"
+              style={{
                 opacity: open ? 1 : 0,
+                transition: "opacity 0.2s ease",
               }}
-              transition={{ duration: 0.2 }}
-              className="min-w-0"
             >
               <p className="text-[12px] font-medium text-text-primary truncate">
                 {companyNombre || "Mi empresa"}
@@ -184,10 +173,10 @@ export function Sidebar() {
               <p className="text-[11px] text-text-muted truncate">
                 {isAdmin ? "Administrador" : "Trabajador"}
               </p>
-            </motion.div>
+            </div>
           </div>
         </div>
-      </motion.aside>
+      </aside>
 
     </>
   );
