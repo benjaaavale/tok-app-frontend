@@ -286,13 +286,20 @@ export function ContactPanel() {
           <div className="pt-2 border-t border-border-secondary">
             <button
               onClick={async () => {
-                const ok = await confirm({
+                const ok1 = await confirm({
                   title: "Eliminar contacto",
-                  description: "¿Eliminar este contacto y toda su información? Esta acción no se puede deshacer.",
-                  confirmText: "Eliminar",
+                  description: "¿Eliminar este contacto y toda su información?",
+                  confirmText: "Sí, eliminar",
                   variant: "danger",
                 });
-                if (ok) deleteContact.mutate();
+                if (!ok1) return;
+                const ok2 = await confirm({
+                  title: "¿Estás completamente seguro?",
+                  description: "Esta acción es irreversible. Se eliminará el contacto, su conversación y todos sus mensajes.",
+                  confirmText: "Confirmar eliminación",
+                  variant: "danger",
+                });
+                if (ok2) deleteContact.mutate();
               }}
               className="flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-[12px] text-danger hover:bg-danger-light transition-all"
             >
@@ -483,13 +490,20 @@ function MobileContactContent({
       <div className="pt-2 border-t border-border-secondary">
         <button
           onClick={async () => {
-            const ok = await confirm({
+            const ok1 = await confirm({
               title: "Eliminar contacto",
-              description: "¿Eliminar este contacto y toda su información? Esta acción no se puede deshacer.",
-              confirmText: "Eliminar",
+              description: "¿Eliminar este contacto y toda su información?",
+              confirmText: "Sí, eliminar",
               variant: "danger",
             });
-            if (ok) deleteContact.mutate();
+            if (!ok1) return;
+            const ok2 = await confirm({
+              title: "¿Estás completamente seguro?",
+              description: "Esta acción es irreversible. Se eliminará el contacto, su conversación y todos sus mensajes.",
+              confirmText: "Confirmar eliminación",
+              variant: "danger",
+            });
+            if (ok2) deleteContact.mutate();
           }}
           className="flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-[12px] text-danger hover:bg-danger-light transition-all"
         >

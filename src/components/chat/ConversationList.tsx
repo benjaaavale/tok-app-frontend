@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useConversations } from "@/hooks/useConversations";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { useChatStore } from "@/stores/chat-store";
 import { cn, getInitials, timeAgo } from "@/lib/utils";
 import { ETAPA_COLORS, ETAPA_LABELS } from "@/lib/constants";
-import { Search, X } from "lucide-react";
+import { Search, X, ChevronDown } from "lucide-react";
 import { AnimatedSelect } from "@/components/ui/animated-select";
 
 export function ConversationList() {
@@ -18,19 +18,38 @@ export function ConversationList() {
   const [filterEtapa, setFilterEtapa] = useState("");
   const [filterPhone, setFilterPhone] = useState("");
 
+  const [showPhoneDropdown, setShowPhoneDropdown] = useState(false);
+  const phoneDropdownRef = useRef<HTMLDivElement>(null);
+
   const hasTwoPhones = !!(companySettings?.phone_2_number);
 
-  const phoneOptions = useMemo(() => {
+  const phoneItems = useMemo(() => {
     if (!companySettings) return [];
-    const opts = [];
+    const items: { slot: string; number: string; label: string }[] = [];
     if (companySettings.phone_1_number) {
-      opts.push({ value: "1", label: companySettings.phone_1_label || "Teléfono 1" });
+      items.push({ slot: "1", number: companySettings.phone_1_number, label: companySettings.phone_1_label || "" });
     }
     if (companySettings.phone_2_number) {
-      opts.push({ value: "2", label: companySettings.phone_2_label || "Teléfono 2" });
+      items.push({ slot: "2", number: companySettings.phone_2_number, label: companySettings.phone_2_label || "" });
     }
-    return opts;
+    return items;
   }, [companySettings]);
+
+  // Close phone dropdown on click outside
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (phoneDropdownRef.current && !phoneDropdownRef.current.contains(e.target as Node)) {
+        setShowPhoneDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const selectedPhoneItem = phoneItems.find((p) => p.slot === filterPhone);
+  const phoneDisplayText = selectedPhoneItem
+    ? selectedPhoneItem.number
+    : "Todos los números";
 
   const filtered = useMemo(() => {
     if (!conversations) return [];
@@ -57,6 +76,69 @@ export function ConversationList() {
 
   return (
     <div className="flex flex-col h-full border-r border-border-separator bg-bg-secondary">
+      {/* Phone selector (above search, only if 2 phones) */}
+      {hasTwoPhones && (
+        <div className="px-3 pt-3 pb-0" ref={phoneDropdownRef}>
+          <div className="relative">
+            <button
+              onClick={() => setShowPhoneDropdown(!showPhoneDropdown)}
+              className="flex items-center gap-1.5 text-[13px] text-text-primary hover:text-accent transition-colors"
+            >
+              <span className={filterPhone ? "font-medium" : "text-text-muted"}>
+                {phoneDisplayText}
+              </span>
+              <ChevronDown
+                size={13}
+                className={cn(
+                  "text-text-muted transition-transform duration-200",
+                  showPhoneDropdown && "rotate-180"
+                )}
+              />
+            </button>
+            {showPhoneDropdown && (
+              <div className="absolute top-full left-0 mt-1.5 bg-bg-primary border border-border-secondary rounded-xl shadow-lg z-20 min-w-[220px] py-1 animate-in fade-in zoom-in-95 duration-150">
+                <button
+                  onClick={() => {
+                    setFilterPhone("");
+                    setShowPhoneDropdown(false);
+                  }}
+                  className={cn(
+                    "w-full text-left px-3 py-2 text-[12px] transition-colors",
+                    !filterPhone
+                      ? "text-accent font-medium bg-accent/5"
+                      : "text-text-primary hover:bg-bg-hover"
+                  )}
+                >
+                  Todos los números
+                </button>
+                {phoneItems.map((item) => (
+                  <button
+                    key={item.slot}
+                    onClick={() => {
+                      setFilterPhone(item.slot);
+                      setShowPhoneDropdown(false);
+                    }}
+                    className={cn(
+                      "w-full text-left px-3 py-2 text-[12px] transition-colors",
+                      filterPhone === item.slot
+                        ? "text-accent font-medium bg-accent/5"
+                        : "text-text-primary hover:bg-bg-hover"
+                    )}
+                  >
+                    <span>{item.number}</span>
+                    {item.label && (
+                      <span className="ml-2 text-[10px] text-text-muted">
+                        {item.label}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Search */}
       <div className="p-3 space-y-2">
         <div className="relative">
@@ -75,16 +157,6 @@ export function ConversationList() {
 
         {/* Filters */}
         <div className="flex gap-1.5">
-          {hasTwoPhones && (
-            <AnimatedSelect
-              value={filterPhone}
-              onChange={setFilterPhone}
-              options={phoneOptions}
-              placeholder="Todos los números"
-              size="sm"
-              className="flex-1"
-            />
-          )}
           <AnimatedSelect
             value={filterEstado}
             onChange={setFilterEstado}

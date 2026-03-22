@@ -15,8 +15,9 @@ import {
   ListChecks,
   Zap,
   Phone,
-  Plus,
   Trash2,
+  RefreshCw,
+  Loader2,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { AnimatedSelect } from "@/components/ui/animated-select";
@@ -27,45 +28,26 @@ const PRESET_OPTIONS = [
   { value: "soporte", label: "Soporte al cliente" },
 ];
 
-/* ── Phone Card ── */
+/* ── Phone Card (read-only number, editable label + preset) ── */
 function PhoneCard({
   slot,
   number,
   label,
   preset,
-  onNumberChange,
   onLabelChange,
   onPresetChange,
-  onAdd,
-  onRemove,
-  isEmpty,
+  onDelete,
   disabled,
 }: {
   slot: 1 | 2;
   number: string;
   label: string;
   preset: string;
-  onNumberChange: (v: string) => void;
   onLabelChange: (v: string) => void;
   onPresetChange: (v: string) => void;
-  onAdd?: () => void;
-  onRemove?: () => void;
-  isEmpty: boolean;
+  onDelete?: () => void;
   disabled?: boolean;
 }) {
-  if (slot === 2 && isEmpty) {
-    return (
-      <button
-        onClick={onAdd}
-        disabled={disabled}
-        className="w-full flex items-center justify-center gap-2 p-4 rounded-xl border border-dashed border-border-secondary text-text-muted hover:border-accent/50 hover:text-accent transition-all text-[12px] font-medium"
-      >
-        <Plus size={14} />
-        Agregar segundo teléfono
-      </button>
-    );
-  }
-
   return (
     <div className="p-4 bg-bg-primary rounded-xl border border-border-secondary space-y-3">
       <div className="flex items-center justify-between">
@@ -73,41 +55,28 @@ function PhoneCard({
           <div className="w-7 h-7 rounded-lg bg-accent/10 flex items-center justify-center">
             <Phone size={13} className="text-accent" />
           </div>
-          <span className="text-[12px] font-semibold text-text-primary">
-            Teléfono {slot}
-            {slot === 1 && (
-              <span className="ml-1.5 text-[10px] font-normal text-text-muted">
-                (principal)
-              </span>
-            )}
-          </span>
+          <div>
+            <span className="text-[12px] font-semibold text-text-primary">
+              Teléfono {slot}
+            </span>
+            <p className="text-[12px] font-mono text-text-secondary mt-0.5">
+              {number}
+            </p>
+          </div>
         </div>
-        {slot === 2 && onRemove && (
+        {onDelete && (
           <button
-            onClick={onRemove}
+            onClick={onDelete}
             disabled={disabled}
             className="flex items-center gap-1 text-[11px] text-red-500 hover:text-red-600 px-2 py-1 rounded-lg hover:bg-red-500/10 transition-all"
           >
             <Trash2 size={11} />
-            Quitar
+            Eliminar
           </button>
         )}
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        <div>
-          <label className="text-[11px] font-medium text-text-muted block mb-1">
-            Número
-          </label>
-          <input
-            type="text"
-            value={number}
-            onChange={(e) => onNumberChange(e.target.value)}
-            placeholder="+56912345678"
-            disabled={disabled}
-            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all disabled:opacity-50"
-          />
-        </div>
         <div>
           <label className="text-[11px] font-medium text-text-muted block mb-1">
             Etiqueta
@@ -121,20 +90,19 @@ function PhoneCard({
             className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all disabled:opacity-50"
           />
         </div>
-      </div>
-
-      <div>
-        <label className="text-[11px] font-medium text-text-muted block mb-1">
-          Tipo de agente
-        </label>
-        <AnimatedSelect
-          value={preset}
-          onChange={onPresetChange}
-          options={PRESET_OPTIONS}
-          placeholder="Seleccionar..."
-          allowEmpty={false}
-          disabled={disabled}
-        />
+        <div>
+          <label className="text-[11px] font-medium text-text-muted block mb-1">
+            Tipo de agente
+          </label>
+          <AnimatedSelect
+            value={preset}
+            onChange={onPresetChange}
+            options={PRESET_OPTIONS}
+            placeholder="Seleccionar..."
+            allowEmpty={false}
+            disabled={disabled}
+          />
+        </div>
       </div>
     </div>
   );
@@ -278,28 +246,26 @@ export function AgentSettings() {
 
   const [useInternalAgent, setUseInternalAgent] = useState(false);
 
-  // Phone config state
-  const [phone1Number, setPhone1Number] = useState("");
+  // Phone config state (labels + presets only — numbers are read-only from backend)
   const [phone1Label, setPhone1Label] = useState("");
   const [phone1Preset, setPhone1Preset] = useState("ventas");
-  const [phone2Number, setPhone2Number] = useState("");
   const [phone2Label, setPhone2Label] = useState("");
   const [phone2Preset, setPhone2Preset] = useState("ventas");
-  const [showPhone2, setShowPhone2] = useState(false);
 
   // Which phone slot to configure personality for
   const [activePhoneSlot, setActivePhoneSlot] = useState(1);
+  const [detecting, setDetecting] = useState(false);
+
+  const phone1Number = settings?.phone_1_number || "";
+  const phone2Number = settings?.phone_2_number || "";
 
   useEffect(() => {
     if (settings) {
       setUseInternalAgent(settings.use_internal_agent || false);
-      setPhone1Number(settings.phone_1_number || "");
       setPhone1Label(settings.phone_1_label || "");
       setPhone1Preset(settings.phone_1_preset || "ventas");
-      setPhone2Number(settings.phone_2_number || "");
       setPhone2Label(settings.phone_2_label || "");
       setPhone2Preset(settings.phone_2_preset || "ventas");
-      setShowPhone2(!!(settings.phone_2_number));
     }
   }, [settings]);
 
@@ -334,33 +300,60 @@ export function AgentSettings() {
 
   const handleSavePhoneConfig = () => {
     saveCompanySetting.mutate({
-      phone_1_number: phone1Number,
       phone_1_label: phone1Label,
       phone_1_preset: phone1Preset,
-      phone_2_number: showPhone2 ? phone2Number : null,
-      phone_2_label: showPhone2 ? phone2Label : "",
-      phone_2_preset: showPhone2 ? phone2Preset : "ventas",
+      ...(phone2Number
+        ? { phone_2_label: phone2Label, phone_2_preset: phone2Preset }
+        : {}),
     });
   };
 
-  const handleRemovePhone2 = async () => {
+  const handleDetectPhones = async () => {
+    setDetecting(true);
+    try {
+      const res = await authFetch(
+        "/company/detect-phones",
+        { method: "POST" },
+        () => getToken()
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error detectando");
+      queryClient.invalidateQueries({ queryKey: ["companySettings"] });
+      toast.success(data.message || "Números detectados");
+    } catch (err: any) {
+      toast.error(err.message || "Error detectando números");
+    } finally {
+      setDetecting(false);
+    }
+  };
+
+  const handleDeletePhone = async (slot: 1 | 2) => {
     const ok = await confirm({
-      title: "Quitar segundo teléfono",
+      title: `Eliminar teléfono ${slot}`,
       description:
-        "Se eliminará la configuración del segundo teléfono. Las conversaciones existentes no se borrarán, pero ya no se podrá filtrar por este número.",
-      confirmText: "Quitar",
-      cancelText: "Cancelar",
+        "Se liberará este número. Las conversaciones existentes se mantendrán. El sistema podrá detectar un nuevo número automáticamente.",
+      confirmText: "Eliminar",
       variant: "danger",
     });
     if (!ok) return;
-    setShowPhone2(false);
-    setPhone2Number("");
-    setPhone2Label("");
-    setPhone2Preset("ventas");
-    if (activePhoneSlot === 2) setActivePhoneSlot(1);
+
+    try {
+      const res = await authFetch(
+        `/company/phone/${slot}`,
+        { method: "DELETE" },
+        () => getToken()
+      );
+      if (!res.ok) throw new Error("Error eliminando teléfono");
+      queryClient.invalidateQueries({ queryKey: ["companySettings"] });
+      if (activePhoneSlot === slot) setActivePhoneSlot(1);
+      toast.success("Teléfono eliminado");
+    } catch (err: any) {
+      toast.error(err.message);
+    }
   };
 
-  const hasTwoPhones = showPhone2 && !!phone2Number;
+  const hasTwoPhones = !!phone1Number && !!phone2Number;
+  const hasAnyPhone = !!phone1Number || !!phone2Number;
 
   const phoneSlotOptions = [
     { value: "1", label: phone1Label || "Teléfono 1" },
@@ -397,67 +390,81 @@ export function AgentSettings() {
       {useInternalAgent && (
         <SettingsSection
           title="Teléfonos configurados"
-          description="Configura los números de WhatsApp y el tipo de agente para cada uno"
+          description="Los números se detectan automáticamente desde tu cuenta de YCloud"
         >
           <div className="space-y-3">
-            <PhoneCard
-              slot={1}
-              number={phone1Number}
-              label={phone1Label}
-              preset={phone1Preset}
-              onNumberChange={setPhone1Number}
-              onLabelChange={setPhone1Label}
-              onPresetChange={setPhone1Preset}
-              isEmpty={false}
-              disabled={saveCompanySetting.isPending}
-            />
+            {/* Detected phones */}
+            {phone1Number && (
+              <PhoneCard
+                slot={1}
+                number={phone1Number}
+                label={phone1Label}
+                preset={phone1Preset}
+                onLabelChange={setPhone1Label}
+                onPresetChange={setPhone1Preset}
+                onDelete={() => handleDeletePhone(1)}
+                disabled={saveCompanySetting.isPending}
+              />
+            )}
 
-            {showPhone2 ? (
+            {phone2Number && (
               <PhoneCard
                 slot={2}
                 number={phone2Number}
                 label={phone2Label}
                 preset={phone2Preset}
-                onNumberChange={setPhone2Number}
                 onLabelChange={setPhone2Label}
                 onPresetChange={setPhone2Preset}
-                onRemove={handleRemovePhone2}
-                isEmpty={false}
-                disabled={saveCompanySetting.isPending}
-              />
-            ) : (
-              <PhoneCard
-                slot={2}
-                number=""
-                label=""
-                preset="ventas"
-                onNumberChange={() => {}}
-                onLabelChange={() => {}}
-                onPresetChange={() => {}}
-                onAdd={() => setShowPhone2(true)}
-                isEmpty={true}
+                onDelete={() => handleDeletePhone(2)}
                 disabled={saveCompanySetting.isPending}
               />
             )}
 
-            <button
-              onClick={handleSavePhoneConfig}
-              disabled={saveCompanySetting.isPending}
-              className="w-full py-2.5 rounded-xl text-[13px] font-semibold bg-accent text-white hover:bg-accent-hover transition-all disabled:opacity-60 flex items-center justify-center gap-2"
-            >
-              {saveCompanySetting.isPending ? (
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <Phone size={14} />
+            {/* No phones detected */}
+            {!hasAnyPhone && (
+              <div className="p-4 rounded-xl border border-dashed border-border-secondary text-center">
+                <p className="text-[12px] text-text-muted">
+                  No hay números detectados. Haz clic en "Detectar números" para buscar en tu cuenta de YCloud.
+                </p>
+              </div>
+            )}
+
+            {/* Action buttons */}
+            <div className="flex gap-2">
+              <button
+                onClick={handleDetectPhones}
+                disabled={detecting}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-bg-primary border border-border-secondary text-[12px] font-medium text-text-primary hover:bg-bg-hover transition-all disabled:opacity-50"
+              >
+                {detecting ? (
+                  <Loader2 size={13} className="animate-spin" />
+                ) : (
+                  <RefreshCw size={13} />
+                )}
+                {detecting ? "Detectando..." : "Detectar números"}
+              </button>
+
+              {hasAnyPhone && (
+                <button
+                  onClick={handleSavePhoneConfig}
+                  disabled={saveCompanySetting.isPending}
+                  className="flex-1 py-2 rounded-xl text-[12px] font-semibold bg-accent text-white hover:bg-accent-hover transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+                >
+                  {saveCompanySetting.isPending ? (
+                    <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <Phone size={13} />
+                  )}
+                  Guardar configuración
+                </button>
               )}
-              Guardar teléfonos
-            </button>
+            </div>
           </div>
         </SettingsSection>
       )}
 
       {/* ── Agent Personality ── */}
-      {useInternalAgent && (
+      {useInternalAgent && hasAnyPhone && (
         <SettingsSection
           title="Personalidad del agente"
           description="Define cómo responde el bot a tus clientes"
