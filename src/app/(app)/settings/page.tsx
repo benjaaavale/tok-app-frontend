@@ -32,7 +32,7 @@ const TABS = [
   { id: "perfil", label: "Perfil", icon: User },
   { id: "equipo", label: "Equipo", icon: Users },
   { id: "calendario", label: "Calendario", icon: CalendarDays },
-  { id: "agente", label: "Agente IA", icon: Bot },
+  { id: "agente", label: "Agentes IA", icon: Bot },
   { id: "integraciones", label: "Integraciones", icon: Plug },
 ] as const;
 

@@ -10,6 +10,8 @@ export interface Conversation {
   ultimo_mensaje: string | null;
   ultimo_mensaje_timestamp: string | null;
   last_activity: string | null;
+  phone_slot: number | null;
+  phone_label: string | null;
 }
 
 export interface Message {
@@ -90,6 +92,12 @@ export interface CompanySettings {
   reminder_enabled: boolean;
   reminder_hours_before: number;
   use_internal_agent?: boolean;
+  phone_1_number: string | null;
+  phone_1_label: string;
+  phone_1_preset: 'ventas' | 'soporte';
+  phone_2_number: string | null;
+  phone_2_label: string;
+  phone_2_preset: 'ventas' | 'soporte';
 }
 
 export interface AgentConfig {

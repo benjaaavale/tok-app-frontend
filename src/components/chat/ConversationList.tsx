@@ -2,18 +2,35 @@
 
 import { useState, useMemo } from "react";
 import { useConversations } from "@/hooks/useConversations";
+import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { useChatStore } from "@/stores/chat-store";
 import { cn, getInitials, timeAgo } from "@/lib/utils";
 import { ETAPA_COLORS, ETAPA_LABELS } from "@/lib/constants";
-import { Search, X, Filter } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { AnimatedSelect } from "@/components/ui/animated-select";
 
 export function ConversationList() {
   const { data: conversations, isLoading } = useConversations();
+  const { data: companySettings } = useCompanySettings();
   const { activeConversationId, setActiveConversation } = useChatStore();
   const [search, setSearch] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
   const [filterEtapa, setFilterEtapa] = useState("");
+  const [filterPhone, setFilterPhone] = useState("");
+
+  const hasTwoPhones = !!(companySettings?.phone_2_number);
+
+  const phoneOptions = useMemo(() => {
+    if (!companySettings) return [];
+    const opts = [];
+    if (companySettings.phone_1_number) {
+      opts.push({ value: "1", label: companySettings.phone_1_label || "Teléfono 1" });
+    }
+    if (companySettings.phone_2_number) {
+      opts.push({ value: "2", label: companySettings.phone_2_label || "Teléfono 2" });
+    }
+    return opts;
+  }, [companySettings]);
 
   const filtered = useMemo(() => {
     if (!conversations) return [];
@@ -30,11 +47,13 @@ export function ConversationList() {
           ? c.etiqueta === "Bot"
           : c.etiqueta === "Necesita ayuda humana");
       const matchEtapa = !filterEtapa || c.etapa === filterEtapa;
-      return matchSearch && matchEstado && matchEtapa;
+      const matchPhone =
+        !filterPhone || String(c.phone_slot) === filterPhone;
+      return matchSearch && matchEstado && matchEtapa && matchPhone;
     });
-  }, [conversations, search, filterEstado, filterEtapa]);
+  }, [conversations, search, filterEstado, filterEtapa, filterPhone]);
 
-  const hasFilters = !!search || !!filterEstado || !!filterEtapa;
+  const hasFilters = !!search || !!filterEstado || !!filterEtapa || !!filterPhone;
 
   return (
     <div className="flex flex-col h-full border-r border-border-separator bg-bg-secondary">
@@ -56,6 +75,16 @@ export function ConversationList() {
 
         {/* Filters */}
         <div className="flex gap-1.5">
+          {hasTwoPhones && (
+            <AnimatedSelect
+              value={filterPhone}
+              onChange={setFilterPhone}
+              options={phoneOptions}
+              placeholder="Todos los números"
+              size="sm"
+              className="flex-1"
+            />
+          )}
           <AnimatedSelect
             value={filterEstado}
             onChange={setFilterEstado}
@@ -89,6 +118,7 @@ export function ConversationList() {
                 setSearch("");
                 setFilterEstado("");
                 setFilterEtapa("");
+                setFilterPhone("");
               }}
               className="px-2 rounded-lg bg-bg-primary border border-border-secondary text-text-muted hover:text-text-primary"
             >
@@ -151,6 +181,11 @@ export function ConversationList() {
                     <span className="text-[11px] text-text-muted truncate flex-1">
                       {conv.ultimo_mensaje || "Sin mensajes"}
                     </span>
+                    {hasTwoPhones && conv.phone_label && (
+                      <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0 bg-accent/10 text-accent">
+                        {conv.phone_label}
+                      </span>
+                    )}
                     {conv.etapa && (
                       <span
                         className="text-[9px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0"
