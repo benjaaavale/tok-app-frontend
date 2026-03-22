@@ -8,6 +8,7 @@ interface AuthState {
   role: "admin" | "worker" | null;
   workerId: number | null;
   synced: boolean;
+  hasSeenTutorial: boolean;
 
   setAuth: (data: {
     companyToken: string;
@@ -16,8 +17,10 @@ interface AuthState {
     email?: string;
     role?: "admin" | "worker";
     workerId?: number | null;
+    hasSeenTutorial?: boolean;
   }) => void;
   setAvatarUrl: (url: string) => void;
+  setTutorialSeen: (seen: boolean) => void;
   reset: () => void;
 }
 
@@ -29,8 +32,9 @@ export const useAuthStore = create<AuthState>((set) => ({
   role: null,
   workerId: null,
   synced: false,
+  hasSeenTutorial: false,
 
-  setAuth: ({ companyToken, companyNombre, avatarUrl, email, role, workerId }) => {
+  setAuth: ({ companyToken, companyNombre, avatarUrl, email, role, workerId, hasSeenTutorial }) => {
     const initials = email
       ? email.split("@")[0].slice(0, 2).toUpperCase()
       : "TK";
@@ -41,11 +45,13 @@ export const useAuthStore = create<AuthState>((set) => ({
       userInitials: initials,
       role: role || "admin",
       workerId: workerId || null,
+      hasSeenTutorial: hasSeenTutorial || false,
       synced: true,
     });
   },
 
   setAvatarUrl: (url) => set({ userAvatarUrl: url }),
+  setTutorialSeen: (seen) => set({ hasSeenTutorial: seen }),
 
   reset: () =>
     set({
@@ -56,5 +62,6 @@ export const useAuthStore = create<AuthState>((set) => ({
       role: null,
       workerId: null,
       synced: false,
+      hasSeenTutorial: false,
     }),
 }));

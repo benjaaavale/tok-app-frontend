@@ -8,6 +8,7 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { SocketProvider } from "@/providers/socket-provider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { AppTutorial } from "@/components/AppTutorial";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { getToken, isLoaded } = useAuth();
@@ -36,6 +37,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           email: user.emailAddresses[0]?.emailAddress,
           role: meData.role || "admin",
           workerId: meData.worker_id || null,
+          hasSeenTutorial: meData.has_seen_tutorial || false,
         });
       } catch (err) {
         console.error("[Auth Sync Error]", err);
@@ -61,6 +63,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <ErrorBoundary>{children}</ErrorBoundary>
         </main>
         <BottomNav />
+        <AppTutorial />
       </div>
     </SocketProvider>
   );

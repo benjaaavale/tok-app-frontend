@@ -77,6 +77,7 @@ export function Sidebar() {
                 key={item.href}
                 href={item.href}
                 title={!open ? item.label : undefined}
+                data-tour={`nav-${item.href.replace('/', '')}`}
                 className={cn(
                   "flex items-center rounded-xl text-[13px] font-medium",
                   "transition-all duration-200",
@@ -115,6 +116,7 @@ export function Sidebar() {
             <Link
               href="/settings"
               title={!open ? "Configuración" : undefined}
+              data-tour="nav-settings"
               className={cn(
                 "flex items-center rounded-xl text-[13px] font-medium",
                 "transition-all duration-200",

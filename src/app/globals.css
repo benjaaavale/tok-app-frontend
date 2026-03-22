@@ -209,3 +209,49 @@ body {
 .animate-fade-in {
   animation: fadeIn 0.2s ease-out;
 }
+
+/* ── Tutorial (driver.js) ── */
+.tok-tutorial-popover {
+  background: var(--bg-primary) !important;
+  border: 1px solid var(--border-primary) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15) !important;
+  color: var(--text-primary) !important;
+}
+.tok-tutorial-popover .driver-popover-title {
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: var(--text-primary) !important;
+}
+.tok-tutorial-popover .driver-popover-description {
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+  color: var(--text-secondary) !important;
+}
+.tok-tutorial-popover .driver-popover-progress-text {
+  font-size: 11px !important;
+  color: var(--text-muted) !important;
+}
+.tok-tutorial-popover .driver-popover-next-btn,
+.tok-tutorial-popover .driver-popover-prev-btn {
+  border-radius: 10px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  padding: 6px 16px !important;
+}
+.tok-tutorial-popover .driver-popover-next-btn {
+  background: var(--accent) !important;
+  color: white !important;
+  border: none !important;
+}
+.tok-tutorial-popover .driver-popover-next-btn:hover {
+  background: var(--accent-hover) !important;
+}
+.tok-tutorial-popover .driver-popover-prev-btn {
+  background: transparent !important;
+  color: var(--text-secondary) !important;
+  border: 1px solid var(--border-primary) !important;
+}
+.driver-overlay {
+  background: rgba(0, 0, 0, 0.5) !important;
+}

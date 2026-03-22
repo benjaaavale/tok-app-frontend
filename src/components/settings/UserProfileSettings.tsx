@@ -8,13 +8,15 @@ import { authFetch } from "@/lib/api";
 import { resolveMediaUrl, getInitials } from "@/lib/utils";
 import { toast } from "sonner";
 import { SettingsSection } from "./SettingsSection";
-import { Camera, KeyRound, Mail, Eye, EyeOff, ChevronDown, ChevronUp } from "lucide-react";
+import { Camera, KeyRound, Mail, Eye, EyeOff, ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
+import { useTutorial } from "@/components/AppTutorial";
 
 export function UserProfileSettings() {
   const { getToken } = useAuth();
   const { user } = useUser();
   const { userAvatarUrl, userInitials, setAvatarUrl, companyNombre } = useAuthStore();
   const fileRef = useRef<HTMLInputElement>(null);
+  const { resetAndStart } = useTutorial();
 
   // Accordion state
   const [showPassword, setShowPassword] = useState(false);
@@ -244,6 +246,19 @@ export function UserProfileSettings() {
             )}
           </div>
         )}
+      </div>
+      {/* ── Repetir tutorial ── */}
+      <div className="border border-border-secondary rounded-xl overflow-hidden mt-2">
+        <button
+          onClick={() => resetAndStart()}
+          className="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-bg-hover transition-colors"
+        >
+          <div className="flex items-center gap-2.5">
+            <HelpCircle size={15} className="text-accent" />
+            <span className="text-[13px] font-medium text-text-primary">Repetir tutorial</span>
+          </div>
+          <span className="text-[11px] text-text-muted">Ver guía interactiva</span>
+        </button>
       </div>
     </SettingsSection>
   );
