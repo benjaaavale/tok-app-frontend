@@ -38,21 +38,23 @@ export function Sidebar() {
   return (
     <>
       {/* ── Desktop Sidebar ── */}
-      <aside
-        className={cn(
-          "hidden lg:flex flex-col h-screen bg-bg-sidebar flex-shrink-0 overflow-hidden",
-          "transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
-          open ? "w-[220px]" : "w-[68px]"
-        )}
+      <motion.aside
+        className="hidden lg:flex flex-col h-screen bg-bg-sidebar flex-shrink-0 overflow-hidden"
+        animate={{ width: open ? 220 : 68 }}
+        transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
       >
         {/* ── Logo ── */}
         <div className="flex items-center justify-center h-[68px]">
-          <div className={cn(
-            "flex-shrink-0 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
-            open ? "w-[44px] h-[44px]" : "w-[28px] h-[28px]"
-          )}>
+          <motion.div
+            animate={{
+              width: open ? 44 : 28,
+              height: open ? 44 : 28,
+            }}
+            transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+            className="flex-shrink-0"
+          >
             <Image
               src={theme === "dark" ? "/logo-blanco.png" : "/logo-negro.png"}
               alt="ToK"
@@ -61,7 +63,7 @@ export function Sidebar() {
               className="w-full h-full object-contain"
               priority
             />
-          </div>
+          </motion.div>
         </div>
 
         {/* ── Main Navigation ── */}
@@ -91,12 +93,16 @@ export function Sidebar() {
                   strokeWidth={isActive ? 2 : 1.5}
                   className="flex-shrink-0"
                 />
-                <span className={cn(
-                  "whitespace-pre !p-0 !m-0 transition-opacity duration-200",
-                  open ? "opacity-100 inline-block" : "opacity-0 hidden"
-                )}>
+                <motion.span
+                  animate={{
+                    display: open ? "inline-block" : "none",
+                    opacity: open ? 1 : 0,
+                  }}
+                  transition={{ duration: 0.2 }}
+                  className="whitespace-pre !p-0 !m-0"
+                >
                   {item.label}
-                </span>
+                </motion.span>
               </Link>
             );
           })}
@@ -126,20 +132,21 @@ export function Sidebar() {
                 strokeWidth={isSettingsActive ? 2 : 1.5}
                 className="flex-shrink-0"
               />
-              <span className={cn(
-                "whitespace-pre !p-0 !m-0 transition-opacity duration-200",
-                open ? "opacity-100 inline-block" : "opacity-0 hidden"
-              )}>
+              <motion.span
+                animate={{
+                  display: open ? "inline-block" : "none",
+                  opacity: open ? 1 : 0,
+                }}
+                transition={{ duration: 0.2 }}
+                className="whitespace-pre !p-0 !m-0"
+              >
                 Configuración
-              </span>
+              </motion.span>
             </Link>
           )}
 
           {/* Theme toggle */}
-          <div className={cn(
-            "flex items-center rounded-xl transition-all duration-200",
-            open ? "px-2.5 py-2" : "justify-center w-[44px] h-[44px] mx-auto"
-          )}>
+          <div className="flex items-center justify-center py-2">
             <ThemeToggle compact={!open} />
           </div>
 
@@ -165,20 +172,24 @@ export function Sidebar() {
                 {userInitials || "TK"}
               </div>
             )}
-            <div className={cn(
-              "min-w-0 transition-opacity duration-200",
-              open ? "opacity-100 block" : "opacity-0 hidden"
-            )}>
+            <motion.div
+              animate={{
+                display: open ? "block" : "none",
+                opacity: open ? 1 : 0,
+              }}
+              transition={{ duration: 0.2 }}
+              className="min-w-0"
+            >
               <p className="text-[12px] font-medium text-text-primary truncate">
                 {companyNombre || "Mi empresa"}
               </p>
               <p className="text-[11px] text-text-muted truncate">
                 {isAdmin ? "Administrador" : "Trabajador"}
               </p>
-            </div>
+            </motion.div>
           </div>
         </div>
-      </aside>
+      </motion.aside>
 
       {/* ── Mobile Sidebar ── */}
       <MobileSidebar
