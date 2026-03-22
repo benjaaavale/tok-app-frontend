@@ -57,9 +57,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <SocketProvider>
-      <div className="flex h-screen bg-bg-sidebar">
+      <div className="flex flex-col lg:flex-row h-dvh bg-bg-sidebar">
         <Sidebar />
-        <main className="flex-1 overflow-auto pb-16 lg:pb-0 bg-bg-primary lg:rounded-tl-2xl lg:border-l lg:border-t lg:border-border-secondary">
+        <main className="flex-1 min-h-0 overflow-auto pb-16 lg:pb-0 bg-bg-primary lg:rounded-tl-2xl lg:border-l lg:border-t lg:border-border-secondary">
           <ErrorBoundary>{children}</ErrorBoundary>
         </main>
         <BottomNav />

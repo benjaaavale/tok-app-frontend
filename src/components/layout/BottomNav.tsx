@@ -26,7 +26,7 @@ export function BottomNav() {
   const navItems = allNavItems.filter((item) => !item.adminOnly || isAdmin);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden bg-bg-sidebar/80 backdrop-blur-xl border-t border-border-secondary">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden bg-bg-sidebar border-t border-border-secondary">
       {navItems.map((item) => {
         const isActive =
           pathname === item.href || pathname.startsWith(item.href + "/");

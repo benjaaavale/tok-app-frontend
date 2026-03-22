@@ -22,6 +22,6 @@ export function useAppointments(from?: string, to?: string) {
       );
       return res.json();
     },
-    refetchInterval: 60_000, // refresh every minute
+    // Real-time updates via Socket.IO (appointment_update event)
   });
 }

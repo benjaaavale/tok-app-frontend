@@ -19,6 +19,5 @@ export function useMessages(conversationId: number | null) {
       return res.json();
     },
     enabled: !!conversationId,
-    refetchInterval: 10000, // Poll every 10s as fallback
   });
 }

@@ -196,7 +196,7 @@ export default function SettingsPage() {
               x: { duration: 0.5, ease: "easeInOut" },
               opacity: { duration: 0.2 },
             }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl bg-bg-secondary/95 backdrop-blur-xl border border-border-secondary shadow-lg"
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl bg-bg-secondary border border-border-secondary shadow-lg"
           >
             {/* Pulsing dot */}
             <span className="relative flex h-2.5 w-2.5">

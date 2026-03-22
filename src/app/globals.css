@@ -151,6 +151,7 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 150ms ease, color 150ms ease;
 }
 
 /* ── Gradient utility classes ── */
@@ -189,12 +190,7 @@ body {
   background: var(--text-muted);
 }
 
-/* ── Smooth Transitions ── */
-* {
-  transition-property: color, background-color, border-color, box-shadow;
-  transition-duration: 150ms;
-  transition-timing-function: ease;
-}
+/* ── Smooth Transitions (only on body for theme switching) ── */
 
 /* ── Animations ── */
 @keyframes spin {
