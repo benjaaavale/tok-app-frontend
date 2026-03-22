@@ -44,10 +44,10 @@ export function FunnelChart({ data }: FunnelChartProps) {
           <YAxis
             type="category"
             dataKey="stage"
-            tick={{ fontSize: 11, fill: "var(--text-secondary)" }}
+            tick={{ fontSize: 11, fill: "var(--text-secondary)", style: { whiteSpace: "nowrap" } }}
             axisLine={false}
             tickLine={false}
-            width={100}
+            width={120}
           />
           <Tooltip
             contentStyle={{
