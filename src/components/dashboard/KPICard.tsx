@@ -54,7 +54,7 @@ function DeltaBadge({ delta, onDark }: { delta: number; onDark?: boolean }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md border",
+        "inline-flex items-center gap-0.5 text-[10px] sm:text-[11px] font-semibold px-1.5 sm:px-2 py-0.5 rounded-md border",
         onDark
           ? "border-white/15 bg-white/5"
           : "border-border-secondary bg-bg-primary"
@@ -76,41 +76,41 @@ export function KPICard({ title, value, icon: Icon, accent, delta }: KPICardProp
   return (
     <div
       className={cn(
-        "rounded-xl p-5 transition-all duration-200 hover:-translate-y-0.5",
+        "rounded-xl p-3.5 sm:p-5 transition-all duration-200 hover:-translate-y-0.5 overflow-hidden",
         accent
           ? "text-white shadow-md"
           : "bg-bg-secondary border border-border-secondary shadow-sm hover:shadow-md"
       )}
       style={accent ? { background: "var(--gradient-dark)" } : undefined}
     >
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0 flex-1">
           <p
             className={cn(
-              "text-[12px] font-medium",
+              "text-[11px] sm:text-[12px] font-medium truncate",
               accent ? "text-white/70" : "text-text-muted"
             )}
           >
             {title}
           </p>
-          <p className={cn("text-[28px] font-bold mt-1 tracking-tight", accent ? "text-white" : "text-text-primary")}>
+          <p className={cn("text-[22px] sm:text-[28px] font-bold mt-0.5 sm:mt-1 tracking-tight", accent ? "text-white" : "text-text-primary")}>
             {value}
           </p>
           {delta !== undefined && (
-            <div className="mt-1.5">
+            <div className="mt-1">
               <DeltaBadge delta={delta} onDark={accent} />
             </div>
           )}
         </div>
         <div
           className={cn(
-            "w-10 h-10 rounded-lg flex items-center justify-center",
+            "w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0",
             accent ? "bg-white/20" : "bg-accent/10"
           )}
         >
           <Icon
-            size={20}
-            className={accent ? "text-white" : "text-accent"}
+            size={18}
+            className={cn("sm:!w-5 sm:!h-5", accent ? "text-white" : "text-accent")}
           />
         </div>
       </div>

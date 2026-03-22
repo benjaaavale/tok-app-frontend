@@ -17,7 +17,6 @@ import { WorkerManager } from "@/components/settings/WorkerManager";
 import { ServiceTypeManager } from "@/components/settings/ServiceTypeManager";
 import { UserProfileSettings } from "@/components/settings/UserProfileSettings";
 import {
-  Settings,
   LogOut,
   User,
   Users,
@@ -107,20 +106,6 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-6">
-      {/* ── Header ── */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center">
-          <Settings size={18} className="text-accent" />
-        </div>
-        <div>
-          <h1 className="text-[18px] font-semibold text-text-primary">
-            Configuración
-          </h1>
-          <p className="text-[11px] text-text-muted">
-            Administra tu cuenta, equipo e integraciones
-          </p>
-        </div>
-      </div>
 
       {/* ── Tab Navigation ── */}
       <Tabs value={activeTab} onValueChange={handleTabChange}>

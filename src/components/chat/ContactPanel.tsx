@@ -23,12 +23,13 @@ import {
   Tag,
   Sparkles,
   Info,
+  X,
 } from "lucide-react";
 
 export function ContactPanel() {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
-  const { activePhone, activeName, showContactPanel, setActiveConversation } =
+  const { activePhone, activeName, showContactPanel, setActiveConversation, setShowContactPanel } =
     useChatStore();
   const { data: contact, isLoading } = useContact(activePhone);
 
@@ -94,8 +95,10 @@ export function ContactPanel() {
   if (!showContactPanel || !activePhone) return null;
 
   return (
-    <div className="w-[300px] border-l border-border-separator bg-bg-secondary h-full overflow-y-auto hidden lg:block">
-      {isLoading ? (
+    <>
+      {/* Desktop: sidebar panel */}
+      <div className="w-[300px] border-l border-border-separator bg-bg-secondary h-full overflow-y-auto hidden lg:block">
+        {isLoading ? (
         <div className="p-5 space-y-4 animate-pulse">
           <div className="h-16 w-16 rounded-full bg-bg-primary mx-auto" />
           <div className="h-4 bg-bg-primary rounded w-3/4 mx-auto" />
@@ -297,6 +300,196 @@ export function ContactPanel() {
           </div>
         </div>
       ) : null}
+      </div>
+
+      {/* Mobile: full-screen overlay */}
+      <div className="fixed inset-0 z-[90] bg-bg-primary lg:hidden flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border-secondary bg-bg-secondary flex-shrink-0">
+          <h3 className="text-[14px] font-semibold text-text-primary">Detalles del contacto</h3>
+          <button
+            onClick={() => setShowContactPanel(false)}
+            className="p-1.5 rounded-lg text-text-muted hover:bg-bg-hover transition-all"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Content (reuses same markup) */}
+        <div className="flex-1 overflow-y-auto">
+          {isLoading ? (
+            <div className="p-5 space-y-4 animate-pulse">
+              <div className="h-16 w-16 rounded-full bg-bg-secondary mx-auto" />
+              <div className="h-4 bg-bg-secondary rounded w-3/4 mx-auto" />
+              <div className="h-3 bg-bg-secondary rounded w-1/2 mx-auto" />
+            </div>
+          ) : contact ? (
+            <MobileContactContent
+              contact={contact}
+              botToggle={botToggle}
+              updateEtapa={updateEtapa}
+              deleteContact={deleteContact}
+            />
+          ) : null}
+        </div>
+      </div>
+    </>
+  );
+}
+
+/* ── Mobile contact content (avoids duplicating JSX) ── */
+function MobileContactContent({
+  contact,
+  botToggle,
+  updateEtapa,
+  deleteContact,
+}: {
+  contact: any;
+  botToggle: any;
+  updateEtapa: any;
+  deleteContact: any;
+}) {
+  const { setActiveConversation } = useChatStore();
+
+  return (
+    <div className="p-5 space-y-5 pb-24">
+      {/* Avatar + Name */}
+      <div className="text-center">
+        <div
+          className="w-16 h-16 rounded-full flex items-center justify-center text-xl font-semibold text-white mx-auto shadow-md"
+          style={{ background: "var(--gradient-accent)" }}
+        >
+          {getInitials(contact.nombre_real || contact.nombre_whatsapp || "?")}
+        </div>
+        <p className="text-[15px] font-semibold text-text-primary mt-3">
+          {contact.nombre_real || contact.nombre_whatsapp || "Sin nombre"}
+        </p>
+        {contact.nombre_real && contact.nombre_whatsapp && (
+          <p className="text-[11px] text-text-muted mt-0.5">{contact.nombre_whatsapp}</p>
+        )}
+      </div>
+
+      {/* Bot Toggle */}
+      <div className="flex items-center justify-between px-3 py-3 bg-bg-secondary rounded-xl border border-border-secondary">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
+            <Bot size={15} className="text-accent" />
+          </div>
+          <span className={`text-[12px] font-medium transition-colors duration-200 ${
+            contact.bot_desactivado ? "text-text-muted" : "text-text-primary"
+          }`}>
+            Agente IA
+          </span>
+        </div>
+        <Switch
+          checked={!contact.bot_desactivado}
+          onCheckedChange={() => botToggle.mutate()}
+          size="sm"
+        />
+      </div>
+
+      {/* Datos */}
+      <Section title="Datos del contacto">
+        <div className="space-y-1">
+          <InfoRow icon={<Phone size={13} />} label="Teléfono" value={contact.telefono} />
+          {contact.correo && <InfoRow icon={<Mail size={13} />} label="Correo" value={contact.correo} />}
+          {contact.nombre_whatsapp && <InfoRow icon={<MessageCircle size={13} />} label="WhatsApp" value={contact.nombre_whatsapp} />}
+          {contact.nombre_real && <InfoRow icon={<User size={13} />} label="Nombre real" value={contact.nombre_real} />}
+        </div>
+      </Section>
+
+      {/* Calificación */}
+      <Section title="Calificación">
+        <div className="space-y-2">
+          {!contact.bot_desactivado && (
+            <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-accent/5 border border-accent/15 mb-1">
+              <Sparkles size={13} className="text-accent mt-0.5 flex-shrink-0" />
+              <p className="text-[10.5px] text-text-secondary leading-relaxed">
+                El agente IA califica automáticamente este lead.
+              </p>
+            </div>
+          )}
+          <AnimatedSelect
+            value={contact.etapa || ""}
+            onChange={(v: string) => updateEtapa.mutate(v)}
+            options={LEAD_OPTIONS}
+            placeholder="Sin calificar"
+            dotColor={ETAPA_COLORS[contact.etapa || ""] || undefined}
+          />
+          {contact.etapa && (
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: ETAPA_COLORS[contact.etapa] || "#94A3B8" }} />
+              <span className="text-[11px] text-text-secondary font-medium">
+                {ETAPA_LABELS[contact.etapa] || contact.etapa}
+              </span>
+            </div>
+          )}
+        </div>
+      </Section>
+
+      {/* Próxima cita */}
+      {contact.next_appointment && (
+        <Section title="Próxima cita">
+          <div className="px-3 py-3 bg-accent-light rounded-xl border border-accent-muted">
+            <div className="flex items-start gap-2.5">
+              <CalendarDays size={15} className="text-accent mt-0.5" />
+              <div className="flex-1">
+                <p className="text-[12px] font-medium text-text-primary">
+                  {contact.next_appointment.event_type}
+                </p>
+                <div className="flex items-center gap-3 mt-1.5">
+                  <span className="text-[11px] text-text-secondary flex items-center gap-1">
+                    <CalendarDays size={10} />
+                    {new Date(contact.next_appointment.fecha + "T12:00:00").toLocaleDateString("es-CL", { day: "numeric", month: "short" })}
+                  </span>
+                  <span className="text-[11px] text-text-secondary flex items-center gap-1">
+                    <Clock size={10} />
+                    {contact.next_appointment.hora?.slice(0, 5)}
+                  </span>
+                </div>
+                <span className="inline-block mt-1.5 text-[9px] font-semibold px-2 py-0.5 rounded-full bg-accent/10 text-accent">
+                  {contact.next_appointment.estado}
+                </span>
+              </div>
+            </div>
+          </div>
+        </Section>
+      )}
+
+      {/* Historial */}
+      {contact.history && contact.history.length > 0 && (
+        <Section title="Historial">
+          <div className="space-y-0 max-h-[220px] overflow-y-auto relative">
+            <div className="absolute left-[6px] top-2 bottom-2 w-px bg-border-secondary" />
+            {contact.history.map((h: any) => (
+              <div key={h.id} className="flex items-start gap-3 py-1.5 relative">
+                <div className="w-[13px] h-[13px] rounded-full bg-bg-secondary border-2 border-accent flex-shrink-0 z-10" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] text-text-primary leading-snug">{h.evento}</p>
+                  <p className="text-[10px] text-text-muted mt-0.5">
+                    {new Date(h.fecha).toLocaleDateString("es-CL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {/* Eliminar */}
+      <div className="pt-2 border-t border-border-secondary">
+        <button
+          onClick={() => {
+            if (confirm("¿Eliminar este contacto y toda su información?")) {
+              deleteContact.mutate();
+            }
+          }}
+          className="flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-[12px] text-danger hover:bg-danger-light transition-all"
+        >
+          <Trash2 size={13} />
+          Eliminar contacto
+        </button>
+      </div>
     </div>
   );
 }
