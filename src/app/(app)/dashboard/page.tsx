@@ -63,7 +63,7 @@ export default function DashboardPage() {
           />
 
           {/* Mini stats */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
             <MiniStat
               icon={<MessageSquare size={14} />}
               label="Total mensajes"
@@ -113,16 +113,16 @@ function MiniStat({
   delta?: number;
 }) {
   return (
-    <div className="bg-bg-secondary border border-border-secondary rounded-xl px-4 py-3 flex items-center gap-3 shadow-sm">
-      <div className="w-7 h-7 rounded-lg bg-accent/10 text-accent flex items-center justify-center">
+    <div className="bg-bg-secondary border border-border-secondary rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2.5 sm:gap-3 shadow-sm overflow-hidden">
+      <div className="w-7 h-7 rounded-lg bg-accent/10 text-accent flex items-center justify-center flex-shrink-0">
         {icon}
       </div>
-      <div className="flex-1">
-        <p className="text-[11px] text-text-muted">{label}</p>
-        <div className="flex items-center gap-2">
-          <p className="text-[16px] font-semibold text-text-primary">{value}</p>
+      <div className="flex-1 min-w-0">
+        <p className="text-[10px] sm:text-[11px] text-text-muted truncate">{label}</p>
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <p className="text-[15px] sm:text-[16px] font-semibold text-text-primary">{value}</p>
           {delta !== undefined && (
-            <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-md border border-border-secondary bg-bg-primary">
+            <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold sm:px-1.5 sm:py-0.5 sm:rounded-md sm:border sm:border-border-secondary sm:bg-bg-primary">
               <svg
                 width="6"
                 height="5"
@@ -165,9 +165,9 @@ function DashboardSkeleton() {
           <div key={i} className="h-[100px] bg-bg-secondary rounded-xl border border-border-secondary" />
         ))}
       </div>
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="h-[60px] bg-bg-secondary rounded-xl border border-border-secondary" />
+          <div key={i} className="h-[56px] sm:h-[60px] bg-bg-secondary rounded-xl border border-border-secondary" />
         ))}
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
