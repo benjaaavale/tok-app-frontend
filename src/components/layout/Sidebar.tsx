@@ -8,14 +8,12 @@ import { useTheme } from "next-themes";
 import { useAuthStore } from "@/stores/auth-store";
 import { resolveMediaUrl } from "@/lib/utils";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   LayoutDashboard,
   MessageCircle,
   CalendarDays,
   Settings,
-  Menu,
-  X,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
@@ -191,157 +189,6 @@ export function Sidebar() {
         </div>
       </motion.aside>
 
-      {/* ── Mobile Sidebar ── */}
-      <MobileSidebar
-        open={open}
-        setOpen={setOpen}
-        pathname={pathname}
-        theme={theme}
-        companyNombre={companyNombre}
-        userAvatarUrl={userAvatarUrl}
-        userInitials={userInitials}
-        isSettingsActive={isSettingsActive}
-        isAdmin={isAdmin}
-      />
-    </>
-  );
-}
-
-/* ── Mobile Sidebar (slide-in overlay) ── */
-function MobileSidebar({
-  open,
-  setOpen,
-  pathname,
-  theme,
-  companyNombre,
-  userAvatarUrl,
-  userInitials,
-  isSettingsActive,
-  isAdmin,
-}: {
-  open: boolean;
-  setOpen: (v: boolean) => void;
-  pathname: string;
-  theme: string | undefined;
-  companyNombre: string | null;
-  userAvatarUrl: string | null;
-  userInitials: string | null;
-  isSettingsActive: boolean;
-  isAdmin: boolean;
-}) {
-  return (
-    <>
-      {/* Toggle bar */}
-      <div className="h-14 px-4 flex items-center justify-between lg:hidden bg-bg-sidebar border-b border-border-secondary w-full flex-shrink-0">
-        <Image
-          src={theme === "dark" ? "/logo-blanco.png" : "/logo-negro.png"}
-          alt="ToK"
-          width={28}
-          height={28}
-          priority
-        />
-        <Menu
-          className="text-text-secondary cursor-pointer"
-          size={24}
-          onClick={() => setOpen(true)}
-        />
-      </div>
-
-      {/* Full-screen overlay */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ x: "-100%", opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: "-100%", opacity: 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="fixed inset-0 z-[100] flex flex-col bg-bg-sidebar p-6 lg:hidden"
-          >
-            {/* Close */}
-            <div className="flex justify-end mb-6">
-              <X
-                className="text-text-secondary cursor-pointer"
-                size={24}
-                onClick={() => setOpen(false)}
-              />
-            </div>
-
-            {/* Nav */}
-            <nav className="flex-1 space-y-1">
-              {mainNavItems.map((item) => {
-                const isActive =
-                  pathname === item.href ||
-                  pathname.startsWith(item.href + "/");
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium",
-                      isActive
-                        ? "bg-accent-light text-accent font-semibold"
-                        : "text-text-secondary hover:bg-bg-hover"
-                    )}
-                  >
-                    <item.icon size={20} strokeWidth={isActive ? 2 : 1.5} />
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </nav>
-
-            {/* Bottom */}
-            <div className="space-y-1 pt-4 border-t border-border-secondary">
-              {isAdmin && (
-                <Link
-                  href="/settings"
-                  onClick={() => setOpen(false)}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium",
-                    isSettingsActive
-                      ? "bg-accent-light text-accent font-semibold"
-                      : "text-text-secondary hover:bg-bg-hover"
-                  )}
-                >
-                  <Settings
-                    size={20}
-                    strokeWidth={isSettingsActive ? 2 : 1.5}
-                  />
-                  Configuración
-                </Link>
-              )}
-
-              <div className="flex items-center gap-3 px-3 py-3">
-                <ThemeToggle />
-              </div>
-
-              <div className="flex items-center gap-3 px-3 py-3">
-                {userAvatarUrl ? (
-                  <img
-                    src={resolveMediaUrl(userAvatarUrl)}
-                    alt="Avatar"
-                    className="w-[34px] h-[34px] rounded-full object-cover flex-shrink-0"
-                  />
-                ) : (
-                  <div
-                    className="w-[34px] h-[34px] rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0"
-                    style={{ background: "var(--gradient-accent)" }}
-                  >
-                    {userInitials || "TK"}
-                  </div>
-                )}
-                <div>
-                  <p className="text-sm font-medium text-text-primary">
-                    {companyNombre || "Mi empresa"}
-                  </p>
-                  <p className="text-xs text-text-muted">{isAdmin ? "Administrador" : "Trabajador"}</p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </>
   );
 }

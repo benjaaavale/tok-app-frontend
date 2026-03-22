@@ -8,6 +8,11 @@ import { useAuth } from "@clerk/nextjs";
 import { authFetch } from "@/lib/api";
 import { usePathname, useRouter } from "next/navigation";
 
+function isMobile() {
+  if (typeof window === "undefined") return false;
+  return window.innerWidth < 1024; // lg breakpoint
+}
+
 export function AppTutorial() {
   const { synced, hasSeenTutorial, setTutorialSeen, role } = useAuthStore();
   const { getToken } = useAuth();
@@ -16,6 +21,8 @@ export function AppTutorial() {
   const isAdmin = role !== "worker";
 
   const startTutorial = useCallback(() => {
+    const mobile = isMobile();
+
     const steps = [
       {
         popover: {
@@ -30,6 +37,7 @@ export function AppTutorial() {
           title: "Dashboard",
           description:
             "Aqui veras las metricas clave de tu negocio: citas del dia, mensajes recibidos, leads nuevos y un embudo de conversion. Todo en tiempo real.",
+          side: mobile ? "top" as const : "right" as const,
         },
       },
       {
@@ -38,6 +46,7 @@ export function AppTutorial() {
           title: "Mensajes",
           description:
             "Tu bandeja de WhatsApp. Aqui llegan todos los mensajes de tus clientes. Puedes responder manualmente o dejar que el agente IA se encargue.",
+          side: mobile ? "top" as const : "right" as const,
         },
       },
       {
@@ -46,6 +55,7 @@ export function AppTutorial() {
           title: "Agenda",
           description:
             "Calendario semanal con todas las citas. Las citas que agende el agente IA por WhatsApp tambien se reflejan aqui automaticamente. Puedes crear, reprogramar o cancelar citas, y sincronizar con Google Calendar.",
+          side: mobile ? "top" as const : "right" as const,
         },
       },
     ];
@@ -58,6 +68,7 @@ export function AppTutorial() {
           title: "Configuracion",
           description:
             "Aqui configuras tu empresa, equipo, servicios, el agente IA y las integraciones con Google Calendar y WhatsApp.",
+          side: mobile ? "top" as const : "right" as const,
         },
       });
     }
@@ -67,14 +78,15 @@ export function AppTutorial() {
         title: "Listo! 🎉",
         description:
           "Ya conoces las secciones principales. Si necesitas ver este tutorial de nuevo, ve a Configuracion > Perfil. Ahora explora tu nueva herramienta!",
+        side: "top" as const,
       },
-    });
+    } as typeof steps[0]);
 
     const driverObj = driver({
       showProgress: true,
       animate: true,
       smoothScroll: true,
-      stagePadding: 8,
+      stagePadding: mobile ? 4 : 8,
       stageRadius: 12,
       popoverClass: "tok-tutorial-popover",
       nextBtnText: "Siguiente",
