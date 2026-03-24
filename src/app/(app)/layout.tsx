@@ -36,7 +36,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           companyToken: meData.company_token,
           companyNombre: meData.company_nombre,
           avatarUrl: meData.avatar_url,
-          email: user.emailAddresses[0]?.emailAddress,
+          email: user.primaryEmailAddress?.emailAddress,
           role: meData.role || "admin",
           workerId: meData.worker_id || null,
           hasSeenTutorial: meData.has_seen_tutorial || false,

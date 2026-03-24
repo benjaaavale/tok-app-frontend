@@ -144,7 +144,7 @@ export function UserProfileSettings() {
             <img src={resolveMediaUrl(userAvatarUrl)} alt="Avatar" className="w-16 h-16 rounded-full object-cover" />
           ) : (
             <div className="w-16 h-16 rounded-full bg-accent/15 text-accent flex items-center justify-center text-lg font-semibold">
-              {userInitials || getInitials(user?.emailAddresses[0]?.emailAddress || "?")}
+              {userInitials || getInitials(user?.primaryEmailAddress?.emailAddress || "?")}
             </div>
           )}
           <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
@@ -154,7 +154,7 @@ export function UserProfileSettings() {
         </div>
         <div className="flex-1">
           <p className="text-[14px] font-semibold text-text-primary">
-            {user?.emailAddresses[0]?.emailAddress}
+            {user?.primaryEmailAddress?.emailAddress}
           </p>
           <p className="text-[11px] text-text-muted mt-0.5">{companyNombre}</p>
         </div>
