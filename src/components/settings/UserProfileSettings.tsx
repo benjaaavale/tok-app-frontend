@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { useAuth, useUser } from "@clerk/nextjs";
+import { useRef, useState, useCallback } from "react";
+import { useAuth, useUser, useReverification } from "@clerk/nextjs";
 import { useMutation } from "@tanstack/react-query";
 import { useAuthStore } from "@/stores/auth-store";
 import { authFetch } from "@/lib/api";
@@ -37,6 +37,34 @@ export function UserProfileSettings() {
   const [verificationCode, setVerificationCode] = useState("");
   const [pendingEmailId, setPendingEmailId] = useState<string | null>(null);
 
+  // Wrap sensitive operations with reverification
+  // Clerk v7 requires session reverification for email/password changes
+  const createEmailWithReverification = useReverification(
+    useCallback(async (email: string) => {
+      const emailAddress = await user?.createEmailAddress({ email });
+      await emailAddress?.prepareVerification({ strategy: "email_code" });
+      return emailAddress;
+    }, [user])
+  );
+
+  const verifyAndSetPrimaryEmail = useReverification(
+    useCallback(async ({ emailId, code }: { emailId: string; code: string }) => {
+      const emailAddress = user?.emailAddresses.find((e) => e.id === emailId);
+      await emailAddress?.attemptVerification({ code });
+      await user?.update({ primaryEmailAddressId: emailId });
+    }, [user])
+  );
+
+  const updatePasswordWithReverification = useReverification(
+    useCallback(async (params: { currentPassword?: string; newPassword: string }) => {
+      if (params.currentPassword) {
+        await user?.updatePassword({ currentPassword: params.currentPassword, newPassword: params.newPassword, signOutOfOtherSessions: false });
+      } else {
+        await user?.updatePassword({ newPassword: params.newPassword, signOutOfOtherSessions: false });
+      }
+    }, [user])
+  );
+
   // Avatar upload
   const uploadAvatar = useMutation({
     mutationFn: async (file: File) => {
@@ -59,19 +87,16 @@ export function UserProfileSettings() {
     uploadAvatar.mutate(file);
   };
 
-  // Password change (or create for OAuth users)
+  // Password change (or create for OAuth users) — with reverification
   const changePassword = async () => {
     if (hasPassword && !currentPassword) { toast.error("Ingresa tu contraseña actual"); return; }
     if (!newPassword) { toast.error("Ingresa la nueva contraseña"); return; }
     if (newPassword !== confirmPassword) { toast.error("Las contraseñas no coinciden"); return; }
     if (newPassword.length < 8) { toast.error("La contraseña debe tener al menos 8 caracteres"); return; }
     try {
-      if (hasPassword) {
-        await user?.updatePassword({ currentPassword, newPassword, signOutOfOtherSessions: false });
-      } else {
-        // OAuth users creating password for the first time
-        await user?.updatePassword({ newPassword, signOutOfOtherSessions: false });
-      }
+      await updatePasswordWithReverification(
+        hasPassword ? { currentPassword, newPassword } : { newPassword }
+      );
       toast.success(hasPassword ? "Contraseña actualizada" : "Contraseña creada exitosamente");
       setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
       setShowPassword(false);
@@ -81,27 +106,26 @@ export function UserProfileSettings() {
     }
   };
 
-  // Email change — step 1: send verification
+  // Email change — step 1: send verification (with reverification)
   const sendEmailVerification = async () => {
     if (!newEmail) { toast.error("Ingresa un correo"); return; }
     try {
-      const emailAddress = await user?.createEmailAddress({ email: newEmail });
-      await emailAddress?.prepareVerification({ strategy: "email_code" });
-      setPendingEmailId(emailAddress?.id ?? null);
-      toast.success("Código enviado a " + newEmail);
+      const emailAddress = await createEmailWithReverification(newEmail);
+      if (emailAddress) {
+        setPendingEmailId(emailAddress.id ?? null);
+        toast.success("Código enviado a " + newEmail);
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Error al enviar verificación";
       toast.error(msg);
     }
   };
 
-  // Email change — step 2: verify and set as primary
+  // Email change — step 2: verify and set as primary (with reverification)
   const verifyEmail = async () => {
     if (!verificationCode || !pendingEmailId) return;
     try {
-      const emailAddress = user?.emailAddresses.find((e) => e.id === pendingEmailId);
-      await emailAddress?.attemptVerification({ code: verificationCode });
-      await user?.update({ primaryEmailAddressId: pendingEmailId });
+      await verifyAndSetPrimaryEmail({ emailId: pendingEmailId, code: verificationCode });
       toast.success("Correo actualizado correctamente");
       setNewEmail(""); setVerificationCode(""); setPendingEmailId(null);
       setShowEmail(false);
