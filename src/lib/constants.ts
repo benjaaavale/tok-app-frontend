@@ -42,3 +42,20 @@ export const TIMES = Array.from({ length: 28 }, (_, i) => {
   const min = i % 2 === 0 ? "00" : "30";
   return `${hour.toString().padStart(2, "0")}:${min}`;
 });
+
+export const TEMPLATE_STATUS_COLORS: Record<string, string> = {
+  APPROVED: "#10B981",
+  PENDING: "#F59E0B",
+  REJECTED: "#EF4444",
+};
+
+export const TEMPLATE_STATUS_LABELS: Record<string, string> = {
+  APPROVED: "Aprobada",
+  PENDING: "Pendiente",
+  REJECTED: "Rechazada",
+};
+
+export const TEMPLATE_CATEGORIES = [
+  { value: "MARKETING", label: "Marketing" },
+  { value: "UTILITY", label: "Utilidad" },
+];

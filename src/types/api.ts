@@ -167,3 +167,35 @@ export interface ServiceType {
   worker_ids: number[];
   created_at: string;
 }
+
+export interface WhatsAppTemplate {
+  name: string;
+  language: string;
+  category: "MARKETING" | "UTILITY" | "AUTHENTICATION";
+  status: string;
+  components: TemplateComponent[];
+}
+
+export interface TemplateComponent {
+  type: "HEADER" | "BODY" | "FOOTER" | "BUTTONS";
+  text?: string;
+  format?: string;
+}
+
+export interface StaleLead {
+  contact_id: number;
+  nombre_whatsapp: string;
+  nombre_real: string | null;
+  telefono: string;
+  etapa: string | null;
+  last_message_at: string;
+  last_message: string;
+  conversation_id: number;
+  phone_slot: number;
+}
+
+export interface BulkSendResult {
+  sent: number;
+  failed: number;
+  errors: string[];
+}

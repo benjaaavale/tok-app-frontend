@@ -13,6 +13,7 @@ import {
   MessageCircle,
   CalendarDays,
   Settings,
+  FileText,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
@@ -20,6 +21,7 @@ const mainNavItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/conversations", label: "Mensajes", icon: MessageCircle },
   { href: "/calendar", label: "Agenda", icon: CalendarDays },
+  { href: "/templates", label: "Plantillas", icon: FileText },
 ];
 
 export function Sidebar() {

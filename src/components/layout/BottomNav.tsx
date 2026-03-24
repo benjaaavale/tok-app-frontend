@@ -9,12 +9,14 @@ import {
   MessageCircle,
   CalendarDays,
   Settings,
+  FileText,
 } from "lucide-react";
 
 const allNavItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, adminOnly: false },
   { href: "/conversations", label: "Mensajes", icon: MessageCircle, adminOnly: false },
   { href: "/calendar", label: "Agenda", icon: CalendarDays, adminOnly: false },
+  { href: "/templates", label: "Plantillas", icon: FileText, adminOnly: true },
   { href: "/settings", label: "Ajustes", icon: Settings, adminOnly: true },
 ];
 
