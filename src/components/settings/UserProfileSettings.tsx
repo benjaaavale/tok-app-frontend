@@ -22,6 +22,9 @@ export function UserProfileSettings() {
   const [showPassword, setShowPassword] = useState(false);
   const [showEmail, setShowEmail] = useState(false);
 
+  // Detect if user has a password (OAuth users don't)
+  const hasPassword = user?.passwordEnabled ?? false;
+
   // Password form
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -56,14 +59,20 @@ export function UserProfileSettings() {
     uploadAvatar.mutate(file);
   };
 
-  // Password change
+  // Password change (or create for OAuth users)
   const changePassword = async () => {
-    if (!newPassword || !currentPassword) { toast.error("Completa todos los campos"); return; }
+    if (hasPassword && !currentPassword) { toast.error("Ingresa tu contraseña actual"); return; }
+    if (!newPassword) { toast.error("Ingresa la nueva contraseña"); return; }
     if (newPassword !== confirmPassword) { toast.error("Las contraseñas no coinciden"); return; }
     if (newPassword.length < 8) { toast.error("La contraseña debe tener al menos 8 caracteres"); return; }
     try {
-      await user?.updatePassword({ currentPassword, newPassword, signOutOfOtherSessions: false });
-      toast.success("Contraseña actualizada");
+      if (hasPassword) {
+        await user?.updatePassword({ currentPassword, newPassword, signOutOfOtherSessions: false });
+      } else {
+        // OAuth users creating password for the first time
+        await user?.updatePassword({ newPassword, signOutOfOtherSessions: false });
+      }
+      toast.success(hasPassword ? "Contraseña actualizada" : "Contraseña creada exitosamente");
       setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
       setShowPassword(false);
     } catch (err: unknown) {
@@ -135,7 +144,9 @@ export function UserProfileSettings() {
         >
           <div className="flex items-center gap-2.5">
             <KeyRound size={15} className="text-accent" />
-            <span className="text-[13px] font-medium text-text-primary">Cambiar contraseña</span>
+            <span className="text-[13px] font-medium text-text-primary">
+              {hasPassword ? "Cambiar contraseña" : "Crear contraseña"}
+            </span>
           </div>
           {showPassword
             ? <ChevronUp size={15} className="text-text-muted" />
@@ -144,13 +155,20 @@ export function UserProfileSettings() {
 
         {showPassword && (
           <div className="px-4 pb-4 pt-3 space-y-3 border-t border-border-secondary bg-bg-primary">
-            <PwField
-              label="Contraseña actual"
-              value={currentPassword}
-              onChange={setCurrentPassword}
-              show={showCurrentPw}
-              onToggle={() => setShowCurrentPw(!showCurrentPw)}
-            />
+            {!hasPassword && (
+              <p className="text-[11px] text-text-muted bg-accent/10 px-3 py-2 rounded-lg">
+                Iniciaste sesión con Google. Crea una contraseña para poder cambiar tu correo y acceder con email + contraseña.
+              </p>
+            )}
+            {hasPassword && (
+              <PwField
+                label="Contraseña actual"
+                value={currentPassword}
+                onChange={setCurrentPassword}
+                show={showCurrentPw}
+                onToggle={() => setShowCurrentPw(!showCurrentPw)}
+              />
+            )}
             <PwField
               label="Nueva contraseña"
               value={newPassword}
