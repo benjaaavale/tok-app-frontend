@@ -97,7 +97,7 @@ export function IntegrationSettings({ onDirtyChange }: IntegrationSettingsProps)
       </div>
 
       <p className="text-[10px] text-text-muted mt-2">
-        Las API keys se muestran enmascaradas. Ingresa una nueva para
+        Por seguridad, las API keys nunca se muestran. Ingresa una nueva para
         reemplazar la actual.
       </p>
     </SettingsSection>
