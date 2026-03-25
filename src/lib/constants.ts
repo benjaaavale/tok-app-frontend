@@ -56,6 +56,7 @@ export const TEMPLATE_STATUS_LABELS: Record<string, string> = {
 };
 
 export const TEMPLATE_CATEGORIES = [
-  { value: "MARKETING", label: "Marketing" },
-  { value: "UTILITY", label: "Utilidad" },
+  { value: "MARKETING", label: "Marketing", description: "Mensajes promocionales como ofertas, descuentos, novedades de productos o boletines. Requiere opt-in del destinatario." },
+  { value: "UTILITY", label: "Utilidad", description: "Mensajes transaccionales como confirmaciones de citas, recordatorios, actualizaciones de estado o seguimiento de pedidos." },
+  { value: "AUTHENTICATION", label: "Autenticación", description: "Códigos de verificación, contraseñas temporales o confirmaciones de inicio de sesión." },
 ];
