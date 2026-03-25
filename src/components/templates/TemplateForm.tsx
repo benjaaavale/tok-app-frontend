@@ -194,6 +194,9 @@ export function TemplateForm({ open, onClose, template }: TemplateFormProps) {
                       </label>
                     ))}
                   </div>
+                  <p className="text-[10px] mt-2" style={{ color: "#F59E0B" }}>
+                    Elegir la categoría correcta es importante. Meta puede rechazar la plantilla o suspender tu cuenta si no coincide con el contenido del mensaje.
+                  </p>
                 </div>
               )}
 
