@@ -93,6 +93,17 @@ type: project
 
 ---
 
+### 6. Login Redesign (Frontend) — 2026-03-26
+- **Theme toggle on login** — Animated Sun/Moon button (top-right corner) with AnimatePresence rotation transitions
+- **Card glassmorphism container** — Form wrapped in rounded card with `backdrop-blur-md`, semi-transparent bg adapting to theme
+- **Inputs adapt to theme** — Light: `bg-bg-secondary`, Dark: `bg-bg-primary/60` (semi-transparent)
+- **Auto system theme detection** — Already configured via `next-themes` with `defaultTheme="system"`, user can override with toggle
+- **Typography adjusted** — Titles `text-2xl`, subtitles `text-sm` for better card proportions
+- **Footer** — Subtle "Potenciado por ToK" at bottom
+- **Three.js removed** — Confirmed not used anywhere in the project, can be uninstalled (`npm uninstall three @react-three/fiber @types/three`)
+
+---
+
 ## What is PENDING / TODO
 
 ### Templates — User requested changes (NOT YET DONE):
