@@ -98,6 +98,7 @@ export interface CompanySettings {
   phone_2_number: string | null;
   phone_2_label: string;
   phone_2_preset: 'ventas' | 'soporte';
+  worker_assignment_mode: 'ask_client' | 'round_robin';
 }
 
 export interface AgentConfig {

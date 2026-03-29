@@ -18,6 +18,7 @@ import {
   Trash2,
   RefreshCw,
   Loader2,
+  Users,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { AnimatedSelect } from "@/components/ui/animated-select";
@@ -255,6 +256,7 @@ export function AgentSettings() {
   // Which phone slot to configure personality for
   const [activePhoneSlot, setActivePhoneSlot] = useState(1);
   const [detecting, setDetecting] = useState(false);
+  const [workerAssignmentMode, setWorkerAssignmentMode] = useState<'ask_client' | 'round_robin'>('ask_client');
 
   const phone1Number = settings?.phone_1_number || "";
   const phone2Number = settings?.phone_2_number || "";
@@ -266,6 +268,7 @@ export function AgentSettings() {
       setPhone1Preset(settings.phone_1_preset || "ventas");
       setPhone2Label(settings.phone_2_label || "");
       setPhone2Preset(settings.phone_2_preset || "ventas");
+      setWorkerAssignmentMode(settings.worker_assignment_mode || 'ask_client');
     }
   }, [settings]);
 
@@ -459,6 +462,74 @@ export function AgentSettings() {
                 </button>
               )}
             </div>
+          </div>
+        </SettingsSection>
+      )}
+
+      {/* ── Worker Assignment Mode ── */}
+      {useInternalAgent && hasAnyPhone && (
+        <SettingsSection
+          title="Asignación de profesional"
+          description="Define cómo se asigna el profesional al agendar una cita"
+        >
+          <div className="space-y-3">
+            <label
+              onClick={() => {
+                setWorkerAssignmentMode('ask_client');
+                saveCompanySetting.mutate({ worker_assignment_mode: 'ask_client' });
+              }}
+              className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${
+                workerAssignmentMode === 'ask_client'
+                  ? 'border-accent bg-accent/5'
+                  : 'border-border-secondary bg-bg-primary hover:bg-bg-hover'
+              }`}
+            >
+              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                workerAssignmentMode === 'ask_client' ? 'border-accent' : 'border-border-secondary'
+              }`}>
+                {workerAssignmentMode === 'ask_client' && (
+                  <div className="w-2 h-2 rounded-full bg-accent" />
+                )}
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
+                  <Users size={15} className="text-accent" />
+                </div>
+                <div>
+                  <p className="text-[13px] font-medium text-text-primary">El cliente elige</p>
+                  <p className="text-[11px] text-text-muted mt-0.5">El agente pregunta al cliente con quién prefiere atenderse</p>
+                </div>
+              </div>
+            </label>
+
+            <label
+              onClick={() => {
+                setWorkerAssignmentMode('round_robin');
+                saveCompanySetting.mutate({ worker_assignment_mode: 'round_robin' });
+              }}
+              className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${
+                workerAssignmentMode === 'round_robin'
+                  ? 'border-accent bg-accent/5'
+                  : 'border-border-secondary bg-bg-primary hover:bg-bg-hover'
+              }`}
+            >
+              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                workerAssignmentMode === 'round_robin' ? 'border-accent' : 'border-border-secondary'
+              }`}>
+                {workerAssignmentMode === 'round_robin' && (
+                  <div className="w-2 h-2 rounded-full bg-accent" />
+                )}
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
+                  <RefreshCw size={15} className="text-accent" />
+                </div>
+                <div>
+                  <p className="text-[13px] font-medium text-text-primary">Asignación automática</p>
+                  <p className="text-[11px] text-text-muted mt-0.5">Se asigna al profesional con menos citas ese día (round robin)</p>
+                </div>
+              </div>
+            </label>
           </div>
         </SettingsSection>
       )}
