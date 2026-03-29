@@ -121,6 +121,26 @@ type: project
 - **"Asignación automática"** (RefreshCw icon) — Round robin, saves immediately on click
 - **CompanySettings type** — Added `worker_assignment_mode`
 
+### 8. Knowledge Base Compilation System — 2026-03-29
+**Cambio de arquitectura RAG:**
+- **Antes**: Upload doc → chunk → embed directo al vector store (cada doc independiente)
+- **Ahora**: Upload docs (solo raw) → usuario clickea "Compilar" → Claude lee TODOS los docs → genera documento organizado unificado → borra embeddings viejos → embede el compilado
+
+**Backend (ai/embeddings.js + server.js):**
+- **`compileKnowledgeBase()`** — Lee todos los `knowledge_documents` (excl. tipo 'compiled'), los combina, envía a Claude Haiku 4.5 con prompt de organización, genera doc unificado, borra embeddings, chunk + embed el nuevo
+- **Upload/text/website endpoints** ya NO crean embeddings — solo guardan raw en `knowledge_documents`
+- **`POST /knowledge/compile`** — Endpoint para compilar (llama compileKnowledgeBase)
+- **`GET /knowledge/compiled`** — Retorna texto compilado + timestamp
+- **DB**: `knowledge_compiled_text TEXT` y `knowledge_compiled_at TIMESTAMPTZ` en companies
+- **Doc tipo 'compiled'** — Se crea/actualiza un registro especial en knowledge_documents para FK de embeddings
+
+**Frontend (KnowledgeBase.tsx):**
+- **Banner de estado** — Amber "desactualizada" si hay docs más nuevos que última compilación, verde "actualizada" si no
+- **Botón "Compilar"/"Recompilar"** — Con spinner durante compilación
+- **Preview colapsable** — Muestra el texto compilado con scroll
+- **Toasts actualizados** — "Compila para actualizar el agente" después de cada add/delete
+- **Filtra docs 'compiled'** de la lista visible (solo muestra fuentes)
+
 ---
 
 ## What is PENDING / TODO
