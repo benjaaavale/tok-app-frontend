@@ -115,6 +115,11 @@ export interface KnowledgeDocument {
   created_at: string;
 }
 
+export interface KnowledgeCompiled {
+  compiled_text: string | null;
+  compiled_at: string | null;
+}
+
 export interface DashboardDeltas {
   conversaciones: number;
   leads: number;

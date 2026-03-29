@@ -3,7 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
 import { authFetch } from "@/lib/api";
-import type { KnowledgeDocument } from "@/types/api";
+import type { KnowledgeDocument, KnowledgeCompiled } from "@/types/api";
 
 export function useKnowledgeDocuments() {
   const { getToken } = useAuth();
@@ -11,6 +11,17 @@ export function useKnowledgeDocuments() {
     queryKey: ["knowledgeDocuments"],
     queryFn: async () => {
       const res = await authFetch("/knowledge/documents", {}, () => getToken());
+      return res.json();
+    },
+  });
+}
+
+export function useCompiledKnowledge() {
+  const { getToken } = useAuth();
+  return useQuery<KnowledgeCompiled>({
+    queryKey: ["knowledgeCompiled"],
+    queryFn: async () => {
+      const res = await authFetch("/knowledge/compiled", {}, () => getToken());
       return res.json();
     },
   });
@@ -94,6 +105,30 @@ export function useDeleteDocument() {
       );
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["knowledgeDocuments"] });
+    },
+  });
+}
+
+export function useCompileKnowledge() {
+  const { getToken } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      const res = await authFetch(
+        "/knowledge/compile",
+        { method: "POST" },
+        () => getToken()
+      );
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Error compilando" }));
+        throw new Error(err.error || "Error compilando base de conocimiento");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["knowledgeCompiled"] });
       queryClient.invalidateQueries({ queryKey: ["knowledgeDocuments"] });
     },
   });

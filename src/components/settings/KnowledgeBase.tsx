@@ -7,39 +7,57 @@ import {
   useAddKnowledgeText,
   useImportWebsite,
   useDeleteDocument,
+  useCompiledKnowledge,
+  useCompileKnowledge,
 } from "@/hooks/useKnowledge";
 import { SettingsSection } from "./SettingsSection";
 import { toast } from "sonner";
 import {
   FileText,
-  Upload,
   Globe,
   Trash2,
-  Plus,
   Loader2,
   FileUp,
   Type,
   X,
+  Sparkles,
+  CheckCircle2,
+  AlertTriangle,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 type AddMode = null | "file" | "text" | "website";
 
 export function KnowledgeBase() {
   const { data: documents, isLoading } = useKnowledgeDocuments();
+  const { data: compiled } = useCompiledKnowledge();
   const uploadDoc = useUploadDocument();
   const addText = useAddKnowledgeText();
   const importWeb = useImportWebsite();
   const deleteDoc = useDeleteDocument();
+  const compileKnowledge = useCompileKnowledge();
 
   const [addMode, setAddMode] = useState<AddMode>(null);
   const [textName, setTextName] = useState("");
   const [textContent, setTextContent] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [showCompiledPreview, setShowCompiledPreview] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isProcessing =
     uploadDoc.isPending || addText.isPending || importWeb.isPending;
+
+  // Filter out the "compiled" type document from the displayed list
+  const sourceDocuments = documents?.filter((d) => d.tipo !== "compiled") || [];
+
+  // Check if compilation is needed (docs changed after last compile)
+  const hasDocuments = sourceDocuments.length > 0;
+  const isCompiled = !!compiled?.compiled_at;
+  const needsCompilation = hasDocuments && (!isCompiled ||
+    sourceDocuments.some((d) => new Date(d.created_at) > new Date(compiled?.compiled_at || 0))
+  );
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -53,13 +71,10 @@ export function KnowledgeBase() {
     }
 
     uploadDoc.mutate(file, {
-      onSuccess: (data) => {
-        toast.success(
-          `Documento procesado: ${data.chunksCreated} fragmentos creados`,
-          {
-            style: { background: "#10B981", color: "white", border: "none" },
-          }
-        );
+      onSuccess: () => {
+        toast.success("Documento subido. Compila para actualizar el agente.", {
+          style: { background: "#10B981", color: "white", border: "none" },
+        });
         setAddMode(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
       },
@@ -75,13 +90,10 @@ export function KnowledgeBase() {
     addText.mutate(
       { text: textContent, name: textName || undefined },
       {
-        onSuccess: (data) => {
-          toast.success(
-            `Texto procesado: ${data.chunksCreated} fragmentos creados`,
-            {
-              style: { background: "#10B981", color: "white", border: "none" },
-            }
-          );
+        onSuccess: () => {
+          toast.success("Texto agregado. Compila para actualizar el agente.", {
+            style: { background: "#10B981", color: "white", border: "none" },
+          });
           setTextContent("");
           setTextName("");
           setAddMode(null);
@@ -97,13 +109,10 @@ export function KnowledgeBase() {
       return;
     }
     importWeb.mutate(websiteUrl, {
-      onSuccess: (data) => {
-        toast.success(
-          `Sitio importado: ${data.chunksCreated} fragmentos creados`,
-          {
-            style: { background: "#10B981", color: "white", border: "none" },
-          }
-        );
+      onSuccess: () => {
+        toast.success("Sitio importado. Compila para actualizar el agente.", {
+          style: { background: "#10B981", color: "white", border: "none" },
+        });
         setWebsiteUrl("");
         setAddMode(null);
       },
@@ -115,7 +124,7 @@ export function KnowledgeBase() {
     setDeletingId(id);
     deleteDoc.mutate(id, {
       onSuccess: () => {
-        toast.success("Documento eliminado", {
+        toast.success("Documento eliminado. Compila para actualizar el agente.", {
           style: { background: "#10B981", color: "white", border: "none" },
         });
         setDeletingId(null);
@@ -127,20 +136,29 @@ export function KnowledgeBase() {
     });
   };
 
+  const handleCompile = () => {
+    compileKnowledge.mutate(undefined, {
+      onSuccess: (data) => {
+        toast.success(
+          `Base compilada: ${data.documentsProcessed} docs → ${data.chunksCreated} fragmentos`,
+          {
+            style: { background: "#10B981", color: "white", border: "none" },
+            duration: 4000,
+          }
+        );
+      },
+      onError: (err) => toast.error(err.message),
+    });
+  };
+
   const getTypeIcon = (tipo: string) => {
     switch (tipo) {
-      case "pdf":
-        return "📄";
-      case "docx":
-        return "📝";
-      case "txt":
-        return "📋";
-      case "text":
-        return "✏️";
-      case "website":
-        return "🌐";
-      default:
-        return "📎";
+      case "pdf": return "📄";
+      case "docx": return "📝";
+      case "txt": return "📋";
+      case "text": return "✏️";
+      case "website": return "🌐";
+      default: return "📎";
     }
   };
 
@@ -149,6 +167,8 @@ export function KnowledgeBase() {
       day: "numeric",
       month: "short",
       year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -161,13 +181,92 @@ export function KnowledgeBase() {
   return (
     <SettingsSection
       title="Base de Conocimiento"
-      description="Informacion que el agente usa para responder consultas"
+      description="Sube documentos y compila para que el agente los use"
     >
       <div className="space-y-4">
-        {/* ── Document List ── */}
-        {documents && documents.length > 0 ? (
+        {/* ── Compilation Status Banner ── */}
+        {hasDocuments && (
+          <div
+            className={`p-3 rounded-xl border flex items-center gap-3 ${
+              compileKnowledge.isPending
+                ? "border-accent/30 bg-accent/5"
+                : needsCompilation
+                ? "border-amber-500/30 bg-amber-500/5"
+                : "border-green-500/30 bg-green-500/5"
+            }`}
+          >
+            {compileKnowledge.isPending ? (
+              <Loader2 size={16} className="text-accent animate-spin flex-shrink-0" />
+            ) : needsCompilation ? (
+              <AlertTriangle size={16} className="text-amber-500 flex-shrink-0" />
+            ) : (
+              <CheckCircle2 size={16} className="text-green-500 flex-shrink-0" />
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="text-[12px] font-medium text-text-primary">
+                {compileKnowledge.isPending
+                  ? "Compilando base de conocimiento..."
+                  : needsCompilation
+                  ? "Base de conocimiento desactualizada"
+                  : "Base de conocimiento actualizada"}
+              </p>
+              <p className="text-[10px] text-text-muted">
+                {compileKnowledge.isPending
+                  ? "La IA esta organizando toda la informacion. Esto puede tardar unos segundos..."
+                  : needsCompilation
+                  ? "Hay cambios sin compilar. El agente aun no tiene la informacion actualizada."
+                  : compiled?.compiled_at
+                  ? `Ultima compilacion: ${formatDate(compiled.compiled_at)}`
+                  : ""}
+              </p>
+            </div>
+            {!compileKnowledge.isPending && (
+              <button
+                onClick={handleCompile}
+                disabled={compileKnowledge.isPending || !hasDocuments}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold bg-accent text-white hover:bg-accent-hover transition-all disabled:opacity-50 flex-shrink-0"
+              >
+                <Sparkles size={12} />
+                {needsCompilation ? "Compilar" : "Recompilar"}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* ── Compiled Preview (collapsible) ── */}
+        {isCompiled && compiled?.compiled_text && (
+          <div className="rounded-xl border border-border-secondary overflow-hidden">
+            <button
+              onClick={() => setShowCompiledPreview(!showCompiledPreview)}
+              className="w-full flex items-center justify-between p-3 bg-bg-primary hover:bg-bg-hover transition-all"
+            >
+              <span className="text-[12px] font-medium text-text-primary flex items-center gap-2">
+                <FileText size={14} className="text-accent" />
+                Ver documento compilado
+              </span>
+              {showCompiledPreview ? (
+                <ChevronUp size={14} className="text-text-muted" />
+              ) : (
+                <ChevronDown size={14} className="text-text-muted" />
+              )}
+            </button>
+            {showCompiledPreview && (
+              <div className="p-3 border-t border-border-secondary bg-bg-secondary max-h-[300px] overflow-y-auto">
+                <pre className="text-[11px] text-text-secondary whitespace-pre-wrap font-sans leading-relaxed">
+                  {compiled.compiled_text}
+                </pre>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Document List (source documents) ── */}
+        {sourceDocuments.length > 0 ? (
           <div className="space-y-2">
-            {documents.map((doc) => (
+            <p className="text-[11px] font-medium text-text-muted uppercase tracking-wide">
+              Documentos fuente ({sourceDocuments.length})
+            </p>
+            {sourceDocuments.map((doc) => (
               <div
                 key={doc.id}
                 className="flex items-center justify-between p-3 bg-bg-primary rounded-xl border border-border-secondary group"
@@ -206,7 +305,7 @@ export function KnowledgeBase() {
               No hay documentos en la base de conocimiento
             </p>
             <p className="text-[11px] mt-0.5">
-              Agrega informacion para que el agente pueda responder consultas
+              Agrega informacion y compila para que el agente pueda responder consultas
             </p>
           </div>
         )}
@@ -268,7 +367,7 @@ export function KnowledgeBase() {
             {uploadDoc.isPending && (
               <div className="flex items-center gap-2 text-[12px] text-accent">
                 <Loader2 size={14} className="animate-spin" />
-                Procesando documento...
+                Subiendo documento...
               </div>
             )}
           </div>
@@ -310,9 +409,9 @@ export function KnowledgeBase() {
               {addText.isPending ? (
                 <Loader2 size={14} className="animate-spin" />
               ) : (
-                <Plus size={14} />
+                <FileUp size={14} />
               )}
-              Agregar a la base de conocimiento
+              Agregar documento
             </button>
           </div>
         )}
