@@ -102,6 +102,25 @@ type: project
 - **Footer** — Subtle "Potenciado por ToK" at bottom
 - **Three.js removed** — Confirmed not used anywhere in the project, can be uninstalled (`npm uninstall three @react-three/fiber @types/three`)
 
+### 7. Scheduler Agent Context + Worker Assignment Mode — 2026-03-28
+**Backend (ai/ + server.js):**
+- **Services injected into scheduler prompt** — `service_types` (name, duration, which workers do each) queried at pipeline start and added to system prompt
+- **Workers injected into scheduler prompt** — Full team list shown to the agent
+- **Prompt enforces service list** — Agent told to ONLY offer services from the configured list
+- **New field `worker_assignment_mode`** on `companies` table (`'ask_client'` | `'round_robin'`, default `'ask_client'`)
+- **ask_client mode** — Agent asks the client which professional they prefer
+- **round_robin mode** — Agent doesn't ask; `agendarReunion` tool auto-selects worker with fewest appointments that day (filtered by service's worker_ids)
+- **Duration auto-resolution** — If agent doesn't specify duration, tool looks up service_type.duracion
+- **GET/PUT /company/settings** — Expose `worker_assignment_mode`
+- **Pipeline (index.js)** — 3 parallel queries (service_types, workers, assignment_mode) before building scheduler prompt
+- **Agent scheduler** — Passes `workerAssignmentMode` and `serviceTypes` to tool context
+
+**Frontend (AgentSettings.tsx):**
+- **New section "Asignación de profesional"** — Radio card selector with two options
+- **"El cliente elige"** (Users icon) — Agent asks client preference
+- **"Asignación automática"** (RefreshCw icon) — Round robin, saves immediately on click
+- **CompanySettings type** — Added `worker_assignment_mode`
+
 ---
 
 ## What is PENDING / TODO
