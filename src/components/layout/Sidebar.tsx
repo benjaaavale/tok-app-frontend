@@ -28,7 +28,7 @@ export function Sidebar() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const { theme } = useTheme();
-  const { companyNombre, userAvatarUrl, userInitials, role } = useAuthStore();
+  const { companyNombre, userAvatarUrl, userInitials, role, canRespondChats } = useAuthStore();
   const isAdmin = role !== "worker";
 
   const isSettingsActive =
@@ -69,7 +69,9 @@ export function Sidebar() {
 
         {/* ── Main Navigation ── */}
         <nav className="flex-1 px-2 pt-3 space-y-0.5">
-          {mainNavItems.map((item) => {
+          {mainNavItems
+            .filter((item) => !(item.href === "/conversations" && role === "worker" && !canRespondChats))
+            .map((item) => {
             const isActive =
               pathname === item.href || pathname.startsWith(item.href + "/");
             return (

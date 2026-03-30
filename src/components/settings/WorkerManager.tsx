@@ -5,11 +5,12 @@ import { useAuth } from "@clerk/nextjs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useWorkers } from "@/hooks/useWorkers";
 import { authFetch } from "@/lib/api";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { SettingsSection } from "./SettingsSection";
 import { WORKER_COLORS } from "@/lib/constants";
-import { Trash2, UserPlus, Mail, Check } from "lucide-react";
+import { Trash2, UserPlus, Mail, Check, MessageCircle } from "lucide-react";
 
 export function WorkerManager() {
   const { getToken } = useAuth();
@@ -50,6 +51,24 @@ export function WorkerManager() {
       setNewColor(WORKER_COLORS[0]);
       setShowForm(false);
       toast.success("Trabajador invitado. Se envió un email de invitación.");
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const toggleChatPermission = useMutation({
+    mutationFn: async ({ id, canRespond }: { id: number; canRespond: boolean }) => {
+      const res = await authFetch(
+        `/workers/${id}/chat-permission`,
+        {
+          method: "PUT",
+          body: JSON.stringify({ can_respond_chats: canRespond }),
+        },
+        () => getToken()
+      );
+      if (!res.ok) throw new Error("Error actualizando permiso");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["workers"] });
     },
     onError: (err: Error) => toast.error(err.message),
   });
@@ -107,6 +126,19 @@ export function WorkerManager() {
                   Invitado
                 </span>
               )}
+              <button
+                onClick={() => toggleChatPermission.mutate({ id: w.id, canRespond: !w.can_respond_chats })}
+                className={cn(
+                  "flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full transition-all",
+                  w.can_respond_chats
+                    ? "text-accent bg-accent/10"
+                    : "text-text-muted bg-bg-secondary"
+                )}
+                title={w.can_respond_chats ? "Puede responder chats" : "Solo agenda"}
+              >
+                <MessageCircle size={10} />
+                {w.can_respond_chats ? "Chats" : "Solo agenda"}
+              </button>
               <button
                 onClick={async () => {
                   const ok = await confirm({

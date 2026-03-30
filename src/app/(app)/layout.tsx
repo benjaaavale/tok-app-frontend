@@ -39,6 +39,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           email: user.primaryEmailAddress?.emailAddress,
           role: meData.role || "admin",
           workerId: meData.worker_id || null,
+          canRespondChats: meData.can_respond_chats ?? true,
           hasSeenTutorial: meData.has_seen_tutorial || false,
         });
       } catch (err) {

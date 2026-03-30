@@ -219,6 +219,7 @@ export function ConversationList() {
           filtered.map((conv) => {
             const name = conv.nombre_real || conv.nombre_whatsapp || conv.telefono;
             const isActive = conv.id === activeConversationId;
+            const needsHuman = conv.etiqueta === 'Necesita ayuda humana' && !conv.assigned_worker_id;
             return (
               <button
                 key={conv.id}
@@ -229,6 +230,8 @@ export function ConversationList() {
                   "w-full flex items-center gap-3 px-3 py-2.5 text-left transition-all duration-100",
                   isActive
                     ? "bg-accent/10"
+                    : needsHuman
+                    ? "bg-amber-500/5 border-l-2 border-amber-500"
                     : "hover:bg-bg-hover"
                 )}
               >
@@ -253,6 +256,22 @@ export function ConversationList() {
                     <span className="text-[11px] text-text-muted truncate flex-1">
                       {conv.ultimo_mensaje || "Sin mensajes"}
                     </span>
+                    {conv.assigned_worker_nombre && (
+                      <span
+                        className="text-[9px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0"
+                        style={{
+                          backgroundColor: `${conv.assigned_worker_color || "#6B7280"}20`,
+                          color: conv.assigned_worker_color || "#6B7280",
+                        }}
+                      >
+                        {conv.assigned_worker_nombre}
+                      </span>
+                    )}
+                    {needsHuman && (
+                      <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0 bg-amber-500/15 text-amber-600 dark:text-amber-400">
+                        Ayuda humana
+                      </span>
+                    )}
                     {hasTwoPhones && conv.phone_label && (
                       <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0 bg-accent/10 text-accent">
                         {conv.phone_label}

@@ -79,6 +79,16 @@ export function SocketProvider({ children }: { children: ReactNode }) {
         queryClient.invalidateQueries({ queryKey: ["contact"] });
       });
 
+      // Escalation to human → refresh conversations
+      socket.on("escalation", () => {
+        queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      });
+
+      // Conversation assigned to worker → refresh conversations
+      socket.on("conversation_assigned", () => {
+        queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      });
+
       // Appointment created/updated/cancelled (from n8n webhook or direct API) → refresh calendar
       socket.on("appointment_update", () => {
         queryClient.invalidateQueries({ queryKey: ["appointments"] });

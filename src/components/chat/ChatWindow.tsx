@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMessages } from "@/hooks/useMessages";
+import { useConversations } from "@/hooks/useConversations";
 import { useChatStore } from "@/stores/chat-store";
 import { MessageBubble } from "./MessageBubble";
 import { ChatInput } from "./ChatInput";
@@ -18,6 +19,11 @@ export function ChatWindow() {
     toggleContactPanel,
   } = useChatStore();
   const { data: messages, isLoading } = useMessages(activeConversationId);
+  const { data: conversations } = useConversations();
+  const activeConv = useMemo(
+    () => conversations?.find((c) => c.id === activeConversationId) ?? null,
+    [conversations, activeConversationId]
+  );
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [overlayImage, setOverlayImage] = useState<string | null>(null);
 
@@ -65,7 +71,19 @@ export function ChatWindow() {
           <p className="text-[13px] font-medium text-text-primary truncate">
             {activeName}
           </p>
-          <p className="text-[11px] text-text-muted">{activePhone}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-[11px] text-text-muted">{activePhone}</p>
+            {activeConv?.assigned_worker_nombre && (
+              <span className="text-[10px] font-medium" style={{ color: activeConv.assigned_worker_color || "var(--accent)" }}>
+                Asignado a {activeConv.assigned_worker_nombre}
+              </span>
+            )}
+            {activeConv?.etiqueta === 'Necesita ayuda humana' && !activeConv?.assigned_worker_id && (
+              <span className="text-[10px] font-medium text-amber-600 dark:text-amber-400">
+                Esperando asignación
+              </span>
+            )}
+          </div>
         </div>
 
         <button

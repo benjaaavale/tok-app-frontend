@@ -12,6 +12,9 @@ export interface Conversation {
   last_activity: string | null;
   phone_slot: number | null;
   phone_label: string | null;
+  assigned_worker_id: number | null;
+  assigned_worker_nombre: string | null;
+  assigned_worker_color: string | null;
 }
 
 export interface Message {
@@ -78,6 +81,7 @@ export interface Worker {
   color: string;
   google_calendar_id: string | null;
   user_id: number | null;
+  can_respond_chats: boolean;
 }
 
 export interface CompanySettings {

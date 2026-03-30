@@ -7,6 +7,7 @@ interface AuthState {
   userInitials: string;
   role: "admin" | "worker" | null;
   workerId: number | null;
+  canRespondChats: boolean;
   synced: boolean;
   hasSeenTutorial: boolean;
 
@@ -17,6 +18,7 @@ interface AuthState {
     email?: string;
     role?: "admin" | "worker";
     workerId?: number | null;
+    canRespondChats?: boolean;
     hasSeenTutorial?: boolean;
   }) => void;
   setAvatarUrl: (url: string) => void;
@@ -31,10 +33,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   userInitials: "",
   role: null,
   workerId: null,
+  canRespondChats: true,
   synced: false,
   hasSeenTutorial: false,
 
-  setAuth: ({ companyToken, companyNombre, avatarUrl, email, role, workerId, hasSeenTutorial }) => {
+  setAuth: ({ companyToken, companyNombre, avatarUrl, email, role, workerId, canRespondChats, hasSeenTutorial }) => {
     const initials = email
       ? email.split("@")[0].slice(0, 2).toUpperCase()
       : "TK";
@@ -45,6 +48,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       userInitials: initials,
       role: role || "admin",
       workerId: workerId || null,
+      canRespondChats: canRespondChats ?? true,
       hasSeenTutorial: hasSeenTutorial || false,
       synced: true,
     });
@@ -61,6 +65,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       userInitials: "",
       role: null,
       workerId: null,
+      canRespondChats: true,
       synced: false,
       hasSeenTutorial: false,
     }),

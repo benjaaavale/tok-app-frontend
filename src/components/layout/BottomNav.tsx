@@ -22,10 +22,14 @@ const allNavItems = [
 
 export function BottomNav() {
   const pathname = usePathname();
-  const { role } = useAuthStore();
+  const { role, canRespondChats } = useAuthStore();
   const isAdmin = role !== "worker";
 
-  const navItems = allNavItems.filter((item) => !item.adminOnly || isAdmin);
+  const navItems = allNavItems.filter((item) => {
+    if (item.adminOnly && !isAdmin) return false;
+    if (item.href === "/conversations" && role === "worker" && !canRespondChats) return false;
+    return true;
+  });
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden bg-bg-sidebar border-t border-border-secondary">
