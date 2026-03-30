@@ -37,3 +37,36 @@ export function useUpdateAgentConfig(phoneSlot: number = 1) {
     },
   });
 }
+
+export function useGenerateAgent(phoneSlot: number = 1) {
+  const { getToken } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      user_description,
+      agent_type,
+    }: {
+      user_description: string;
+      agent_type: "informativo" | "soporte";
+    }) => {
+      const res = await authFetch(
+        "/agent/generate",
+        {
+          method: "POST",
+          body: JSON.stringify({ user_description, agent_type, phone_slot: phoneSlot }),
+        },
+        () => getToken()
+      );
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Error generando agente" }));
+        throw new Error(err.error || "Error generando agente");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["agent-config", phoneSlot] });
+      queryClient.invalidateQueries({ queryKey: ["companySettings"] });
+    },
+  });
+}

@@ -4,48 +4,42 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
-import { useAgentConfig, useUpdateAgentConfig } from "@/hooks/useAgentConfig";
+import { useAgentConfig, useGenerateAgent } from "@/hooks/useAgentConfig";
 import { authFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { SettingsSection } from "./SettingsSection";
 import {
   Bot,
   Sparkles,
-  MessageSquareText,
-  ListChecks,
-  Zap,
   Phone,
   Trash2,
   RefreshCw,
   Loader2,
   Users,
+  BookOpen,
+  Headphones,
+  ChevronDown,
+  Zap,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { AnimatedSelect } from "@/components/ui/animated-select";
 import { useConfirm } from "@/components/ui/confirm-dialog";
+import { AnimatePresence, motion } from "framer-motion";
 
-const PRESET_OPTIONS = [
-  { value: "ventas", label: "Ventas + Agendador" },
-  { value: "soporte", label: "Soporte al cliente" },
-];
-
-/* ── Phone Card (read-only number, editable label + preset) ── */
+/* ── Phone Card (simplified — no preset dropdown, shows agent type badge) ── */
 function PhoneCard({
   slot,
   number,
   label,
-  preset,
+  agentType,
   onLabelChange,
-  onPresetChange,
   onDelete,
   disabled,
 }: {
   slot: 1 | 2;
   number: string;
   label: string;
-  preset: string;
+  agentType: string | null;
   onLabelChange: (v: string) => void;
-  onPresetChange: (v: string) => void;
   onDelete?: () => void;
   disabled?: boolean;
 }) {
@@ -65,52 +59,44 @@ function PhoneCard({
             </p>
           </div>
         </div>
-        {onDelete && (
-          <button
-            onClick={onDelete}
-            disabled={disabled}
-            className="flex items-center gap-1 text-[11px] text-red-500 hover:text-red-600 px-2 py-1 rounded-lg hover:bg-red-500/10 transition-all"
-          >
-            <Trash2 size={11} />
-            Eliminar
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {agentType && (
+            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-accent/10 text-accent capitalize">
+              {agentType}
+            </span>
+          )}
+          {onDelete && (
+            <button
+              onClick={onDelete}
+              disabled={disabled}
+              className="flex items-center gap-1 text-[11px] text-red-500 hover:text-red-600 px-2 py-1 rounded-lg hover:bg-red-500/10 transition-all"
+            >
+              <Trash2 size={11} />
+              Eliminar
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
-        <div>
-          <label className="text-[11px] font-medium text-text-muted block mb-1">
-            Etiqueta
-          </label>
-          <input
-            type="text"
-            value={label}
-            onChange={(e) => onLabelChange(e.target.value)}
-            placeholder={slot === 1 ? "Principal" : "Soporte"}
-            disabled={disabled}
-            className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all disabled:opacity-50"
-          />
-        </div>
-        <div>
-          <label className="text-[11px] font-medium text-text-muted block mb-1">
-            Tipo de agente
-          </label>
-          <AnimatedSelect
-            value={preset}
-            onChange={onPresetChange}
-            options={PRESET_OPTIONS}
-            placeholder="Seleccionar..."
-            allowEmpty={false}
-            disabled={disabled}
-          />
-        </div>
+      <div>
+        <label className="text-[11px] font-medium text-text-muted block mb-1">
+          Etiqueta
+        </label>
+        <input
+          type="text"
+          value={label}
+          onChange={(e) => onLabelChange(e.target.value)}
+          placeholder={slot === 1 ? "Principal" : "Soporte"}
+          disabled={disabled}
+          className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all disabled:opacity-50"
+        />
       </div>
     </div>
   );
 }
 
-/* ── Agent Personality Section ── */
-function AgentPersonality({
+/* ── Agent Builder Section (type selection + description + generate) ── */
+function AgentBuilder({
   phoneSlot,
   disabled,
 }: {
@@ -118,35 +104,36 @@ function AgentPersonality({
   disabled?: boolean;
 }) {
   const { data: agentConfig, isLoading } = useAgentConfig(phoneSlot);
-  const updateConfig = useUpdateAgentConfig(phoneSlot);
+  const generateAgent = useGenerateAgent(phoneSlot);
 
-  const [tone, setTone] = useState("");
-  const [examples, setExamples] = useState("");
-  const [responseStructure, setResponseStructure] = useState("");
-  const [systemPromptCustom, setSystemPromptCustom] = useState("");
+  const [agentType, setAgentType] = useState<"informativo" | "soporte" | null>(null);
+  const [description, setDescription] = useState("");
+  const [showPrompts, setShowPrompts] = useState(false);
 
   useEffect(() => {
     if (agentConfig) {
-      setTone(agentConfig.tone || "");
-      setExamples(agentConfig.examples || "");
-      setResponseStructure(agentConfig.response_structure || "");
-      setSystemPromptCustom(agentConfig.system_prompt_custom || "");
+      setAgentType(agentConfig.agent_type || null);
+      setDescription(agentConfig.user_description || "");
     }
   }, [agentConfig]);
 
-  const handleSave = () => {
-    updateConfig.mutate(
-      {
-        tone,
-        examples,
-        response_structure: responseStructure,
-        system_prompt_custom: systemPromptCustom,
-      },
+  const handleGenerate = () => {
+    if (!agentType) {
+      toast.error("Selecciona un tipo de agente primero");
+      return;
+    }
+    if (description.trim().length < 20) {
+      toast.error("La descripción debe tener al menos 20 caracteres");
+      return;
+    }
+
+    generateAgent.mutate(
+      { user_description: description.trim(), agent_type: agentType },
       {
         onSuccess: () => {
-          toast.success("Configuración del agente guardada", {
+          toast.success("Agente generado correctamente", {
             style: { background: "#10B981", color: "white", border: "none" },
-            duration: 2000,
+            duration: 3000,
           });
         },
         onError: (err) => toast.error(err.message),
@@ -155,85 +142,234 @@ function AgentPersonality({
   };
 
   if (isLoading) {
-    return (
-      <div className="h-[200px] bg-bg-primary rounded-xl animate-pulse" />
+    return <div className="h-[200px] bg-bg-primary rounded-xl animate-pulse" />;
+  }
+
+  const isGenerated = !!agentConfig?.generated_at;
+  const placeholderText =
+    agentType === "soporte"
+      ? "Ej: Somos un ecommerce. El agente debe ayudar con seguimiento de pedidos, devoluciones y problemas técnicos. Tono amable y paciente..."
+      : "Ej: Somos una clínica dental. El agente debe ser amable, tutear al cliente, ofrecer nuestros servicios y agendar citas. Si no sabe algo, derivar a un humano...";
+
+  // Determine which prompts to show based on type
+  const generatedPrompts: { label: string; value: string | null }[] = [];
+  if (agentConfig?.agent_type === "informativo") {
+    generatedPrompts.push(
+      { label: "Prompt Agendador", value: agentConfig.generated_scheduler_prompt },
+      { label: "Prompt Informativo (RAG)", value: agentConfig.generated_rag_prompt }
+    );
+  } else if (agentConfig?.agent_type === "soporte") {
+    generatedPrompts.push(
+      { label: "Prompt Soporte", value: agentConfig.generated_support_prompt }
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
+      {/* Step 1: Agent Type Selection */}
       <div>
-        <label className="flex items-center gap-2 text-[12px] font-medium text-text-secondary mb-1.5">
-          <Sparkles size={13} className="text-text-muted" />
-          Tono de respuesta
+        <label className="text-[12px] font-medium text-text-secondary mb-2 block">
+          Tipo de agente
         </label>
-        <textarea
-          value={tone}
-          onChange={(e) => setTone(e.target.value)}
-          placeholder="Ej: Amigable, profesional, con emojis moderados. Tutea al cliente."
-          rows={2}
-          disabled={disabled}
-          className="w-full px-3 py-2 rounded-xl bg-bg-primary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all resize-none disabled:opacity-50"
-        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => setAgentType("informativo")}
+            disabled={disabled || generateAgent.isPending}
+            className={`flex items-start gap-3 p-4 rounded-xl border text-left transition-all ${
+              agentType === "informativo"
+                ? "border-accent bg-accent/5"
+                : "border-border-secondary bg-bg-primary hover:bg-bg-hover"
+            } disabled:opacity-50`}
+          >
+            <div
+              className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                agentType === "informativo"
+                  ? "bg-accent/15"
+                  : "bg-bg-secondary"
+              }`}
+            >
+              <BookOpen
+                size={16}
+                className={
+                  agentType === "informativo"
+                    ? "text-accent"
+                    : "text-text-muted"
+                }
+              />
+            </div>
+            <div>
+              <p className="text-[13px] font-medium text-text-primary">
+                Informativo
+              </p>
+              <p className="text-[11px] text-text-muted mt-0.5">
+                Responde preguntas, agenda citas y escala a un humano si es
+                necesario
+              </p>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setAgentType("soporte")}
+            disabled={disabled || generateAgent.isPending}
+            className={`flex items-start gap-3 p-4 rounded-xl border text-left transition-all ${
+              agentType === "soporte"
+                ? "border-accent bg-accent/5"
+                : "border-border-secondary bg-bg-primary hover:bg-bg-hover"
+            } disabled:opacity-50`}
+          >
+            <div
+              className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                agentType === "soporte" ? "bg-accent/15" : "bg-bg-secondary"
+              }`}
+            >
+              <Headphones
+                size={16}
+                className={
+                  agentType === "soporte"
+                    ? "text-accent"
+                    : "text-text-muted"
+                }
+              />
+            </div>
+            <div>
+              <p className="text-[13px] font-medium text-text-primary">
+                Soporte
+              </p>
+              <p className="text-[11px] text-text-muted mt-0.5">
+                Resuelve problemas, responde consultas y escala a un humano si
+                es necesario
+              </p>
+            </div>
+          </button>
+        </div>
       </div>
 
-      <div>
-        <label className="flex items-center gap-2 text-[12px] font-medium text-text-secondary mb-1.5">
-          <MessageSquareText size={13} className="text-text-muted" />
-          Ejemplos de respuesta importantes
-        </label>
-        <textarea
-          value={examples}
-          onChange={(e) => setExamples(e.target.value)}
-          placeholder={`Ej:\nCliente: "Cuanto sale un corte?"\nBot: "Hola! Un corte vale $8.000. Quieres agendar una hora? 😊"`}
-          rows={4}
-          disabled={disabled}
-          className="w-full px-3 py-2 rounded-xl bg-bg-primary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all resize-none disabled:opacity-50"
-        />
-      </div>
+      {/* Step 2: Description (only when type selected) */}
+      <AnimatePresence>
+        {agentType && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-3"
+          >
+            <div>
+              <label className="flex items-center gap-2 text-[12px] font-medium text-text-secondary mb-1.5">
+                <Bot size={13} className="text-text-muted" />
+                Describe cómo quieres que se comporte tu agente
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder={placeholderText}
+                rows={5}
+                maxLength={2000}
+                disabled={disabled || generateAgent.isPending}
+                className="w-full px-3 py-2.5 rounded-xl bg-bg-primary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all resize-none disabled:opacity-50"
+              />
+              <p className="text-[10px] text-text-muted mt-1 text-right">
+                {description.length}/2000
+              </p>
+            </div>
 
-      <div>
-        <label className="flex items-center gap-2 text-[12px] font-medium text-text-secondary mb-1.5">
-          <ListChecks size={13} className="text-text-muted" />
-          Estructura de respuesta
-        </label>
-        <textarea
-          value={responseStructure}
-          onChange={(e) => setResponseStructure(e.target.value)}
-          placeholder="Ej: Siempre saluda primero, responde la pregunta, y termina ofreciendo agendar una cita si corresponde."
-          rows={3}
-          disabled={disabled}
-          className="w-full px-3 py-2 rounded-xl bg-bg-primary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all resize-none disabled:opacity-50"
-        />
-      </div>
-
-      <div>
-        <label className="flex items-center gap-2 text-[12px] font-medium text-text-secondary mb-1.5">
-          <Bot size={13} className="text-text-muted" />
-          Prompt personalizado (avanzado)
-        </label>
-        <textarea
-          value={systemPromptCustom}
-          onChange={(e) => setSystemPromptCustom(e.target.value)}
-          placeholder="Instrucciones adicionales para el sistema. Se agregan al final del prompt base."
-          rows={3}
-          disabled={disabled}
-          className="w-full px-3 py-2 rounded-xl bg-bg-primary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all resize-none disabled:opacity-50"
-        />
-      </div>
-
-      <button
-        onClick={handleSave}
-        disabled={updateConfig.isPending || disabled}
-        className="w-full py-2.5 rounded-xl text-[13px] font-semibold bg-accent text-white hover:bg-accent-hover transition-all disabled:opacity-60 flex items-center justify-center gap-2"
-      >
-        {updateConfig.isPending ? (
-          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-        ) : (
-          <Sparkles size={14} />
+            <button
+              onClick={handleGenerate}
+              disabled={
+                generateAgent.isPending ||
+                description.trim().length < 20 ||
+                disabled
+              }
+              className="w-full py-2.5 rounded-xl text-[13px] font-semibold bg-accent text-white hover:bg-accent-hover transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+            >
+              {generateAgent.isPending ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" />
+                  Generando agente...
+                </>
+              ) : (
+                <>
+                  <Sparkles size={14} />
+                  {isGenerated ? "Regenerar agente con IA" : "Generar agente con IA"}
+                </>
+              )}
+            </button>
+          </motion.div>
         )}
-        Guardar personalidad
-      </button>
+      </AnimatePresence>
+
+      {/* Step 3: Generated result */}
+      <AnimatePresence>
+        {isGenerated && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-3"
+          >
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+              <div className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="text-[12px] font-medium text-emerald-600 dark:text-emerald-400">
+                Agente generado
+              </span>
+              <span className="text-[11px] text-text-muted ml-auto">
+                {new Date(agentConfig!.generated_at!).toLocaleDateString("es-CL", {
+                  day: "numeric",
+                  month: "short",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
+            </div>
+
+            {generatedPrompts.length > 0 && (
+              <div>
+                <button
+                  onClick={() => setShowPrompts(!showPrompts)}
+                  className="flex items-center gap-2 text-[12px] font-medium text-text-secondary hover:text-text-primary transition-colors"
+                >
+                  <ChevronDown
+                    size={14}
+                    className={`transition-transform ${showPrompts ? "rotate-180" : ""}`}
+                  />
+                  Ver prompts generados
+                </button>
+
+                <AnimatePresence>
+                  {showPrompts && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="space-y-3 mt-3"
+                    >
+                      {generatedPrompts.map(
+                        (p) =>
+                          p.value && (
+                            <div key={p.label}>
+                              <label className="text-[11px] font-medium text-text-muted block mb-1">
+                                {p.label}
+                              </label>
+                              <textarea
+                                readOnly
+                                value={p.value}
+                                rows={8}
+                                className="w-full px-3 py-2 rounded-xl bg-bg-primary border border-border-secondary text-[11px] text-text-secondary font-mono resize-none"
+                              />
+                            </div>
+                          )
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -247,28 +383,33 @@ export function AgentSettings() {
 
   const [useInternalAgent, setUseInternalAgent] = useState(false);
 
-  // Phone config state (labels + presets only — numbers are read-only from backend)
+  // Phone config state
   const [phone1Label, setPhone1Label] = useState("");
-  const [phone1Preset, setPhone1Preset] = useState("ventas");
   const [phone2Label, setPhone2Label] = useState("");
-  const [phone2Preset, setPhone2Preset] = useState("ventas");
 
-  // Which phone slot to configure personality for
+  // Which phone slot to configure
   const [activePhoneSlot, setActivePhoneSlot] = useState(1);
   const [detecting, setDetecting] = useState(false);
-  const [workerAssignmentMode, setWorkerAssignmentMode] = useState<'ask_client' | 'round_robin'>('ask_client');
+  const [workerAssignmentMode, setWorkerAssignmentMode] = useState<
+    "ask_client" | "round_robin"
+  >("ask_client");
 
   const phone1Number = settings?.phone_1_number || "";
   const phone2Number = settings?.phone_2_number || "";
+
+  // Get agent config for both phones (for badges + activation gate)
+  const { data: agentConfig1 } = useAgentConfig(1);
+  const { data: agentConfig2 } = useAgentConfig(2);
+  const activeAgentConfig = activePhoneSlot === 2 ? agentConfig2 : agentConfig1;
 
   useEffect(() => {
     if (settings) {
       setUseInternalAgent(settings.use_internal_agent || false);
       setPhone1Label(settings.phone_1_label || "");
-      setPhone1Preset(settings.phone_1_preset || "ventas");
       setPhone2Label(settings.phone_2_label || "");
-      setPhone2Preset(settings.phone_2_preset || "ventas");
-      setWorkerAssignmentMode(settings.worker_assignment_mode || 'ask_client');
+      setWorkerAssignmentMode(
+        settings.worker_assignment_mode || "ask_client"
+      );
     }
   }, [settings]);
 
@@ -294,6 +435,23 @@ export function AgentSettings() {
 
   const handleToggleAgent = () => {
     const newValue = !useInternalAgent;
+
+    // Activation gate: check requirements before enabling
+    if (newValue) {
+      if (!phone1Number && !phone2Number) {
+        toast.error("Detecta al menos un número de teléfono primero");
+        return;
+      }
+      if (!activeAgentConfig?.agent_type) {
+        toast.error("Selecciona un tipo de agente primero");
+        return;
+      }
+      if (!activeAgentConfig?.generated_at) {
+        toast.error("Genera el agente con IA antes de activarlo");
+        return;
+      }
+    }
+
     setUseInternalAgent(newValue);
     saveCompanySetting.mutate(
       { use_internal_agent: newValue },
@@ -304,10 +462,7 @@ export function AgentSettings() {
   const handleSavePhoneConfig = () => {
     saveCompanySetting.mutate({
       phone_1_label: phone1Label,
-      phone_1_preset: phone1Preset,
-      ...(phone2Number
-        ? { phone_2_label: phone2Label, phone_2_preset: phone2Preset }
-        : {}),
+      ...(phone2Number ? { phone_2_label: phone2Label } : {}),
     });
   };
 
@@ -323,8 +478,9 @@ export function AgentSettings() {
       if (!res.ok) throw new Error(data.error || "Error detectando");
       queryClient.invalidateQueries({ queryKey: ["companySettings"] });
       toast.success(data.message || "Números detectados");
-    } catch (err: any) {
-      toast.error(err.message || "Error detectando números");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Error detectando números";
+      toast.error(message);
     } finally {
       setDetecting(false);
     }
@@ -350,18 +506,14 @@ export function AgentSettings() {
       queryClient.invalidateQueries({ queryKey: ["companySettings"] });
       if (activePhoneSlot === slot) setActivePhoneSlot(1);
       toast.success("Teléfono eliminado");
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Error";
+      toast.error(message);
     }
   };
 
   const hasTwoPhones = !!phone1Number && !!phone2Number;
   const hasAnyPhone = !!phone1Number || !!phone2Number;
-
-  const phoneSlotOptions = [
-    { value: "1", label: phone1Label || "Teléfono 1" },
-    { value: "2", label: phone2Label || "Teléfono 2" },
-  ];
 
   if (settingsLoading) {
     return (
@@ -389,22 +541,20 @@ export function AgentSettings() {
         />
       </SettingsSection>
 
-      {/* ── Phone config (only when agent is active) ── */}
+      {/* ── Phone config ── */}
       {useInternalAgent && (
         <SettingsSection
           title="Teléfonos configurados"
           description="Los números se detectan automáticamente desde tu cuenta de YCloud"
         >
           <div className="space-y-3">
-            {/* Detected phones */}
             {phone1Number && (
               <PhoneCard
                 slot={1}
                 number={phone1Number}
                 label={phone1Label}
-                preset={phone1Preset}
+                agentType={agentConfig1?.agent_type ?? null}
                 onLabelChange={setPhone1Label}
-                onPresetChange={setPhone1Preset}
                 onDelete={() => handleDeletePhone(1)}
                 disabled={saveCompanySetting.isPending}
               />
@@ -415,24 +565,22 @@ export function AgentSettings() {
                 slot={2}
                 number={phone2Number}
                 label={phone2Label}
-                preset={phone2Preset}
+                agentType={agentConfig2?.agent_type ?? null}
                 onLabelChange={setPhone2Label}
-                onPresetChange={setPhone2Preset}
                 onDelete={() => handleDeletePhone(2)}
                 disabled={saveCompanySetting.isPending}
               />
             )}
 
-            {/* No phones detected */}
             {!hasAnyPhone && (
               <div className="p-4 rounded-xl border border-dashed border-border-secondary text-center">
                 <p className="text-[12px] text-text-muted">
-                  No hay números detectados. Haz clic en "Detectar números" para buscar en tu cuenta de YCloud.
+                  No hay números detectados. Haz clic en &quot;Detectar números&quot;
+                  para buscar en tu cuenta de YCloud.
                 </p>
               </div>
             )}
 
-            {/* Action buttons */}
             <div className="flex gap-2">
               <button
                 onClick={handleDetectPhones}
@@ -475,19 +623,25 @@ export function AgentSettings() {
           <div className="space-y-3">
             <label
               onClick={() => {
-                setWorkerAssignmentMode('ask_client');
-                saveCompanySetting.mutate({ worker_assignment_mode: 'ask_client' });
+                setWorkerAssignmentMode("ask_client");
+                saveCompanySetting.mutate({
+                  worker_assignment_mode: "ask_client",
+                });
               }}
               className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${
-                workerAssignmentMode === 'ask_client'
-                  ? 'border-accent bg-accent/5'
-                  : 'border-border-secondary bg-bg-primary hover:bg-bg-hover'
+                workerAssignmentMode === "ask_client"
+                  ? "border-accent bg-accent/5"
+                  : "border-border-secondary bg-bg-primary hover:bg-bg-hover"
               }`}
             >
-              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                workerAssignmentMode === 'ask_client' ? 'border-accent' : 'border-border-secondary'
-              }`}>
-                {workerAssignmentMode === 'ask_client' && (
+              <div
+                className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                  workerAssignmentMode === "ask_client"
+                    ? "border-accent"
+                    : "border-border-secondary"
+                }`}
+              >
+                {workerAssignmentMode === "ask_client" && (
                   <div className="w-2 h-2 rounded-full bg-accent" />
                 )}
               </div>
@@ -496,27 +650,37 @@ export function AgentSettings() {
                   <Users size={15} className="text-accent" />
                 </div>
                 <div>
-                  <p className="text-[13px] font-medium text-text-primary">El cliente elige</p>
-                  <p className="text-[11px] text-text-muted mt-0.5">El agente pregunta al cliente con quién prefiere atenderse</p>
+                  <p className="text-[13px] font-medium text-text-primary">
+                    El cliente elige
+                  </p>
+                  <p className="text-[11px] text-text-muted mt-0.5">
+                    El agente pregunta al cliente con quién prefiere atenderse
+                  </p>
                 </div>
               </div>
             </label>
 
             <label
               onClick={() => {
-                setWorkerAssignmentMode('round_robin');
-                saveCompanySetting.mutate({ worker_assignment_mode: 'round_robin' });
+                setWorkerAssignmentMode("round_robin");
+                saveCompanySetting.mutate({
+                  worker_assignment_mode: "round_robin",
+                });
               }}
               className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${
-                workerAssignmentMode === 'round_robin'
-                  ? 'border-accent bg-accent/5'
-                  : 'border-border-secondary bg-bg-primary hover:bg-bg-hover'
+                workerAssignmentMode === "round_robin"
+                  ? "border-accent bg-accent/5"
+                  : "border-border-secondary bg-bg-primary hover:bg-bg-hover"
               }`}
             >
-              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                workerAssignmentMode === 'round_robin' ? 'border-accent' : 'border-border-secondary'
-              }`}>
-                {workerAssignmentMode === 'round_robin' && (
+              <div
+                className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                  workerAssignmentMode === "round_robin"
+                    ? "border-accent"
+                    : "border-border-secondary"
+                }`}
+              >
+                {workerAssignmentMode === "round_robin" && (
                   <div className="w-2 h-2 rounded-full bg-accent" />
                 )}
               </div>
@@ -525,8 +689,13 @@ export function AgentSettings() {
                   <RefreshCw size={15} className="text-accent" />
                 </div>
                 <div>
-                  <p className="text-[13px] font-medium text-text-primary">Asignación automática</p>
-                  <p className="text-[11px] text-text-muted mt-0.5">Se asigna al profesional con menos citas ese día (round robin)</p>
+                  <p className="text-[13px] font-medium text-text-primary">
+                    Asignación automática
+                  </p>
+                  <p className="text-[11px] text-text-muted mt-0.5">
+                    Se asigna al profesional con menos citas ese día (round
+                    robin)
+                  </p>
                 </div>
               </div>
             </label>
@@ -534,29 +703,38 @@ export function AgentSettings() {
         </SettingsSection>
       )}
 
-      {/* ── Agent Personality ── */}
+      {/* ── Agent Builder ── */}
       {useInternalAgent && hasAnyPhone && (
         <SettingsSection
-          title="Personalidad del agente"
-          description="Define cómo responde el bot a tus clientes"
+          title="Configuración del agente"
+          description="Elige el tipo y describe cómo quieres que se comporte"
         >
           <div className="space-y-4">
             {hasTwoPhones && (
-              <div>
-                <label className="text-[11px] font-medium text-text-muted block mb-1.5">
-                  Configurar personalidad para
-                </label>
-                <AnimatedSelect
-                  value={String(activePhoneSlot)}
-                  onChange={(v) => setActivePhoneSlot(Number(v))}
-                  options={phoneSlotOptions}
-                  placeholder="Seleccionar teléfono..."
-                  allowEmpty={false}
-                />
+              <div className="flex gap-2">
+                {[1, 2].map((slot) => {
+                  const label =
+                    slot === 1
+                      ? phone1Label || "Teléfono 1"
+                      : phone2Label || "Teléfono 2";
+                  return (
+                    <button
+                      key={slot}
+                      onClick={() => setActivePhoneSlot(slot)}
+                      className={`flex-1 py-2 px-3 rounded-xl text-[12px] font-medium transition-all ${
+                        activePhoneSlot === slot
+                          ? "bg-accent text-white"
+                          : "bg-bg-primary border border-border-secondary text-text-secondary hover:bg-bg-hover"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
               </div>
             )}
 
-            <AgentPersonality
+            <AgentBuilder
               key={activePhoneSlot}
               phoneSlot={activePhoneSlot}
             />

@@ -106,6 +106,12 @@ export interface AgentConfig {
   examples: string;
   response_structure: string;
   system_prompt_custom: string;
+  agent_type: "informativo" | "soporte" | null;
+  user_description: string;
+  generated_scheduler_prompt: string | null;
+  generated_rag_prompt: string | null;
+  generated_support_prompt: string | null;
+  generated_at: string | null;
 }
 
 export interface KnowledgeDocument {
