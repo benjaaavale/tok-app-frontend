@@ -141,6 +141,31 @@ type: project
 - **Toasts actualizados** — "Compila para actualizar el agente" después de cada add/delete
 - **Filtra docs 'compiled'** de la lista visible (solo muestra fuentes)
 
+### 9. AI Agent Builder — 2026-03-29
+**Sistema de generación de prompts con Sonnet 4.6:**
+- **Antes**: 4 textareas manuales (tone, examples, response_structure, system_prompt_custom)
+- **Ahora**: Usuario elige tipo de agente → describe comportamiento → Sonnet 4.6 genera prompts optimizados → Haiku 4.5 los usa en runtime
+
+**Backend (ai/agent-builder.js + server.js + prompt-builder.js + index.js):**
+- **`ai/agent-builder.js`** — Meta-prompts diferenciados: Informativo genera `scheduler_prompt` + `rag_prompt`, Soporte genera `support_prompt`
+- **DB migrations** — 6 columnas en agent_config: `agent_type`, `user_description`, `generated_scheduler_prompt`, `generated_rag_prompt`, `generated_support_prompt`, `generated_at`
+- **`POST /agent/generate`** — Valida tipo+descripción, llama Sonnet 4.6, upsert agent_config, sincroniza phone_X_preset
+- **`GET /agent/config`** — Retorna columnas nuevas + viejas
+- **`prompt-builder.js`** — Si hay prompt generado, reemplaza placeholders `{{BUSINESS_INFO}}`, `{{SERVICES_SECTION}}`, `{{ASSIGNMENT_SECTION}}`, `{{KNOWLEDGE_BASE}}`; si no, fallback a hardcoded
+- **`ai/index.js`** — SELECT actualizado con columnas nuevas
+
+**Frontend (AgentSettings.tsx + useAgentConfig.ts + types/api.ts):**
+- **Tipo AgentConfig** — Nuevos campos: agent_type, user_description, generated_*_prompt, generated_at
+- **useGenerateAgent hook** — Mutation para POST /agent/generate
+- **AgentSettings rewrite** —
+  - Tipo de agente: radio cards Informativo (BookOpen) / Soporte (Headphones)
+  - Textarea de descripción con placeholder contextual
+  - Botón "Generar agente con IA" (Sparkles) con spinner
+  - Banner verde con timestamp post-generación
+  - Preview colapsable de prompts generados (read-only)
+  - Gate de activación: no se puede habilitar agente sin tipo + descripción + generación
+  - PhoneCard simplificado: sin dropdown preset, badge de tipo de agente
+
 ---
 
 ## What is PENDING / TODO

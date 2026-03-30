@@ -10,9 +10,19 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "ToK - Panel de gestión",
+  title: {
+    default: "ToK",
+    template: "%s | ToK",
+  },
   description: "Panel de gestión WhatsApp para empresas",
-  icons: { icon: "/favicon.png" },
+  icons: {
+    icon: [
+      { url: "/favicon.png", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -36,8 +46,8 @@ export default function RootLayout({
         <body className="font-sans antialiased">
           <ThemeProvider
             attribute="class"
-            defaultTheme="light"
-            enableSystem={false}
+            defaultTheme="system"
+            enableSystem={true}
             disableTransitionOnChange
           >
             <QueryProvider>

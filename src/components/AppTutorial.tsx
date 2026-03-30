@@ -67,7 +67,7 @@ export function AppTutorial() {
         popover: {
           title: "Configuracion",
           description:
-            "Aqui configuras tu empresa, equipo, servicios, el agente IA y las integraciones con Google Calendar y WhatsApp.",
+            "Aqui configuras tu empresa, equipo, servicios, el agente IA y las integraciones con Google Calendar y WhatsApp. En la seccion de Agentes IA podras crear tu agente personalizado con inteligencia artificial: elige el tipo, describe como quieres que se comporte y la IA generara los prompts optimizados.",
           side: mobile ? "top" as const : "right" as const,
         },
       });
