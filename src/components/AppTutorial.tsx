@@ -60,8 +60,17 @@ export function AppTutorial() {
       },
     ];
 
-    // Solo agregar settings si es admin
+    // Solo agregar secciones admin
     if (isAdmin) {
+      steps.push({
+        element: '[data-tour="nav-templates"]',
+        popover: {
+          title: "Plantillas",
+          description:
+            "Envia mensajes masivos con plantillas aprobadas por Meta. Tambien puedes ver los leads que llevan mas de 24 horas sin responder y recontactarlos.",
+          side: mobile ? "top" as const : "right" as const,
+        },
+      });
       steps.push({
         element: '[data-tour="nav-settings"]',
         popover: {
