@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { useClerk } from "@clerk/nextjs";
 import { toast } from "sonner";
@@ -8,8 +8,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { CompanySettings } from "@/components/settings/CompanySettings";
-import { AgentSettings } from "@/components/settings/AgentSettings";
-import { KnowledgeBase } from "@/components/settings/KnowledgeBase";
 import { IntegrationSettings } from "@/components/settings/IntegrationSettings";
 import { GoogleCalendarSettings } from "@/components/settings/GoogleCalendarSettings";
 import { NotificationSettings } from "@/components/settings/NotificationSettings";
@@ -22,7 +20,6 @@ import {
   Users,
   CalendarDays,
   Plug,
-  Bot,
   Save,
   Undo2,
 } from "lucide-react";
@@ -32,7 +29,6 @@ const TABS = [
   { id: "perfil", label: "Perfil", icon: User },
   { id: "equipo", label: "Equipo", icon: Users },
   { id: "calendario", label: "Calendario", icon: CalendarDays },
-  { id: "agente", label: "Agentes IA", icon: Bot },
   { id: "integraciones", label: "Integraciones", icon: Plug },
 ] as const;
 
@@ -46,8 +42,16 @@ export default function SettingsPage() {
   const { signOut } = useClerk();
   const searchParams = useSearchParams();
 
+  const tabFromUrl = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState("perfil");
   const [shaking, setShaking] = useState(false);
+
+  // Sync tab from URL search params (driven by sidebar)
+  useEffect(() => {
+    if (tabFromUrl && TABS.some((t) => t.id === tabFromUrl)) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [tabFromUrl]);
 
   // Track dirty state per section key
   const [dirtyMap, setDirtyMap] = useState<Record<string, DirtyEntry>>({});
@@ -110,7 +114,7 @@ export default function SettingsPage() {
       {/* ── Tab Navigation ── */}
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <ScrollArea>
-          <TabsList className="mb-6 overflow-hidden rounded-lg border border-border-secondary">
+          <TabsList className="mb-6 overflow-hidden rounded-lg border border-border-secondary lg:hidden">
             {TABS.map((tab) => {
               const Icon = tab.icon;
               return (
@@ -153,11 +157,6 @@ export default function SettingsPage() {
         <TabsContent value="calendario" className="space-y-6">
           <GoogleCalendarSettings />
           <NotificationSettings onDirtyChange={handleNotifDirty} />
-        </TabsContent>
-
-        <TabsContent value="agente" className="space-y-6">
-          <AgentSettings />
-          <KnowledgeBase />
         </TabsContent>
 
         <TabsContent value="integraciones" className="space-y-6">

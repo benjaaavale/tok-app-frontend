@@ -10,6 +10,7 @@ import {
   CalendarDays,
   Settings,
   FileText,
+  Bot,
 } from "lucide-react";
 
 const allNavItems = [
@@ -17,6 +18,7 @@ const allNavItems = [
   { href: "/conversations", label: "Mensajes", icon: MessageCircle, adminOnly: false },
   { href: "/calendar", label: "Agenda", icon: CalendarDays, adminOnly: false },
   { href: "/templates", label: "Plantillas", icon: FileText, adminOnly: true },
+  { href: "/agents", label: "Agentes", icon: Bot, adminOnly: true },
   { href: "/settings", label: "Ajustes", icon: Settings, adminOnly: true },
 ];
 

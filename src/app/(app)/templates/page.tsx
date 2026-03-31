@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { TemplateList } from "@/components/templates/TemplateList";
@@ -13,8 +14,19 @@ const TABS = [
 ] as const;
 
 export default function TemplatesPage() {
+  const searchParams = useSearchParams();
+  const tabFromUrl = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState("plantillas");
   const [bannerVisible, setBannerVisible] = useState(true);
+
+  // Sync tab from URL
+  useEffect(() => {
+    if (tabFromUrl && TABS.some((t) => t.id === tabFromUrl)) {
+      setActiveTab(tabFromUrl);
+    } else {
+      setActiveTab("plantillas");
+    }
+  }, [tabFromUrl]);
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -37,7 +49,7 @@ export default function TemplatesPage() {
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <ScrollArea>
-          <TabsList className="mb-6 overflow-hidden rounded-lg border border-[var(--border-secondary)]">
+          <TabsList className="mb-6 overflow-hidden rounded-lg border border-[var(--border-secondary)] lg:hidden">
             {TABS.map((tab) => {
               const Icon = tab.icon;
               return (
