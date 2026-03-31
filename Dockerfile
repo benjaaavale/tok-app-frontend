@@ -4,7 +4,8 @@ FROM node:20-alpine AS base
 FROM base AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+ENV NODE_OPTIONS="--max-old-space-size=512"
+RUN npm ci --maxsockets 5
 
 # ── Build ──
 FROM base AS builder
