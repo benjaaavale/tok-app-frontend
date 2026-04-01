@@ -118,11 +118,10 @@ export function Sidebar() {
               : "text-text-secondary hover:bg-bg-hover hover:text-text-primary",
           )}
           style={{
-            justifyContent: "center",
             gap: open ? 12 : 0,
-            paddingLeft: open ? 12 : 0,
-            paddingRight: open ? 12 : 0,
-            transition: `gap ${EASE}, padding ${EASE}`,
+            paddingLeft: 12,
+            paddingRight: 12,
+            transition: `gap ${EASE}`,
           }}
         >
           <item.icon
@@ -245,11 +244,10 @@ export function Sidebar() {
           <div
             className="flex items-center h-[50px]"
             style={{
-              justifyContent: "center",
               gap: open ? 12 : 0,
-              paddingLeft: open ? 12 : 0,
-              paddingRight: open ? 12 : 0,
-              transition: `gap ${EASE}, padding ${EASE}`,
+              paddingLeft: 12,
+              paddingRight: 12,
+              transition: `gap ${EASE}`,
             }}
           >
             {userAvatarUrl ? (
