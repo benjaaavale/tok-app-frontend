@@ -16,6 +16,7 @@ export interface Conversation {
   assigned_worker_nombre: string | null;
   assigned_worker_color: string | null;
   unread_count: number;
+  last_inbound_at: string | null;
 }
 
 export interface Message {
