@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/stores/auth-store";
+import { useConversations } from "@/hooks/useConversations";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -26,6 +27,8 @@ export function BottomNav() {
   const pathname = usePathname();
   const { role, canRespondChats } = useAuthStore();
   const isAdmin = role !== "worker";
+  const { data: conversations } = useConversations();
+  const hasPendingChats = conversations?.some((c) => c.unread_count > 0) ?? false;
 
   const navItems = allNavItems.filter((item) => {
     if (item.adminOnly && !isAdmin) return false;
@@ -50,7 +53,12 @@ export function BottomNav() {
                 : "text-text-muted"
             )}
           >
-            <item.icon size={20} strokeWidth={isActive ? 2 : 1.5} />
+            <div className="relative">
+              <item.icon size={20} strokeWidth={isActive ? 2 : 1.5} />
+              {item.href === "/conversations" && hasPendingChats && (
+                <span className="absolute -top-1 -right-1.5 w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-bg-sidebar" />
+              )}
+            </div>
             {item.label}
           </Link>
         );

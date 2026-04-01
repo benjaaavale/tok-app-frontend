@@ -55,7 +55,7 @@ export function StaleLeadsList() {
         <div>
           <h2 className="text-[16px] font-semibold text-[var(--text-primary)]">Leads sin respuesta</h2>
           <p className="text-[13px] text-[var(--text-secondary)] mt-0.5">
-            Contactos que llevan más de 24 horas sin responder
+            Contactos que no han respondido nuestros mensajes en más de 24 horas
           </p>
         </div>
         {selected.length > 0 && (
@@ -75,7 +75,7 @@ export function StaleLeadsList() {
           <Users size={40} className="text-[var(--text-muted)] mb-3" />
           <p className="text-[14px] font-medium text-[var(--text-primary)]">No hay leads sin respuesta</p>
           <p className="text-[13px] text-[var(--text-secondary)] mt-1">
-            Todos tus contactos han respondido recientemente
+            Todos tus contactos han respondido a tus mensajes
           </p>
         </div>
       ) : (

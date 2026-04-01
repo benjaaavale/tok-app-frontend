@@ -246,11 +246,18 @@ export function ConversationList() {
                     <span className="text-[13px] font-medium text-text-primary truncate">
                       {name}
                     </span>
-                    <span className="text-[10px] text-text-muted flex-shrink-0 ml-2">
-                      {conv.ultimo_mensaje_timestamp
-                        ? timeAgo(conv.ultimo_mensaje_timestamp)
-                        : ""}
-                    </span>
+                    <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
+                      <span className="text-[10px] text-text-muted">
+                        {conv.ultimo_mensaje_timestamp
+                          ? timeAgo(conv.ultimo_mensaje_timestamp)
+                          : ""}
+                      </span>
+                      {conv.unread_count > 0 && (
+                        <span className="min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold px-1">
+                          {conv.unread_count > 99 ? "99+" : conv.unread_count}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <span className="text-[11px] text-text-muted truncate flex-1">

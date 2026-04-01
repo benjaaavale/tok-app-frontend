@@ -17,6 +17,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { useConversations } from "@/hooks/useConversations";
 
 /* ── Types ── */
 type NavChild = { param: string; label: string };
@@ -72,6 +73,10 @@ export function Sidebar() {
     useAuthStore();
   const isAdmin = role !== "worker";
 
+  /* ── Unread conversations indicator ── */
+  const { data: conversations } = useConversations();
+  const hasPendingChats = conversations?.some((c) => c.unread_count > 0) ?? false;
+
   /* ── Filter nav items by role ── */
   const visibleItems = mainNavItems.filter(
     (item) =>
@@ -124,11 +129,15 @@ export function Sidebar() {
             transition: `gap ${EASE}`,
           }}
         >
-          <item.icon
-            size={20}
-            strokeWidth={isActive ? 2 : 1.5}
-            className="flex-shrink-0"
-          />
+          <div className="relative flex-shrink-0">
+            <item.icon
+              size={20}
+              strokeWidth={isActive ? 2 : 1.5}
+            />
+            {item.href === "/conversations" && hasPendingChats && (
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-bg-sidebar" />
+            )}
+          </div>
           <span
             className="whitespace-nowrap overflow-hidden"
             style={{
