@@ -217,15 +217,15 @@ export function Sidebar() {
         <div
           className="flex items-center h-[68px]"
           style={{
-            paddingLeft: open ? 24 : 22,
+            paddingLeft: open ? 24 : 20,
             transition: `padding-left ${EASE}`,
           }}
         >
           <div
             className="flex-shrink-0"
             style={{
-              width: open ? 40 : 24,
-              height: open ? 40 : 24,
+              width: open ? 48 : 28,
+              height: open ? 48 : 28,
               transition: `width ${EASE}, height ${EASE}`,
             }}
           >
