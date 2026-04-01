@@ -7,7 +7,7 @@ import { useChatStore } from "@/stores/chat-store";
 import { MessageBubble } from "./MessageBubble";
 import { ChatInput } from "./ChatInput";
 import { getInitials } from "@/lib/utils";
-import { ArrowLeft, MessageCircle, PanelRightOpen, PanelRightClose, Clock, FileText } from "lucide-react";
+import { ArrowLeft, MessageCircle, PanelRightOpen, PanelRightClose, Clock, FileText, Hourglass } from "lucide-react";
 import Link from "next/link";
 
 export function ChatWindow() {
@@ -129,35 +129,56 @@ export function ChatWindow() {
       </div>
 
       {/* Input or 24h block */}
-      {activeConv?.last_inbound_at &&
-       Date.now() - new Date(activeConv.last_inbound_at).getTime() > 24 * 60 * 60 * 1000 ? (
-        <div className="border-t border-border-secondary bg-bg-sidebar px-4 py-4">
-          <div className="flex items-start gap-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
-            <Clock size={18} className="text-amber-500 flex-shrink-0 mt-0.5" />
-            <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-medium text-text-primary">
-                Ventana de 24 horas expirada
-              </p>
-              <p className="text-[12px] text-text-secondary mt-0.5 leading-relaxed">
-                Han pasado más de 24 horas desde el último mensaje de este contacto.
-                Para volver a escribirle, envíale una plantilla aprobada por WhatsApp desde la sección{" "}
-                <Link href="/templates" className="text-accent font-medium hover:underline">
-                  Plantillas
-                </Link>.
-              </p>
-            </div>
-            <Link
-              href="/templates"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent text-white text-[12px] font-medium hover:bg-accent/90 transition-colors flex-shrink-0"
-            >
-              <FileText size={13} />
-              Ir a Plantillas
-            </Link>
+      {(() => {
+        const windowExpired = activeConv?.last_inbound_at &&
+          Date.now() - new Date(activeConv.last_inbound_at).getTime() > 24 * 60 * 60 * 1000;
+
+        if (!windowExpired) return <ChatInput />;
+
+        const lastMsg = messages?.[messages.length - 1];
+        const weSentLast = lastMsg?.direccion === "outbound";
+
+        return (
+          <div className="border-t border-border-secondary bg-bg-sidebar px-4 py-4">
+            {weSentLast ? (
+              <div className="flex items-start gap-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                <Hourglass size={18} className="text-blue-500 flex-shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-medium text-text-primary">
+                    Esperando respuesta del contacto
+                  </p>
+                  <p className="text-[12px] text-text-secondary mt-0.5 leading-relaxed">
+                    Ya enviaste un mensaje a este contacto. La ventana de conversación se habilitará cuando te responda.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-start gap-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                <Clock size={18} className="text-amber-500 flex-shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-medium text-text-primary">
+                    Ventana de 24 horas expirada
+                  </p>
+                  <p className="text-[12px] text-text-secondary mt-0.5 leading-relaxed">
+                    Han pasado más de 24 horas desde el último mensaje de este contacto.
+                    Para volver a escribirle, envíale una plantilla aprobada por WhatsApp desde la sección{" "}
+                    <Link href="/templates" className="text-accent font-medium hover:underline">
+                      Plantillas
+                    </Link>.
+                  </p>
+                </div>
+                <Link
+                  href="/templates"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent text-white text-[12px] font-medium hover:bg-accent/90 transition-colors flex-shrink-0"
+                >
+                  <FileText size={13} />
+                  Ir a Plantillas
+                </Link>
+              </div>
+            )}
           </div>
-        </div>
-      ) : (
-        <ChatInput />
-      )}
+        );
+      })()}
 
       {/* Image overlay */}
       {overlayImage && (
