@@ -205,12 +205,12 @@ export function Sidebar() {
         onMouseLeave={() => setOpen(false)}
       >
         {/* ── Logo ── */}
-        <div className="flex items-center justify-center h-[68px]">
+        <div className="flex items-center h-[68px] px-[12px]">
           <div
             className="flex-shrink-0"
             style={{
-              width: open ? 36 : 28,
-              height: open ? 36 : 28,
+              width: open ? 36 : 20,
+              height: open ? 36 : 20,
               transition: `width ${EASE}, height ${EASE}`,
             }}
           >
