@@ -60,13 +60,8 @@ const settingsItem: NavItem = {
   ],
 };
 
-/* ── Sidebar width constants ── */
-const W_COLLAPSED = 68;
-const W_EXPANDED = 220;
-const ICON_SIZE = 20;
-// Center the icon: (contentWidth - iconSize) / 2  where contentWidth = W_COLLAPSED - 2*navPadding
-// navPadding = 12px → contentWidth = 44px → iconPad = 12px ✓
-const NAV_PX = 12;
+/* ── Shared transition ── */
+const EASE = "0.25s cubic-bezier(0.4, 0, 0.2, 1)";
 
 export function Sidebar() {
   const [open, setOpen] = useState(false);
@@ -107,12 +102,10 @@ export function Sidebar() {
   const renderItem = (item: NavItem) => {
     const isActive = isItemActive(item);
     const hasChildren = !!item.children;
-    // Sub-items only show when section is active AND sidebar is open
     const showChildren = hasChildren && isActive && open;
 
     return (
       <div key={item.href}>
-        {/* Parent link */}
         <Link
           href={item.href}
           title={!open ? item.label : undefined}
@@ -125,44 +118,55 @@ export function Sidebar() {
               : "text-text-secondary hover:bg-bg-hover hover:text-text-primary",
           )}
           style={{
-            justifyContent: open ? "flex-start" : "center",
+            justifyContent: "center",
             gap: open ? 12 : 0,
-            paddingLeft: open ? NAV_PX : 0,
-            paddingRight: open ? NAV_PX : 0,
+            paddingLeft: open ? 12 : 0,
+            paddingRight: open ? 12 : 0,
+            transition: `gap ${EASE}, padding ${EASE}`,
           }}
         >
           <item.icon
-            size={ICON_SIZE}
+            size={20}
             strokeWidth={isActive ? 2 : 1.5}
             className="flex-shrink-0"
           />
-          {open && (
-            <>
-              <span className="flex-1 whitespace-nowrap overflow-hidden text-ellipsis">
-                {item.label}
-              </span>
-              {hasChildren && (
-                <ChevronRight
-                  size={14}
-                  className={cn(
-                    "flex-shrink-0 opacity-40 transition-transform duration-200",
-                    isActive && "rotate-90",
-                  )}
-                />
+          <span
+            className="whitespace-nowrap overflow-hidden"
+            style={{
+              opacity: open ? 1 : 0,
+              maxWidth: open ? 160 : 0,
+              transition: `opacity 0.2s ease, max-width ${EASE}`,
+            }}
+          >
+            {item.label}
+          </span>
+          {hasChildren && (
+            <ChevronRight
+              size={14}
+              className={cn(
+                "flex-shrink-0 transition-transform duration-200",
+                isActive && "rotate-90",
               )}
-            </>
+              style={{
+                opacity: open ? 0.4 : 0,
+                maxWidth: open ? 14 : 0,
+                overflow: "hidden",
+                transition: `opacity 0.2s ease, max-width ${EASE}`,
+              }}
+            />
           )}
         </Link>
 
-        {/* Children — only when active */}
+        {/* Children — only when section is active */}
         {hasChildren && (
           <div
-            className="overflow-hidden transition-all duration-200 ease-in-out"
+            className="overflow-hidden"
             style={{
               maxHeight: showChildren
                 ? `${item.children!.length * 36 + 8}px`
                 : 0,
               opacity: showChildren ? 1 : 0,
+              transition: `max-height 0.2s ease, opacity 0.2s ease`,
             }}
           >
             <div className="ml-[20px] pl-[16px] border-l border-border-secondary space-y-0.5 py-1">
@@ -192,12 +196,11 @@ export function Sidebar() {
 
   return (
     <>
-      {/* ── Desktop Sidebar ── */}
       <aside
         className="hidden lg:flex flex-col h-screen bg-bg-sidebar flex-shrink-0 overflow-hidden"
         style={{
-          width: open ? W_EXPANDED : W_COLLAPSED,
-          transition: "width 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+          width: open ? 220 : 68,
+          transition: `width ${EASE}`,
         }}
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
@@ -208,8 +211,7 @@ export function Sidebar() {
           style={{
             paddingLeft: open ? 14 : 0,
             justifyContent: open ? "flex-start" : "center",
-            transition:
-              "padding-left 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+            transition: `padding-left ${EASE}`,
           }}
         >
           <div
@@ -217,8 +219,7 @@ export function Sidebar() {
             style={{
               width: open ? 44 : 28,
               height: open ? 44 : 28,
-              transition:
-                "width 0.25s cubic-bezier(0.4, 0, 0.2, 1), height 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+              transition: `width ${EASE}, height ${EASE}`,
             }}
           >
             <Image
@@ -233,34 +234,29 @@ export function Sidebar() {
         </div>
 
         {/* ── Main Navigation ── */}
-        <nav
-          className="flex-1 pt-3 space-y-0.5 overflow-y-auto overflow-x-hidden"
-          style={{ padding: `12px ${NAV_PX}px 0` }}
-        >
+        <nav className="flex-1 px-[12px] pt-3 space-y-0.5 overflow-y-auto overflow-x-hidden">
           {visibleItems.map(renderItem)}
         </nav>
 
         {/* ── Bottom area ── */}
-        <div className="pb-4 space-y-0.5" style={{ padding: `0 ${NAV_PX}px 16px` }}>
-          {/* Settings (admin only) */}
+        <div className="px-[12px] pb-4 space-y-0.5">
           {isAdmin && renderItem(settingsItem)}
 
-          {/* Theme toggle */}
           <div className="flex items-center justify-center py-2">
             <ThemeToggle compact={!open} />
           </div>
 
-          {/* Separator */}
           <div className="border-t border-border-secondary pt-1 mt-1" />
 
           {/* User profile */}
           <div
             className="flex items-center h-[50px]"
             style={{
-              justifyContent: open ? "flex-start" : "center",
+              justifyContent: "center",
               gap: open ? 12 : 0,
-              paddingLeft: open ? NAV_PX : 0,
-              paddingRight: open ? NAV_PX : 0,
+              paddingLeft: open ? 12 : 0,
+              paddingRight: open ? 12 : 0,
+              transition: `gap ${EASE}, padding ${EASE}`,
             }}
           >
             {userAvatarUrl ? (
@@ -277,16 +273,21 @@ export function Sidebar() {
                 {userInitials || "TK"}
               </div>
             )}
-            {open && (
-              <div className="min-w-0 overflow-hidden">
-                <p className="text-[12px] font-medium text-text-primary truncate">
-                  {companyNombre || "Mi empresa"}
-                </p>
-                <p className="text-[11px] text-text-muted truncate">
-                  {isAdmin ? "Administrador" : "Trabajador"}
-                </p>
-              </div>
-            )}
+            <div
+              className="min-w-0 overflow-hidden"
+              style={{
+                opacity: open ? 1 : 0,
+                maxWidth: open ? 160 : 0,
+                transition: `opacity 0.2s ease, max-width ${EASE}`,
+              }}
+            >
+              <p className="text-[12px] font-medium text-text-primary truncate">
+                {companyNombre || "Mi empresa"}
+              </p>
+              <p className="text-[11px] text-text-muted truncate">
+                {isAdmin ? "Administrador" : "Trabajador"}
+              </p>
+            </div>
           </div>
         </div>
       </aside>
