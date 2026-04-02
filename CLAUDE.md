@@ -5,22 +5,31 @@
 Después de **cualquier cambio en el código**, hacer siempre:
 
 ```bash
-# Frontend
+# Frontend (rama dev — desarrollo)
 cd tok-frontend
 git add <archivos modificados>
 git commit -m "descripción del cambio"
-git push origin master   # → tok-app-frontend
+git push origin dev
 
-# Backend
+# Backend (rama dev — desarrollo)
 cd tok-backend
 git add <archivos modificados>
 git commit -m "descripción del cambio"
-git push origin master   # → tok-app-backend
+git push origin dev
 ```
 
 **Repos:**
 - Frontend → `https://github.com/benjaaavale/tok-app-frontend`
 - Backend  → `https://github.com/benjaaavale/tok-app-backend`
+
+**Ramas:**
+- `dev` → rama de desarrollo (donde se pushea normalmente)
+- `master` (frontend) / `main` (backend) → rama de producción (solo merge cuando esté probado)
+
+**⚠️ NUNCA pushear directo a master/main.** Para deployar a producción:
+1. El usuario prueba los cambios en dev
+2. Cuando aprueba, merge dev → master/main
+3. Actualizar `APP_VERSION` en `src/lib/constants.ts` y crear git tag
 
 No hacer commit solo si el usuario dice explícitamente "no hagas commit" o "no pushees".
 
