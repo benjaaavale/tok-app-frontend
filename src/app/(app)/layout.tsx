@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
+import { useRouter, usePathname } from "next/navigation";
 import { useAuthStore } from "@/stores/auth-store";
 import { authFetch } from "@/lib/api";
 import { Sidebar } from "@/components/layout/Sidebar";
@@ -15,7 +16,9 @@ import { ConfirmProvider } from "@/components/ui/confirm-dialog";
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { getToken, isLoaded } = useAuth();
   const { user } = useUser();
-  const { synced, setAuth } = useAuthStore();
+  const { synced, subscriptionStatus, setAuth } = useAuthStore();
+  const router = useRouter();
+  const pathname = usePathname();
 
   // Sync Clerk user with backend on first load
   useEffect(() => {
@@ -41,6 +44,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           workerId: meData.worker_id || null,
           canRespondChats: meData.can_respond_chats ?? true,
           hasSeenTutorial: meData.has_seen_tutorial || false,
+          plan: meData.plan || null,
+          subscriptionStatus: meData.subscription_status || "none",
+          planLimits: meData.plan_limits || null,
+          conversationsThisPeriod: meData.conversations_this_period || 0,
         });
       } catch (err) {
         console.error("[Auth Sync Error]", err);
@@ -50,11 +57,29 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     syncUser();
   }, [isLoaded, user, synced, getToken, setAuth]);
 
+  // Gate: redirect to /plans if no active subscription
+  useEffect(() => {
+    if (!synced) return;
+    const needsPlan = subscriptionStatus !== "active";
+    const isOnPlansPage = pathname === "/plans";
+
+    if (needsPlan && !isOnPlansPage) {
+      router.replace("/plans");
+    }
+  }, [synced, subscriptionStatus, pathname, router]);
+
   if (!isLoaded) {
     return (
       <div className="flex h-screen items-center justify-center bg-bg-primary">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-border-primary border-t-accent" />
       </div>
+    );
+  }
+
+  // Show plans page without sidebar/nav
+  if (pathname === "/plans") {
+    return (
+      <ErrorBoundary>{children}</ErrorBoundary>
     );
   }
 

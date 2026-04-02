@@ -5,6 +5,7 @@ import { useAuth } from "@clerk/nextjs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { useAgentConfig, useGenerateAgent } from "@/hooks/useAgentConfig";
+import { useAuthStore } from "@/stores/auth-store";
 import { authFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { SettingsSection } from "./SettingsSection";
@@ -380,6 +381,7 @@ export function AgentSettings() {
   const queryClient = useQueryClient();
   const { data: settings, isLoading: settingsLoading } = useCompanySettings();
   const confirm = useConfirm();
+  const { planLimits } = useAuthStore();
 
   const [useInternalAgent, setUseInternalAgent] = useState(false);
 
@@ -560,7 +562,7 @@ export function AgentSettings() {
               />
             )}
 
-            {phone2Number && (
+            {phone2Number && planLimits && planLimits.max_phone_slots >= 2 && (
               <PhoneCard
                 slot={2}
                 number={phone2Number}
@@ -570,6 +572,14 @@ export function AgentSettings() {
                 onDelete={() => handleDeletePhone(2)}
                 disabled={saveCompanySetting.isPending}
               />
+            )}
+
+            {!phone2Number && phone1Number && planLimits && planLimits.max_phone_slots < 2 && (
+              <div className="p-3 rounded-xl border border-dashed border-border-secondary text-center">
+                <p className="text-[11px] text-text-muted">
+                  Tu plan actual solo permite 1 numero de WhatsApp. Actualiza a Pro o Enterprise para conectar mas.
+                </p>
+              </div>
             )}
 
             {!hasAnyPhone && (

@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import type { PlanKey } from "@/types/api";
 
 interface AuthState {
   companyToken: string | null;
@@ -10,6 +11,10 @@ interface AuthState {
   canRespondChats: boolean;
   synced: boolean;
   hasSeenTutorial: boolean;
+  plan: PlanKey | null;
+  subscriptionStatus: string;
+  planLimits: { max_phone_slots: number; max_conversations_per_month: number } | null;
+  conversationsThisPeriod: number;
 
   setAuth: (data: {
     companyToken: string;
@@ -20,6 +25,10 @@ interface AuthState {
     workerId?: number | null;
     canRespondChats?: boolean;
     hasSeenTutorial?: boolean;
+    plan?: PlanKey | null;
+    subscriptionStatus?: string;
+    planLimits?: { max_phone_slots: number; max_conversations_per_month: number } | null;
+    conversationsThisPeriod?: number;
   }) => void;
   setAvatarUrl: (url: string) => void;
   setTutorialSeen: (seen: boolean) => void;
@@ -36,8 +45,12 @@ export const useAuthStore = create<AuthState>((set) => ({
   canRespondChats: true,
   synced: false,
   hasSeenTutorial: false,
+  plan: null,
+  subscriptionStatus: "none",
+  planLimits: null,
+  conversationsThisPeriod: 0,
 
-  setAuth: ({ companyToken, companyNombre, avatarUrl, email, role, workerId, canRespondChats, hasSeenTutorial }) => {
+  setAuth: ({ companyToken, companyNombre, avatarUrl, email, role, workerId, canRespondChats, hasSeenTutorial, plan, subscriptionStatus, planLimits, conversationsThisPeriod }) => {
     const initials = email
       ? email.split("@")[0].slice(0, 2).toUpperCase()
       : "TK";
@@ -50,6 +63,10 @@ export const useAuthStore = create<AuthState>((set) => ({
       workerId: workerId || null,
       canRespondChats: canRespondChats ?? true,
       hasSeenTutorial: hasSeenTutorial || false,
+      plan: plan || null,
+      subscriptionStatus: subscriptionStatus || "none",
+      planLimits: planLimits || null,
+      conversationsThisPeriod: conversationsThisPeriod || 0,
       synced: true,
     });
   },
@@ -68,5 +85,9 @@ export const useAuthStore = create<AuthState>((set) => ({
       canRespondChats: true,
       synced: false,
       hasSeenTutorial: false,
+      plan: null,
+      subscriptionStatus: "none",
+      planLimits: null,
+      conversationsThisPeriod: 0,
     }),
 }));

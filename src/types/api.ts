@@ -217,3 +217,25 @@ export interface BulkSendResult {
   failed: number;
   errors: string[];
 }
+
+export type PlanKey = "starter" | "pro" | "enterprise";
+
+export interface Plan {
+  id: PlanKey;
+  name: string;
+  price: number;
+  max_phone_slots: number;
+  max_conversations_per_month: number;
+}
+
+export interface SubscriptionInfo {
+  plan: PlanKey | null;
+  subscription_status: "none" | "incomplete" | "active" | "past_due" | "unpaid" | "canceled" | "suspended";
+  current_period_start: string | null;
+  current_period_end: string | null;
+  plan_limits: {
+    max_phone_slots: number;
+    max_conversations_per_month: number;
+  } | null;
+  conversations_this_period: number;
+}
