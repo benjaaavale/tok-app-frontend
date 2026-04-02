@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useConversations } from "@/hooks/useConversations";
+import { APP_VERSION } from "@/lib/constants";
 
 /* ── Types ── */
 type NavChild = { param: string; label: string };
@@ -217,15 +218,15 @@ export function Sidebar() {
         <div
           className="flex items-center h-[68px]"
           style={{
-            paddingLeft: open ? 24 : 20,
+            paddingLeft: open ? 24 : 18,
             transition: `padding-left ${EASE}`,
           }}
         >
           <div
             className="flex-shrink-0"
             style={{
-              width: open ? 48 : 28,
-              height: open ? 48 : 28,
+              width: open ? 52 : 32,
+              height: open ? 52 : 32,
               transition: `width ${EASE}, height ${EASE}`,
             }}
           >
@@ -260,9 +261,9 @@ export function Sidebar() {
             className="flex items-center h-[50px]"
             style={{
               gap: open ? 12 : 0,
-              paddingLeft: 12,
-              paddingRight: 12,
-              transition: `gap ${EASE}`,
+              paddingLeft: open ? 12 : 5,
+              paddingRight: open ? 12 : 5,
+              transition: `gap ${EASE}, padding ${EASE}`,
             }}
           >
             {userAvatarUrl ? (
@@ -295,6 +296,19 @@ export function Sidebar() {
               </p>
             </div>
           </div>
+
+          {/* Version */}
+          <p
+            className="text-center text-text-muted"
+            style={{
+              fontSize: 10,
+              opacity: open ? 0.6 : 0.4,
+              transition: `opacity 0.2s ease`,
+              paddingTop: 4,
+            }}
+          >
+            v{APP_VERSION}
+          </p>
         </div>
       </aside>
     </>
