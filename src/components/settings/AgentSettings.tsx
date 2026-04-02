@@ -528,20 +528,50 @@ export function AgentSettings() {
 
   return (
     <div className="space-y-6">
-      {/* ── Toggle global ── */}
-      <SettingsSection
-        title="Comportamiento del Agente"
-        description="Activa el motor de IA integrado de ToK"
+      {/* ── Banner: agentes desactivados ── */}
+      {!useInternalAgent && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-amber-300/50 bg-amber-50 dark:bg-amber-500/10 dark:border-amber-500/30">
+          <Zap size={16} className="text-amber-500 flex-shrink-0" />
+          <p className="text-[12px] text-amber-700 dark:text-amber-400">
+            Los agentes IA no estan activos. Activalos para que procesen mensajes automaticamente.
+          </p>
+        </div>
+      )}
+
+      {/* ── Toggle global (resaltado) ── */}
+      <div
+        className="rounded-2xl border-2 p-1 transition-colors"
+        style={{ borderColor: useInternalAgent ? "var(--accent)" : "var(--border-secondary)" }}
       >
-        <ToggleRow
-          icon={Zap}
-          label="Agente IA integrado"
-          sublabel="Procesa mensajes con IA directamente en la app"
-          checked={useInternalAgent}
-          onToggle={handleToggleAgent}
+        <button
+          onClick={handleToggleAgent}
           disabled={saveCompanySetting.isPending}
-        />
-      </SettingsSection>
+          className="flex items-center justify-between w-full p-4 rounded-xl transition-colors"
+          style={{ background: useInternalAgent ? "var(--accent)" : "var(--bg-secondary)" }}
+        >
+          <div className="flex items-center gap-3">
+            <Zap size={20} className={useInternalAgent ? "text-white" : "text-text-muted"} />
+            <span
+              className="text-[14px] font-semibold"
+              style={{ color: useInternalAgent ? "#fff" : "var(--text-primary)" }}
+            >
+              {useInternalAgent ? "Agentes IA activados" : "Activar Agentes IA"}
+            </span>
+          </div>
+          <div
+            className="w-12 h-7 rounded-full p-0.5 transition-colors"
+            style={{ background: useInternalAgent ? "rgba(255,255,255,0.3)" : "var(--border-secondary)" }}
+          >
+            <div
+              className="w-6 h-6 rounded-full shadow-sm transition-transform"
+              style={{
+                background: useInternalAgent ? "#fff" : "var(--bg-primary)",
+                transform: useInternalAgent ? "translateX(20px)" : "translateX(0)",
+              }}
+            />
+          </div>
+        </button>
+      </div>
 
       {/* ── Phone config ── */}
       {useInternalAgent && (
@@ -620,95 +650,6 @@ export function AgentSettings() {
                 </button>
               )}
             </div>
-          </div>
-        </SettingsSection>
-      )}
-
-      {/* ── Worker Assignment Mode ── */}
-      {useInternalAgent && hasAnyPhone && (
-        <SettingsSection
-          title="Asignación de profesional"
-          description="Define cómo se asigna el profesional al agendar una cita"
-        >
-          <div className="space-y-3">
-            <label
-              onClick={() => {
-                setWorkerAssignmentMode("ask_client");
-                saveCompanySetting.mutate({
-                  worker_assignment_mode: "ask_client",
-                });
-              }}
-              className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${
-                workerAssignmentMode === "ask_client"
-                  ? "border-accent bg-accent/5"
-                  : "border-border-secondary bg-bg-primary hover:bg-bg-hover"
-              }`}
-            >
-              <div
-                className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                  workerAssignmentMode === "ask_client"
-                    ? "border-accent"
-                    : "border-border-secondary"
-                }`}
-              >
-                {workerAssignmentMode === "ask_client" && (
-                  <div className="w-2 h-2 rounded-full bg-accent" />
-                )}
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
-                  <Users size={15} className="text-accent" />
-                </div>
-                <div>
-                  <p className="text-[13px] font-medium text-text-primary">
-                    El cliente elige
-                  </p>
-                  <p className="text-[11px] text-text-muted mt-0.5">
-                    El agente pregunta al cliente con quién prefiere atenderse
-                  </p>
-                </div>
-              </div>
-            </label>
-
-            <label
-              onClick={() => {
-                setWorkerAssignmentMode("round_robin");
-                saveCompanySetting.mutate({
-                  worker_assignment_mode: "round_robin",
-                });
-              }}
-              className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${
-                workerAssignmentMode === "round_robin"
-                  ? "border-accent bg-accent/5"
-                  : "border-border-secondary bg-bg-primary hover:bg-bg-hover"
-              }`}
-            >
-              <div
-                className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                  workerAssignmentMode === "round_robin"
-                    ? "border-accent"
-                    : "border-border-secondary"
-                }`}
-              >
-                {workerAssignmentMode === "round_robin" && (
-                  <div className="w-2 h-2 rounded-full bg-accent" />
-                )}
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
-                  <RefreshCw size={15} className="text-accent" />
-                </div>
-                <div>
-                  <p className="text-[13px] font-medium text-text-primary">
-                    Asignación automática
-                  </p>
-                  <p className="text-[11px] text-text-muted mt-0.5">
-                    Se asigna al profesional con menos citas ese día (round
-                    robin)
-                  </p>
-                </div>
-              </div>
-            </label>
           </div>
         </SettingsSection>
       )}

@@ -14,6 +14,7 @@ import { NotificationSettings } from "@/components/settings/NotificationSettings
 import { WorkerManager } from "@/components/settings/WorkerManager";
 import { ServiceTypeManager } from "@/components/settings/ServiceTypeManager";
 import { UserProfileSettings } from "@/components/settings/UserProfileSettings";
+import { WorkerAssignmentSettings } from "@/components/settings/WorkerAssignmentSettings";
 import {
   LogOut,
   User,
@@ -156,6 +157,7 @@ export default function SettingsPage() {
 
         <TabsContent value="calendario" className="space-y-6">
           <GoogleCalendarSettings />
+          <WorkerAssignmentSettings />
           <NotificationSettings onDirtyChange={handleNotifDirty} />
         </TabsContent>
 
