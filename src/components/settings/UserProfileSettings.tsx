@@ -2,6 +2,7 @@
 
 import { useRef, useState, useCallback } from "react";
 import { useAuth, useUser, useReverification } from "@clerk/nextjs";
+import { isClerkRuntimeError, isReverificationCancelledError } from "@clerk/nextjs/errors";
 import { useMutation } from "@tanstack/react-query";
 import { useAuthStore } from "@/stores/auth-store";
 import { authFetch } from "@/lib/api";
@@ -101,6 +102,7 @@ export function UserProfileSettings() {
       setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
       setShowPassword(false);
     } catch (err: unknown) {
+      if (isClerkRuntimeError(err) && isReverificationCancelledError(err)) return;
       const msg = err instanceof Error ? err.message : "Error al cambiar la contraseña";
       toast.error(msg);
     }
@@ -116,6 +118,7 @@ export function UserProfileSettings() {
         toast.success("Código enviado a " + newEmail);
       }
     } catch (err: unknown) {
+      if (isClerkRuntimeError(err) && isReverificationCancelledError(err)) return;
       const msg = err instanceof Error ? err.message : "Error al enviar verificación";
       toast.error(msg);
     }
@@ -130,6 +133,7 @@ export function UserProfileSettings() {
       setNewEmail(""); setVerificationCode(""); setPendingEmailId(null);
       setShowEmail(false);
     } catch (err: unknown) {
+      if (isClerkRuntimeError(err) && isReverificationCancelledError(err)) return;
       const msg = err instanceof Error ? err.message : "Código incorrecto";
       toast.error(msg);
     }
