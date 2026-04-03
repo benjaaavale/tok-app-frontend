@@ -97,9 +97,8 @@ export default function PlansPage() {
     <div className="min-h-dvh flex flex-col items-center justify-center px-4 py-12 bg-bg-primary">
       {/* Header */}
       <div className="text-center mb-10 max-w-xl">
-        <div className="flex items-center justify-center gap-2 mb-4">
-          <img src="/favicon.png" alt="ToK" className="w-8 h-8" />
-          <span className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>ToK</span>
+        <div className="flex items-center justify-center mb-4">
+          <img src="/favicon.png" alt="ToK" className="w-10 h-10" />
         </div>
         <h1 className="text-2xl sm:text-3xl font-bold mb-3" style={{ color: "var(--text-primary)" }}>
           Elige tu plan
