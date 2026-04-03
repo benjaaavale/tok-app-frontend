@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCreateSubscription } from "@/hooks/useSubscription";
 import { useAuthStore } from "@/stores/auth-store";
 import { toast } from "sonner";
-import { Check, Loader2, Crown } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import type { PlanKey } from "@/types/api";
 
 const PLAN_DETAILS: {
@@ -58,7 +58,7 @@ const PLAN_DETAILS: {
       "Manager de Cuenta Dedicado",
       "Soporte Prioritario 24/7",
     ],
-    cta: "Contactar Ventas",
+    cta: "Comenzar",
   },
 ];
 
@@ -72,11 +72,6 @@ export default function PlansPage() {
   const isActive = subscriptionStatus === "active";
 
   const handleSelectPlan = async (planId: PlanKey) => {
-    if (planId === "enterprise") {
-      window.open("https://wa.me/56912345678?text=Hola,%20me%20interesa%20el%20plan%20Enterprise", "_blank");
-      return;
-    }
-
     setLoadingPlan(planId);
     try {
       const data = await createSubscription.mutateAsync(planId);
@@ -186,11 +181,6 @@ export default function PlansPage() {
             >
               {loadingPlan === plan.id ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
-              ) : plan.id === "enterprise" ? (
-                <>
-                  <Crown className="w-4 h-4" />
-                  {plan.cta}
-                </>
               ) : (
                 plan.cta
               )}
