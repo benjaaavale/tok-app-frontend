@@ -181,7 +181,10 @@ export function ChatWindow() {
 
         if (!windowExpired) return <ChatInput />;
 
-        const lastMsg = messages?.[messages.length - 1];
+        // Esperar a que carguen los mensajes antes de decidir qué alerta mostrar
+        if (isLoading || !messages) return null;
+
+        const lastMsg = messages[messages.length - 1];
         const lastWasTemplate = lastMsg?.direccion === "outbound" && lastMsg?.contenido?.startsWith("[Plantilla:");
 
         return (
