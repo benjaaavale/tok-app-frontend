@@ -10,6 +10,32 @@ import { getInitials } from "@/lib/utils";
 import { ArrowLeft, MessageCircle, PanelRightOpen, PanelRightClose, Clock, FileText, Hourglass } from "lucide-react";
 import Link from "next/link";
 
+function getDateLabel(dateStr: string): string {
+  const date = new Date(dateStr);
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  const isSameDay = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
+
+  if (isSameDay(date, today)) return "Hoy";
+  if (isSameDay(date, yesterday)) return "Ayer";
+
+  return date.toLocaleDateString("es-CL", {
+    day: "numeric",
+    month: "long",
+    year: date.getFullYear() !== today.getFullYear() ? "numeric" : undefined,
+  });
+}
+
+function getDateKey(dateStr: string): string {
+  const d = new Date(dateStr);
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
 export function ChatWindow() {
   const {
     activeConversationId,
@@ -112,13 +138,33 @@ export function ChatWindow() {
           </div>
         ) : messages && messages.length > 0 ? (
           <>
-            {messages.map((msg) => (
-              <MessageBubble
-                key={msg.id}
-                message={msg}
-                onImageClick={setOverlayImage}
-              />
-            ))}
+            {messages.map((msg, i) => {
+              const currentKey = getDateKey(msg.timestamp);
+              const prevKey = i > 0 ? getDateKey(messages[i - 1].created_at) : null;
+              const showSeparator = currentKey !== prevKey;
+              return (
+                <div key={msg.id}>
+                  {showSeparator && (
+                    <div className="flex items-center justify-center my-4">
+                      <span
+                        className="px-3 py-1 rounded-full text-[11px] font-medium"
+                        style={{
+                          background: "var(--bg-secondary)",
+                          color: "var(--text-muted)",
+                          border: "1px solid var(--border-secondary)",
+                        }}
+                      >
+                        {getDateLabel(msg.timestamp)}
+                      </span>
+                    </div>
+                  )}
+                  <MessageBubble
+                    message={msg}
+                    onImageClick={setOverlayImage}
+                  />
+                </div>
+              );
+            })}
             <div ref={messagesEndRef} />
           </>
         ) : (
