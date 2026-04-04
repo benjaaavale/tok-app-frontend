@@ -183,6 +183,7 @@ export function ChatWindow() {
 
         const lastMsg = messages?.[messages.length - 1];
         const weSentLast = lastMsg?.direccion === "outbound";
+        const lastWasTemplate = weSentLast && lastMsg?.contenido?.startsWith("[Plantilla:");
 
         return (
           <div className="border-t border-border-secondary bg-bg-sidebar px-4 py-4">
@@ -194,7 +195,9 @@ export function ChatWindow() {
                     Esperando respuesta del contacto
                   </p>
                   <p className="text-[12px] text-text-secondary mt-0.5 leading-relaxed">
-                    Ya enviaste un mensaje a este contacto. La ventana de conversación se habilitará cuando te responda.
+                    {lastWasTemplate
+                      ? "Ya enviaste una plantilla a este contacto. La ventana de conversación se habilitará cuando te responda."
+                      : "Ya enviaste un mensaje a este contacto. La ventana de conversación se habilitará cuando te responda."}
                   </p>
                 </div>
               </div>
