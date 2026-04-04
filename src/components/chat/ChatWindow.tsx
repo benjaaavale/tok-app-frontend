@@ -182,12 +182,11 @@ export function ChatWindow() {
         if (!windowExpired) return <ChatInput />;
 
         const lastMsg = messages?.[messages.length - 1];
-        const weSentLast = lastMsg?.direccion === "outbound";
-        const lastWasTemplate = weSentLast && lastMsg?.contenido?.startsWith("[Plantilla:");
+        const lastWasTemplate = lastMsg?.direccion === "outbound" && lastMsg?.contenido?.startsWith("[Plantilla:");
 
         return (
           <div className="border-t border-border-secondary bg-bg-sidebar px-4 py-4">
-            {weSentLast ? (
+            {lastWasTemplate ? (
               <div className="flex items-start gap-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
                 <Hourglass size={18} className="text-blue-500 flex-shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
@@ -195,9 +194,7 @@ export function ChatWindow() {
                     Esperando respuesta del contacto
                   </p>
                   <p className="text-[12px] text-text-secondary mt-0.5 leading-relaxed">
-                    {lastWasTemplate
-                      ? "Ya enviaste una plantilla a este contacto. La ventana de conversación se habilitará cuando te responda."
-                      : "Ya enviaste un mensaje a este contacto. La ventana de conversación se habilitará cuando te responda."}
+                    Ya enviaste una plantilla a este contacto. La ventana de conversación se habilitará cuando te responda.
                   </p>
                 </div>
               </div>
