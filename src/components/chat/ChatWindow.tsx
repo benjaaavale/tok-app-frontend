@@ -4,11 +4,16 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useMessages } from "@/hooks/useMessages";
 import { useConversations } from "@/hooks/useConversations";
 import { useChatStore } from "@/stores/chat-store";
+import { useWorkers } from "@/hooks/useWorkers";
+import { useAuth } from "@clerk/nextjs";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { authFetch } from "@/lib/api";
 import { MessageBubble } from "./MessageBubble";
 import { ChatInput } from "./ChatInput";
 import { getInitials } from "@/lib/utils";
-import { ArrowLeft, MessageCircle, PanelRightOpen, PanelRightClose, Clock, FileText, Hourglass } from "lucide-react";
+import { ArrowLeft, MessageCircle, PanelRightOpen, PanelRightClose, Clock, FileText, Hourglass, ChevronDown, UserMinus } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 function getDateLabel(dateStr: string): string {
   const date = new Date(dateStr);
@@ -53,6 +58,26 @@ export function ChatWindow() {
   );
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [overlayImage, setOverlayImage] = useState<string | null>(null);
+  const [workerDropdownOpen, setWorkerDropdownOpen] = useState(false);
+  const { data: workers } = useWorkers();
+  const { getToken } = useAuth();
+  const queryClient = useQueryClient();
+
+  const assignWorkerMutation = useMutation({
+    mutationFn: async (workerId: number | null) => {
+      const res = await authFetch(
+        `/conversations/${activeConversationId}/assign-worker`,
+        { method: "PUT", body: JSON.stringify({ worker_id: workerId }) },
+        () => getToken()
+      );
+      if (!res.ok) throw new Error("Error al asignar");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      setWorkerDropdownOpen(false);
+    },
+    onError: () => toast.error("Error al asignar trabajador"),
+  });
 
   // Auto scroll on new messages
   useEffect(() => {
@@ -98,19 +123,66 @@ export function ChatWindow() {
           <p className="text-[13px] font-medium text-text-primary truncate">
             {activeName}
           </p>
-          <div className="flex items-center gap-2">
-            <p className="text-[11px] text-text-muted">{activePhone}</p>
-            {activeConv?.assigned_worker_nombre && (
-              <span className="text-[10px] font-medium" style={{ color: activeConv.assigned_worker_color || "var(--accent)" }}>
-                Asignado a {activeConv.assigned_worker_nombre}
+          <p className="text-[11px] text-text-muted">{activePhone}</p>
+        </div>
+
+        {/* Worker assignment dropdown */}
+        <div className="relative">
+          <button
+            onClick={() => setWorkerDropdownOpen((v) => !v)}
+            className="flex items-center gap-1 text-[12px] text-text-muted hover:text-text-primary transition-colors"
+          >
+            {activeConv?.assigned_worker_nombre ? (
+              <span
+                className="font-medium"
+                style={{ color: activeConv.assigned_worker_color || "var(--accent)" }}
+              >
+                {activeConv.assigned_worker_nombre}
               </span>
+            ) : (
+              <span>Sin asignar</span>
             )}
-            {activeConv?.etiqueta === 'Necesita ayuda humana' && !activeConv?.assigned_worker_id && (
-              <span className="text-[10px] font-medium text-amber-600 dark:text-amber-400">
-                Esperando asignación
-              </span>
-            )}
-          </div>
+            <ChevronDown size={13} />
+          </button>
+
+          {workerDropdownOpen && (
+            <>
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setWorkerDropdownOpen(false)}
+              />
+              <div
+                className="absolute right-0 top-full mt-1 z-50 min-w-[160px] rounded-xl shadow-lg border border-border-secondary py-1 overflow-hidden"
+                style={{ background: "var(--bg-primary)" }}
+              >
+                {workers?.map((w) => (
+                  <button
+                    key={w.id}
+                    onClick={() => assignWorkerMutation.mutate(w.id)}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-text-primary hover:bg-bg-hover transition-colors text-left"
+                  >
+                    <span
+                      className="w-2 h-2 rounded-full flex-shrink-0"
+                      style={{ background: w.color || "var(--accent)" }}
+                    />
+                    {w.nombre}
+                  </button>
+                ))}
+                {activeConv?.assigned_worker_id && (
+                  <>
+                    <div className="h-px mx-3 my-1" style={{ background: "var(--border-secondary)" }} />
+                    <button
+                      onClick={() => assignWorkerMutation.mutate(null)}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-text-muted hover:bg-bg-hover transition-colors text-left"
+                    >
+                      <UserMinus size={13} />
+                      Quitar asignación
+                    </button>
+                  </>
+                )}
+              </div>
+            </>
+          )}
         </div>
 
         <button
