@@ -240,6 +240,7 @@ export function WeeklyGrid({
 
                 {/* Appointments */}
                 {dayLayout.map(({ appt, col, totalCols }) => {
+                  const bgColor = appt.worker_color || "#3B82F6";
                   const startMin = timeToMinutes(appt.hora?.slice(0, 5) || "09:00");
                   const duration = appt.duracion || 30;
                   const top = ((startMin - GRID_START) / 30) * SLOT_HEIGHT;
@@ -250,7 +251,7 @@ export function WeeklyGrid({
                   return (
                     <div
                       key={appt.id}
-                      className="absolute px-0.5"
+                      className="absolute px-0.5 hover:z-50 hover:h-auto hover:min-h-0 group/appt"
                       style={{
                         top,
                         height,
@@ -263,6 +264,37 @@ export function WeeklyGrid({
                         onClick={onAppointmentClick}
                         compact={duration <= 30}
                       />
+                      {/* Hover expanded card */}
+                      <div
+                        className="hidden group-hover/appt:block absolute left-0 right-0 top-0 z-50 rounded-lg px-2 py-1.5 shadow-lg border cursor-pointer"
+                        style={{
+                          backgroundColor: "var(--bg-primary)",
+                          borderColor: bgColor,
+                          borderLeftWidth: "3px",
+                          borderLeftColor: bgColor,
+                        }}
+                        onClick={() => onAppointmentClick(appt)}
+                      >
+                        <p className="text-[11px] font-semibold" style={{ color: bgColor }}>
+                          {appt.hora?.slice(0, 5)} — {duration} min
+                        </p>
+                        <p className="text-[11px] text-text-primary font-medium mt-0.5">
+                          {appt.nombre_real || appt.telefono}
+                        </p>
+                        <p className="text-[10px] text-text-muted">
+                          {appt.event_type}
+                        </p>
+                        {appt.worker_nombre && (
+                          <p className="text-[10px] text-text-muted mt-0.5">
+                            {appt.worker_nombre}
+                          </p>
+                        )}
+                        {appt.notas && (
+                          <p className="text-[9px] text-text-muted mt-1 italic">
+                            {appt.notas}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
