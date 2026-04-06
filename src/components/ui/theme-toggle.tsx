@@ -4,9 +4,10 @@ import { Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
 import { cn } from "@/lib/utils"
 
+const EASE = "0.25s cubic-bezier(0.4, 0, 0.2, 1)";
+
 interface ThemeToggleProps {
   className?: string
-  /** When sidebar is collapsed, show compact version */
   compact?: boolean
 }
 
@@ -14,78 +15,64 @@ export function ThemeToggle({ className, compact = false }: ThemeToggleProps) {
   const { resolvedTheme, setTheme } = useTheme()
   const isDark = resolvedTheme === "dark"
 
+  const width = compact ? 40 : 64;
+  const height = compact ? 24 : 32;
+  const knobSize = compact ? 16 : 24;
+  const iconSize = compact ? 10 : 16;
+  const travel = width - knobSize - 8; // 8 = 2*padding
+
   return (
     <div
       className={cn(
-        "flex p-1 rounded-full cursor-pointer transition-all duration-300",
-        isDark
-          ? "bg-zinc-950 border border-zinc-800"
-          : "bg-white border border-zinc-200",
-        compact ? "w-10 h-6" : "w-16 h-8",
+        "flex p-1 rounded-full cursor-pointer",
+        isDark ? "bg-zinc-950 border border-zinc-800" : "bg-white border border-zinc-200",
         className
       )}
+      style={{
+        width,
+        height,
+        transition: `width ${EASE}, height ${EASE}, background-color 0.2s ease`,
+      }}
       onClick={() => setTheme(isDark ? "light" : "dark")}
       role="button"
       tabIndex={0}
       title={isDark ? "Modo claro" : "Modo oscuro"}
     >
-      <div className="flex justify-between items-center w-full">
+      <div className="relative flex items-center w-full h-full">
+        {/* Moving knob */}
         <div
           className={cn(
-            "flex justify-center items-center rounded-full transition-transform duration-300",
-            compact ? "w-4 h-4" : "w-6 h-6",
-            isDark
-              ? "transform translate-x-0 bg-zinc-800"
-              : compact
-                ? "transform translate-x-4 bg-gray-200"
-                : "transform translate-x-8 bg-gray-200"
+            "absolute flex items-center justify-center rounded-full",
+            isDark ? "bg-zinc-800" : "bg-gray-200"
           )}
+          style={{
+            width: knobSize,
+            height: knobSize,
+            transform: isDark ? "translateX(0)" : `translateX(${travel}px)`,
+            transition: `transform 0.25s ease, width ${EASE}, height ${EASE}`,
+          }}
         >
           {isDark ? (
-            <Moon
-              className={cn(
-                "text-white",
-                compact ? "w-2.5 h-2.5" : "w-4 h-4"
-              )}
-              strokeWidth={1.5}
-            />
+            <Moon style={{ width: iconSize, height: iconSize }} className="text-white" strokeWidth={1.5} />
           ) : (
-            <Sun
-              className={cn(
-                "text-gray-700",
-                compact ? "w-2.5 h-2.5" : "w-4 h-4"
-              )}
-              strokeWidth={1.5}
-            />
+            <Sun style={{ width: iconSize, height: iconSize }} className="text-gray-700" strokeWidth={1.5} />
           )}
         </div>
+
+        {/* Static secondary icon */}
         <div
-          className={cn(
-            "flex justify-center items-center rounded-full transition-transform duration-300",
-            compact ? "w-4 h-4" : "w-6 h-6",
-            isDark
-              ? "bg-transparent"
-              : compact
-                ? "transform -translate-x-4"
-                : "transform -translate-x-8"
-          )}
+          className="absolute flex items-center justify-center rounded-full"
+          style={{
+            width: knobSize,
+            height: knobSize,
+            left: isDark ? "auto" : 4,
+            right: isDark ? 4 : "auto",
+          }}
         >
           {isDark ? (
-            <Sun
-              className={cn(
-                "text-gray-500",
-                compact ? "w-2.5 h-2.5" : "w-4 h-4"
-              )}
-              strokeWidth={1.5}
-            />
+            <Sun style={{ width: iconSize, height: iconSize }} className="text-gray-500" strokeWidth={1.5} />
           ) : (
-            <Moon
-              className={cn(
-                "text-black",
-                compact ? "w-2.5 h-2.5" : "w-4 h-4"
-              )}
-              strokeWidth={1.5}
-            />
+            <Moon style={{ width: iconSize, height: iconSize }} className="text-black" strokeWidth={1.5} />
           )}
         </div>
       </div>
