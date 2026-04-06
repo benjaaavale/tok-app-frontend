@@ -1,6 +1,6 @@
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.tok-ai.cl";
 
-export const APP_VERSION = "1.2.0";
+export const APP_VERSION = "1.2.1";
 
 export const ETAPA_COLORS: Record<string, string> = {
   frio: "#94A3B8",
