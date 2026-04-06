@@ -140,7 +140,7 @@ export function ChatWindow() {
           <>
             {messages.map((msg, i) => {
               const currentKey = getDateKey(msg.timestamp);
-              const prevKey = i > 0 ? getDateKey(messages[i - 1].created_at) : null;
+              const prevKey = i > 0 ? getDateKey(messages[i - 1].timestamp) : null;
               const showSeparator = currentKey !== prevKey;
               return (
                 <div key={msg.id}>
