@@ -214,7 +214,7 @@ export function Sidebar() {
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
       >
-        {/* ── Logo ── */}
+        {/* ── Logo + Company name ── */}
         <div
           className="flex items-center h-[68px]"
           style={{
@@ -238,6 +238,19 @@ export function Sidebar() {
               className="w-full h-full object-contain"
               priority
             />
+          </div>
+          <div
+            className="min-w-0 overflow-hidden"
+            style={{
+              marginLeft: open ? 10 : 0,
+              opacity: open ? 1 : 0,
+              maxWidth: open ? 130 : 0,
+              transition: `opacity 0.2s ease, max-width ${EASE}, margin-left ${EASE}`,
+            }}
+          >
+            <p className="text-[13px] font-semibold text-text-primary truncate">
+              {companyNombre || "Mi empresa"}
+            </p>
           </div>
         </div>
 
@@ -289,9 +302,6 @@ export function Sidebar() {
               }}
             >
               <p className="text-[12px] font-medium text-text-primary truncate">
-                {companyNombre || "Mi empresa"}
-              </p>
-              <p className="text-[11px] text-text-muted truncate">
                 {isAdmin ? "Administrador" : "Trabajador"}
               </p>
             </div>
