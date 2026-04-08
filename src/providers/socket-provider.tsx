@@ -89,7 +89,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
         queryClient.invalidateQueries({ queryKey: ["conversations"] });
       });
 
-      // Appointment created/updated/cancelled (from n8n webhook or direct API) → refresh calendar
+      // Appointment created/updated/cancelled → refresh calendar
       socket.on("appointment_update", () => {
         queryClient.invalidateQueries({ queryKey: ["appointments"] });
       });
