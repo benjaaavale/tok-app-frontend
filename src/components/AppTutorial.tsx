@@ -14,7 +14,7 @@ function isMobile() {
 }
 
 export function AppTutorial() {
-  const { synced, hasSeenTutorial, setTutorialSeen, role } = useAuthStore();
+  const { synced, hasSeenTutorial, setTutorialSeen, role, companyToken } = useAuthStore();
   const { getToken } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
@@ -82,11 +82,48 @@ export function AppTutorial() {
       });
     }
 
+    const webhookUrl = `https://api.tok-ai.cl/webhook/inbound?secret=${companyToken || ""}`;
+
     steps.push({
       popover: {
-        title: "Listo! 🎉",
-        description:
-          "Ya conoces las secciones principales. Si necesitas ver este tutorial de nuevo, ve a Configuracion > Perfil. Ahora explora tu nueva herramienta!",
+        title: "Conecta tu WhatsApp",
+        description: `
+          <div class="tok-tutorial-steps">
+            <div class="tok-tutorial-step">
+              <span class="tok-tutorial-step-num">1</span>
+              <div>
+                <p class="tok-tutorial-step-title">Crea tu cuenta en YCloud</p>
+                <p class="tok-tutorial-step-desc">Registrate en la plataforma para obtener acceso a la API de WhatsApp Business.</p>
+                <a href="https://www.ycloud.com/console/#/entry/register" target="_blank" rel="noopener noreferrer" class="tok-tutorial-btn">
+                  Crear cuenta en YCloud ↗
+                </a>
+              </div>
+            </div>
+            <div class="tok-tutorial-step">
+              <span class="tok-tutorial-step-num">2</span>
+              <div>
+                <p class="tok-tutorial-step-title">Configura el Webhook en YCloud</p>
+                <p class="tok-tutorial-step-desc">En YCloud ve a <strong>Settings → Webhooks</strong> y pega esta URL:</p>
+                <div class="tok-tutorial-url-box">
+                  <code class="tok-tutorial-url">${webhookUrl}</code>
+                  <button onclick="navigator.clipboard.writeText('${webhookUrl}');this.textContent='Copiado!';setTimeout(()=>this.textContent='Copiar',2000)" class="tok-tutorial-copy-btn">Copiar</button>
+                </div>
+                <p class="tok-tutorial-step-desc" style="margin-top:6px">Marca estas casillas de eventos:</p>
+                <ul class="tok-tutorial-events">
+                  <li>whatsapp.inbound_message.received</li>
+                  <li>whatsapp.smb.message.echoes</li>
+                </ul>
+              </div>
+            </div>
+            <div class="tok-tutorial-step">
+              <span class="tok-tutorial-step-num">3</span>
+              <div>
+                <p class="tok-tutorial-step-title">Copia tu API Key</p>
+                <p class="tok-tutorial-step-desc">En YCloud ve a <strong>Settings → API Keys</strong>, copia tu key y pegala en ToK en <strong>Configuracion → Integraciones</strong>.</p>
+              </div>
+            </div>
+          </div>
+        `,
         side: "top" as const,
       },
     } as typeof steps[0]);
@@ -100,7 +137,7 @@ export function AppTutorial() {
       popoverClass: "tok-tutorial-popover",
       nextBtnText: "Siguiente",
       prevBtnText: "Anterior",
-      doneBtnText: "Comenzar!",
+      doneBtnText: "Entendido",
       progressText: "{{current}} de {{total}}",
       steps,
       onDestroyed: async () => {
