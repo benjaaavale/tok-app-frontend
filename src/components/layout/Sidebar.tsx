@@ -248,7 +248,19 @@ export function Sidebar() {
               transition: `opacity 0.2s ease, max-width ${EASE}, margin-left ${EASE}`,
             }}
           >
-            <p className="text-[13px] font-semibold text-text-primary truncate">
+            <p
+              className="font-semibold text-text-primary leading-tight"
+              style={{
+                fontSize: (() => {
+                  const n = (companyNombre || "Mi empresa").length;
+                  if (n <= 12) return 13;
+                  if (n <= 17) return 11;
+                  if (n <= 22) return 9.5;
+                  return 8.5;
+                })(),
+                wordBreak: "break-word",
+              }}
+            >
               {companyNombre || "Mi empresa"}
             </p>
           </div>
