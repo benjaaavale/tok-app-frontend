@@ -143,7 +143,7 @@ export function Sidebar() {
             className="whitespace-nowrap overflow-hidden"
             style={{
               opacity: open ? 1 : 0,
-              maxWidth: open ? 160 : 0,
+              maxWidth: open ? 110 : 0,
               transition: `opacity 0.2s ease, max-width ${EASE}`,
             }}
           >
@@ -208,7 +208,7 @@ export function Sidebar() {
       <aside
         className="hidden lg:flex flex-col h-screen bg-bg-sidebar flex-shrink-0 overflow-hidden"
         style={{
-          width: open ? 220 : 68,
+          width: open ? 180 : 68,
           transition: `width ${EASE}`,
         }}
         onMouseEnter={() => setOpen(true)}
@@ -218,15 +218,15 @@ export function Sidebar() {
         <div
           className="flex items-center h-[68px]"
           style={{
-            paddingLeft: open ? 24 : 18,
+            paddingLeft: open ? 16 : 18,
             transition: `padding-left ${EASE}`,
           }}
         >
           <div
             className="flex-shrink-0"
             style={{
-              width: open ? 52 : 32,
-              height: open ? 52 : 32,
+              width: open ? 40 : 32,
+              height: open ? 40 : 32,
               transition: `width ${EASE}, height ${EASE}`,
             }}
           >
@@ -242,9 +242,9 @@ export function Sidebar() {
           <div
             className="min-w-0 overflow-hidden"
             style={{
-              marginLeft: open ? 10 : 0,
+              marginLeft: open ? 8 : 0,
               opacity: open ? 1 : 0,
-              maxWidth: open ? 130 : 0,
+              maxWidth: open ? 100 : 0,
               transition: `opacity 0.2s ease, max-width ${EASE}, margin-left ${EASE}`,
             }}
           >
@@ -273,9 +273,9 @@ export function Sidebar() {
           <div
             className="flex items-center h-[50px]"
             style={{
-              gap: open ? 12 : 0,
-              paddingLeft: open ? 12 : 5,
-              paddingRight: open ? 12 : 5,
+              gap: open ? 10 : 0,
+              paddingLeft: open ? 10 : 5,
+              paddingRight: open ? 10 : 5,
               transition: `gap ${EASE}, padding ${EASE}`,
             }}
           >
@@ -297,7 +297,7 @@ export function Sidebar() {
               className="min-w-0 overflow-hidden"
               style={{
                 opacity: open ? 1 : 0,
-                maxWidth: open ? 160 : 0,
+                maxWidth: open ? 110 : 0,
                 transition: `opacity 0.2s ease, max-width ${EASE}`,
               }}
             >
