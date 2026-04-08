@@ -4,13 +4,12 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
-import { useAgents, useCreateAgent, useUpdateAgent, useDeleteAgent, useGenerateAgentPrompt } from "@/hooks/useAgents";
+import { useAgents, useCreateAgent, useUpdateAgent, useDeleteAgent } from "@/hooks/useAgents";
 import { authFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { SettingsSection } from "./SettingsSection";
 import {
   Bot,
-  Sparkles,
   Phone,
   Trash2,
   RefreshCw,
@@ -18,7 +17,6 @@ import {
   Plus,
   Calendar,
   BookOpen,
-  ChevronDown,
   Zap,
   Pencil,
   Power,
@@ -34,15 +32,11 @@ function AgentCard({
   onEdit,
   onDelete,
   onToggle,
-  onGenerate,
-  isGenerating,
 }: {
   agent: Agent;
   onEdit: () => void;
   onDelete: () => void;
   onToggle: () => void;
-  onGenerate: () => void;
-  isGenerating: boolean;
 }) {
   const [showPrompt, setShowPrompt] = useState(false);
 
@@ -126,7 +120,7 @@ function AgentCard({
         </div>
       </div>
 
-      {/* Generation status + button */}
+      {/* Generation status */}
       <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border-secondary">
         {agent.generated_at ? (
           <div className="flex items-center gap-1.5 flex-1">
@@ -148,22 +142,13 @@ function AgentCard({
             </button>
           </div>
         ) : (
-          <span className="text-[10px] text-amber-500 flex-1">
-            Sin prompt generado
-          </span>
+          <div className="flex items-center gap-1.5 flex-1">
+            <Loader2 size={10} className="animate-spin text-accent" />
+            <span className="text-[10px] text-text-muted">
+              Generando prompt con IA...
+            </span>
+          </div>
         )}
-        <button
-          onClick={onGenerate}
-          disabled={isGenerating}
-          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-medium bg-accent/10 text-accent hover:bg-accent/20 transition-all disabled:opacity-50"
-        >
-          {isGenerating ? (
-            <Loader2 size={10} className="animate-spin" />
-          ) : (
-            <Sparkles size={10} />
-          )}
-          {agent.generated_at ? "Regenerar" : "Generar con IA"}
-        </button>
       </div>
 
       {/* Show generated prompt */}
@@ -445,7 +430,6 @@ export function AgentSettings() {
   const createAgent = useCreateAgent();
   const updateAgent = useUpdateAgent();
   const deleteAgent = useDeleteAgent();
-  const generatePrompt = useGenerateAgentPrompt();
   const confirm = useConfirm();
 
   const [useInternalAgent, setUseInternalAgent] = useState(false);
@@ -454,7 +438,6 @@ export function AgentSettings() {
   const [detecting, setDetecting] = useState(false);
   const [formAgent, setFormAgent] = useState<Partial<Agent> | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [generatingId, setGeneratingId] = useState<number | null>(null);
 
   const phone1Number = settings?.phone_1_number || "";
   const phone2Number = settings?.phone_2_number || "";
@@ -547,18 +530,24 @@ export function AgentSettings() {
     if (data.id) {
       updateAgent.mutate(data as Agent, {
         onSuccess: () => {
-          toast.success("Agente actualizado");
+          toast.success("Agente actualizado, regenerando prompt...");
           setShowForm(false);
           setFormAgent(null);
+          // Poll for regenerated prompt
+          setTimeout(() => queryClient.invalidateQueries({ queryKey: ["agents"] }), 5000);
+          setTimeout(() => queryClient.invalidateQueries({ queryKey: ["agents"] }), 12000);
         },
         onError: (err) => toast.error(err.message),
       });
     } else {
       createAgent.mutate(data, {
         onSuccess: () => {
-          toast.success("Agente creado");
+          toast.success("Agente creado, generando prompt con IA...");
           setShowForm(false);
           setFormAgent(null);
+          // Poll for generated prompt (takes ~5-10s)
+          setTimeout(() => queryClient.invalidateQueries({ queryKey: ["agents"] }), 5000);
+          setTimeout(() => queryClient.invalidateQueries({ queryKey: ["agents"] }), 12000);
         },
         onError: (err) => toast.error(err.message),
       });
@@ -578,20 +567,6 @@ export function AgentSettings() {
 
   const handleToggleAgentActive = (agent: Agent) => {
     updateAgent.mutate({ id: agent.id, is_active: !agent.is_active });
-  };
-
-  const handleGenerate = (agent: Agent) => {
-    setGeneratingId(agent.id);
-    generatePrompt.mutate(agent.id, {
-      onSuccess: () => {
-        toast.success(`Prompt generado para "${agent.name}"`);
-        setGeneratingId(null);
-      },
-      onError: (err) => {
-        toast.error(err.message);
-        setGeneratingId(null);
-      },
-    });
   };
 
   if (settingsLoading || agentsLoading) {
@@ -759,8 +734,6 @@ export function AgentSettings() {
                   }}
                   onDelete={() => handleDeleteAgent(agent)}
                   onToggle={() => handleToggleAgentActive(agent)}
-                  onGenerate={() => handleGenerate(agent)}
-                  isGenerating={generatingId === agent.id}
                 />
               ))
             ) : (

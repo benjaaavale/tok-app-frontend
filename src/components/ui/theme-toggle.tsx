@@ -59,14 +59,13 @@ export function ThemeToggle({ className, compact = false }: ThemeToggleProps) {
           )}
         </div>
 
-        {/* Static secondary icon */}
+        {/* Static secondary icon (opposite side of knob) */}
         <div
           className="absolute flex items-center justify-center rounded-full"
           style={{
             width: knobSize,
             height: knobSize,
-            left: isDark ? "auto" : 4,
-            right: isDark ? 4 : "auto",
+            left: isDark ? travel : 0,
           }}
         >
           {isDark ? (
