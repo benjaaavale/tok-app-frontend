@@ -120,6 +120,20 @@ export interface AgentConfig {
   generated_at: string | null;
 }
 
+export interface Agent {
+  id: number;
+  name: string;
+  description: string;
+  instructions: string;
+  can_schedule: boolean;
+  use_knowledge: boolean;
+  is_active: boolean;
+  generated_prompt: string | null;
+  generated_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface KnowledgeDocument {
   id: number;
   tipo: string;
