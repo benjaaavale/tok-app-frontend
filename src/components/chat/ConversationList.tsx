@@ -3,19 +3,22 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { useConversations } from "@/hooks/useConversations";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
+import { useWorkers } from "@/hooks/useWorkers";
 import { useChatStore } from "@/stores/chat-store";
 import { cn, getInitials, timeAgo } from "@/lib/utils";
 import { ETAPA_COLORS, ETAPA_LABELS } from "@/lib/constants";
-import { Search, X, ChevronDown } from "lucide-react";
+import { Search, X, ChevronDown, Bot, User } from "lucide-react";
 import { AnimatedSelect } from "@/components/ui/animated-select";
 
 export function ConversationList() {
   const { data: conversations, isLoading } = useConversations();
   const { data: companySettings } = useCompanySettings();
+  const { data: workers } = useWorkers();
   const { activeConversationId, setActiveConversation } = useChatStore();
   const [search, setSearch] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
   const [filterEtapa, setFilterEtapa] = useState("");
+  const [filterWorker, setFilterWorker] = useState("");
   const [filterPhone, setFilterPhone] = useState("");
 
   const [showPhoneDropdown, setShowPhoneDropdown] = useState(false);
@@ -66,13 +69,26 @@ export function ConversationList() {
           ? c.etiqueta === "Bot"
           : c.etiqueta === "Necesita ayuda humana");
       const matchEtapa = !filterEtapa || c.etapa === filterEtapa;
+      const matchWorker =
+        !filterWorker ||
+        (filterWorker === "unassigned"
+          ? !c.assigned_worker_id
+          : String(c.assigned_worker_id) === filterWorker);
       const matchPhone =
         !filterPhone || String(c.phone_slot) === filterPhone;
-      return matchSearch && matchEstado && matchEtapa && matchPhone;
+      return matchSearch && matchEstado && matchEtapa && matchWorker && matchPhone;
     });
-  }, [conversations, search, filterEstado, filterEtapa, filterPhone]);
+  }, [conversations, search, filterEstado, filterEtapa, filterWorker, filterPhone]);
 
-  const hasFilters = !!search || !!filterEstado || !!filterEtapa || !!filterPhone;
+  const workerOptions = useMemo(() => {
+    if (!workers) return [];
+    return [
+      { value: "unassigned", label: "Sin asignar" },
+      ...workers.map((w) => ({ value: String(w.id), label: w.nombre })),
+    ];
+  }, [workers]);
+
+  const hasFilters = !!search || !!filterEstado || !!filterEtapa || !!filterWorker || !!filterPhone;
 
   return (
     <div className="flex flex-col h-full border-r border-border-separator bg-bg-secondary">
@@ -184,12 +200,21 @@ export function ConversationList() {
             size="sm"
             className="flex-1"
           />
+          <AnimatedSelect
+            value={filterWorker}
+            onChange={setFilterWorker}
+            options={workerOptions}
+            placeholder="Trabajador"
+            size="sm"
+            className="flex-1"
+          />
           {hasFilters && (
             <button
               onClick={() => {
                 setSearch("");
                 setFilterEstado("");
                 setFilterEtapa("");
+                setFilterWorker("");
                 setFilterPhone("");
               }}
               className="px-2 rounded-lg bg-bg-primary border border-border-secondary text-text-muted hover:text-text-primary"
@@ -236,8 +261,25 @@ export function ConversationList() {
                 )}
               >
                 {/* Avatar */}
-                <div className="w-9 h-9 rounded-full bg-accent/15 text-accent flex items-center justify-center text-[11px] font-semibold flex-shrink-0">
-                  {getInitials(name)}
+                <div className="relative w-9 h-9 flex-shrink-0">
+                  <div className="w-9 h-9 rounded-full bg-accent/15 text-accent flex items-center justify-center text-[11px] font-semibold">
+                    {getInitials(name)}
+                  </div>
+                  {/* Bot / Human indicator */}
+                  <div
+                    className={cn(
+                      "absolute -bottom-0.5 -left-0.5 w-[16px] h-[16px] rounded-full flex items-center justify-center border-2 border-bg-secondary",
+                      conv.etiqueta === "Bot"
+                        ? "bg-blue-500"
+                        : "bg-emerald-500"
+                    )}
+                  >
+                    {conv.etiqueta === "Bot" ? (
+                      <Bot size={8} className="text-white" />
+                    ) : (
+                      <User size={8} className="text-white" />
+                    )}
+                  </div>
                 </div>
 
                 {/* Content */}
