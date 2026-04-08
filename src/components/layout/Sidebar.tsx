@@ -143,7 +143,7 @@ export function Sidebar() {
             className="whitespace-nowrap overflow-hidden"
             style={{
               opacity: open ? 1 : 0,
-              maxWidth: open ? 110 : 0,
+              maxWidth: open ? 125 : 0,
               transition: `opacity 0.2s ease, max-width ${EASE}`,
             }}
           >
