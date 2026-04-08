@@ -208,7 +208,7 @@ export function Sidebar() {
       <aside
         className="hidden lg:flex flex-col h-screen bg-bg-sidebar flex-shrink-0 overflow-hidden"
         style={{
-          width: open ? 180 : 68,
+          width: open ? 200 : 68,
           transition: `width ${EASE}`,
         }}
         onMouseEnter={() => setOpen(true)}
