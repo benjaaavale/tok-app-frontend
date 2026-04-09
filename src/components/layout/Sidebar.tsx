@@ -49,7 +49,7 @@ const mainNavItems: NavItem[] = [
     ],
   },
   { href: "/agents", label: "Agentes IA", icon: Bot },
-  { href: "/shopify", label: "Shopify", icon: ShoppingCart },
+  { href: "/carritos-abandonados", label: "Carritos", icon: ShoppingCart },
 ];
 
 const settingsItem: NavItem = {
