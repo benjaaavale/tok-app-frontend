@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { format, startOfWeek, differenceInWeeks } from "date-fns";
 import { useCalendarStore } from "@/stores/calendar-store";
+import { useAuthStore } from "@/stores/auth-store";
 import { useConversations } from "@/hooks/useConversations";
 import { useWorkers } from "@/hooks/useWorkers";
 import { useServiceTypes } from "@/hooks/useServiceTypes";
@@ -28,9 +29,16 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
   const createAppointment = useCreateAppointment();
   const { getToken } = useAuth();
   const changeWeek = useCalendarStore((s) => s.changeWeek);
+  const { role, workerId: myWorkerId } = useAuthStore();
+  const isWorker = role === "worker";
 
   const [contactId, setContactId] = useState<number | "">("");
-  const [workerId, setWorkerId] = useState<number | "">("");
+  const [workerId, setWorkerId] = useState<number | "">(isWorker && myWorkerId ? myWorkerId : "");
+
+  // Auto-lock worker for worker role
+  useEffect(() => {
+    if (isWorker && myWorkerId) setWorkerId(myWorkerId);
+  }, [isWorker, myWorkerId]);
   const [serviceTypeId, setServiceTypeId] = useState<number | "">("");
   const [fecha, setFecha] = useState<Date | undefined>(
     defaultDate ? new Date(defaultDate + "T12:00:00") : new Date()
@@ -253,12 +261,18 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
           {/* 2. Trabajador */}
           <div>
             <label className={labelCls}>Trabajador *</label>
-            <AnimatedSelect
-              value={String(workerId)}
-              onChange={(v) => handleSelectWorker(v ? Number(v) : "")}
-              options={(workers ?? []).map((w) => ({ value: String(w.id), label: w.nombre }))}
-              placeholder="Seleccionar trabajador"
-            />
+            {isWorker ? (
+              <div className="px-3 py-2 rounded-lg bg-bg-primary border border-border-secondary text-[12px] text-text-primary">
+                {workers?.find((w) => w.id === myWorkerId)?.nombre || "Tú"}
+              </div>
+            ) : (
+              <AnimatedSelect
+                value={String(workerId)}
+                onChange={(v) => handleSelectWorker(v ? Number(v) : "")}
+                options={(workers ?? []).map((w) => ({ value: String(w.id), label: w.nombre }))}
+                placeholder="Seleccionar trabajador"
+              />
+            )}
           </div>
 
           {/* 3. Tipo de servicio */}

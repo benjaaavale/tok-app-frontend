@@ -9,6 +9,7 @@ interface AuthState {
   role: "admin" | "worker" | null;
   workerId: number | null;
   canRespondChats: boolean;
+  canViewAllCalendar: boolean;
   synced: boolean;
   hasSeenTutorial: boolean;
   plan: PlanKey | null;
@@ -24,6 +25,7 @@ interface AuthState {
     role?: "admin" | "worker";
     workerId?: number | null;
     canRespondChats?: boolean;
+    canViewAllCalendar?: boolean;
     hasSeenTutorial?: boolean;
     plan?: PlanKey | null;
     subscriptionStatus?: string;
@@ -43,6 +45,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   role: null,
   workerId: null,
   canRespondChats: true,
+  canViewAllCalendar: false,
   synced: false,
   hasSeenTutorial: false,
   plan: null,
@@ -50,7 +53,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   planLimits: null,
   conversationsThisPeriod: 0,
 
-  setAuth: ({ companyToken, companyNombre, avatarUrl, email, role, workerId, canRespondChats, hasSeenTutorial, plan, subscriptionStatus, planLimits, conversationsThisPeriod }) => {
+  setAuth: ({ companyToken, companyNombre, avatarUrl, email, role, workerId, canRespondChats, canViewAllCalendar, hasSeenTutorial, plan, subscriptionStatus, planLimits, conversationsThisPeriod }) => {
     const initials = email
       ? email.split("@")[0].slice(0, 2).toUpperCase()
       : "TK";
@@ -62,6 +65,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       role: role || "admin",
       workerId: workerId || null,
       canRespondChats: canRespondChats ?? true,
+      canViewAllCalendar: canViewAllCalendar ?? false,
       hasSeenTutorial: hasSeenTutorial || false,
       plan: plan || null,
       subscriptionStatus: subscriptionStatus || "none",
@@ -83,6 +87,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       role: null,
       workerId: null,
       canRespondChats: true,
+      canViewAllCalendar: false,
       synced: false,
       hasSeenTutorial: false,
       plan: null,

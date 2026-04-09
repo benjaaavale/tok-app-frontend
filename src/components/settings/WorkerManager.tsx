@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { SettingsSection } from "./SettingsSection";
 import { WORKER_COLORS } from "@/lib/constants";
-import { Trash2, UserPlus, Mail, Check, MessageCircle } from "lucide-react";
+import { Trash2, UserPlus, Mail, Check, MessageCircle, CalendarDays } from "lucide-react";
 
 export function WorkerManager() {
   const { getToken } = useAuth();
@@ -51,6 +51,24 @@ export function WorkerManager() {
       setNewColor(WORKER_COLORS[0]);
       setShowForm(false);
       toast.success("Trabajador invitado. Se envió un email de invitación.");
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const toggleCalendarPermission = useMutation({
+    mutationFn: async ({ id, canViewAll }: { id: number; canViewAll: boolean }) => {
+      const res = await authFetch(
+        `/workers/${id}/calendar-permission`,
+        {
+          method: "PUT",
+          body: JSON.stringify({ can_view_all_calendar: canViewAll }),
+        },
+        () => getToken()
+      );
+      if (!res.ok) throw new Error("Error actualizando permiso de calendario");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["workers"] });
     },
     onError: (err: Error) => toast.error(err.message),
   });
@@ -134,10 +152,23 @@ export function WorkerManager() {
                     ? "text-accent bg-accent/10"
                     : "text-text-muted bg-bg-secondary"
                 )}
-                title={w.can_respond_chats ? "Puede responder chats" : "Solo agenda"}
+                title={w.can_respond_chats ? "Puede responder chats" : "Sin acceso a chats"}
               >
                 <MessageCircle size={10} />
-                {w.can_respond_chats ? "Chats" : "Solo agenda"}
+                {w.can_respond_chats ? "Chats" : "Sin chats"}
+              </button>
+              <button
+                onClick={() => toggleCalendarPermission.mutate({ id: w.id, canViewAll: !w.can_view_all_calendar })}
+                className={cn(
+                  "flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full transition-all",
+                  w.can_view_all_calendar
+                    ? "text-emerald-600 bg-emerald-500/10"
+                    : "text-text-muted bg-bg-secondary"
+                )}
+                title={w.can_view_all_calendar ? "Ve todas las agendas" : "Solo su agenda"}
+              >
+                <CalendarDays size={10} />
+                {w.can_view_all_calendar ? "Agenda global" : "Solo suya"}
               </button>
               <button
                 onClick={async () => {

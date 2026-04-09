@@ -65,7 +65,7 @@ export default function CalendarPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          {isAdmin && isGoogleConnected && (
+          {isGoogleConnected && (
             <button
               onClick={() => setShowCreateModal(true)}
               className="btn-gradient flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium"

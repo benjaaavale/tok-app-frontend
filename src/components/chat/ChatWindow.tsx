@@ -11,7 +11,7 @@ import { authFetch } from "@/lib/api";
 import { MessageBubble } from "./MessageBubble";
 import { ChatInput } from "./ChatInput";
 import { getInitials } from "@/lib/utils";
-import { ArrowLeft, MessageCircle, PanelRightOpen, PanelRightClose, Clock, FileText, Hourglass, ChevronDown, UserMinus } from "lucide-react";
+import { ArrowLeft, MessageCircle, PanelRightOpen, PanelRightClose, Clock, FileText, Hourglass, ChevronDown, UserMinus, BotOff } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -245,6 +245,16 @@ export function ChatWindow() {
           </div>
         )}
       </div>
+
+      {/* Bot desactivado banner */}
+      {activeConv?.bot_desactivado && (
+        <div className="flex items-center gap-2.5 px-4 py-2 bg-amber-500/8 border-t border-amber-500/20">
+          <BotOff size={14} className="text-amber-500 flex-shrink-0" />
+          <p className="text-[11px] text-amber-600 dark:text-amber-400 flex-1">
+            Bot desactivado — estás respondiendo manualmente
+          </p>
+        </div>
+      )}
 
       {/* Input or 24h block */}
       {(() => {

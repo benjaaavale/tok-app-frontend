@@ -94,6 +94,16 @@ export function SocketProvider({ children }: { children: ReactNode }) {
         queryClient.invalidateQueries({ queryKey: ["appointments"] });
       });
 
+      // Contact updated (etapa, bot status, nombre, etc.) → refresh contact panel
+      socket.on("contact_updated", (data) => {
+        queryClient.invalidateQueries({ queryKey: ["contact"] });
+        if (data?.contactId) {
+          queryClient.invalidateQueries({ queryKey: ["contact", data.contactId] });
+        }
+        // Also refresh conversations list (etapa badge updates)
+        queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      });
+
       socket.on("connect_error", (err) => {
         console.error("[Socket] Connection error:", err.message);
       });
