@@ -269,15 +269,15 @@ export function ConversationList() {
                   <div
                     className={cn(
                       "absolute -bottom-0.5 -left-0.5 w-[16px] h-[16px] rounded-full flex items-center justify-center border-2 border-bg-secondary",
-                      conv.etiqueta === "Bot"
-                        ? "bg-blue-500"
-                        : "bg-emerald-500"
+                      conv.bot_desactivado
+                        ? "bg-emerald-500"
+                        : "bg-blue-500"
                     )}
                   >
-                    {conv.etiqueta === "Bot" ? (
-                      <Bot size={8} className="text-white" />
-                    ) : (
+                    {conv.bot_desactivado ? (
                       <User size={8} className="text-white" />
+                    ) : (
+                      <Bot size={8} className="text-white" />
                     )}
                   </div>
                 </div>
