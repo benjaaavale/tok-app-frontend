@@ -15,6 +15,7 @@ export interface Conversation {
   assigned_worker_id: number | null;
   assigned_worker_nombre: string | null;
   assigned_worker_color: string | null;
+  bot_desactivado: boolean;
   unread_count: number;
   last_inbound_at: string | null;
 }
