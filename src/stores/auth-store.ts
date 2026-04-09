@@ -16,6 +16,9 @@ interface AuthState {
   subscriptionStatus: string;
   planLimits: { max_phone_slots: number; max_conversations_per_month: number } | null;
   conversationsThisPeriod: number;
+  shopifyConnected: boolean;
+  shopifyShopName: string | null;
+  shopifyDomain: string | null;
 
   setAuth: (data: {
     companyToken: string;
@@ -31,6 +34,9 @@ interface AuthState {
     subscriptionStatus?: string;
     planLimits?: { max_phone_slots: number; max_conversations_per_month: number } | null;
     conversationsThisPeriod?: number;
+    shopifyConnected?: boolean;
+    shopifyShopName?: string | null;
+    shopifyDomain?: string | null;
   }) => void;
   setAvatarUrl: (url: string) => void;
   setTutorialSeen: (seen: boolean) => void;
@@ -52,8 +58,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   subscriptionStatus: "none",
   planLimits: null,
   conversationsThisPeriod: 0,
+  shopifyConnected: false,
+  shopifyShopName: null,
+  shopifyDomain: null,
 
-  setAuth: ({ companyToken, companyNombre, avatarUrl, email, role, workerId, canRespondChats, canViewAllCalendar, hasSeenTutorial, plan, subscriptionStatus, planLimits, conversationsThisPeriod }) => {
+  setAuth: ({ companyToken, companyNombre, avatarUrl, email, role, workerId, canRespondChats, canViewAllCalendar, hasSeenTutorial, plan, subscriptionStatus, planLimits, conversationsThisPeriod, shopifyConnected, shopifyShopName, shopifyDomain }) => {
     const initials = email
       ? email.split("@")[0].slice(0, 2).toUpperCase()
       : "TK";
@@ -71,6 +80,9 @@ export const useAuthStore = create<AuthState>((set) => ({
       subscriptionStatus: subscriptionStatus || "none",
       planLimits: planLimits || null,
       conversationsThisPeriod: conversationsThisPeriod || 0,
+      shopifyConnected: shopifyConnected || false,
+      shopifyShopName: shopifyShopName || null,
+      shopifyDomain: shopifyDomain || null,
       synced: true,
     });
   },
@@ -94,5 +106,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       subscriptionStatus: "none",
       planLimits: null,
       conversationsThisPeriod: 0,
+      shopifyConnected: false,
+      shopifyShopName: null,
+      shopifyDomain: null,
     }),
 }));

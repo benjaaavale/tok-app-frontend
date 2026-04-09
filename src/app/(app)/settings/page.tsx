@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { useClerk } from "@clerk/nextjs";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { AnimatePresence, motion } from "framer-motion";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -15,6 +16,7 @@ import { WorkerManager } from "@/components/settings/WorkerManager";
 import { ServiceTypeManager } from "@/components/settings/ServiceTypeManager";
 import { UserProfileSettings } from "@/components/settings/UserProfileSettings";
 import { WorkerAssignmentSettings } from "@/components/settings/WorkerAssignmentSettings";
+import { ShopifyIntegration } from "@/components/settings/ShopifyIntegration";
 import {
   LogOut,
   User,
@@ -42,6 +44,7 @@ interface DirtyEntry {
 export default function SettingsPage() {
   const { signOut } = useClerk();
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
 
   const tabFromUrl = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState("perfil");
@@ -70,6 +73,21 @@ export default function SettingsPage() {
       window.history.replaceState({}, "", "/settings");
     }
   }, [searchParams]);
+
+  // Shopify redirect handler
+  useEffect(() => {
+    const shopifyStatus = searchParams.get("shopify");
+    if (shopifyStatus === "connected") {
+      toast.success("Shopify conectado correctamente");
+      queryClient.invalidateQueries({ queryKey: ["shopify-status"] });
+      window.history.replaceState({}, "", "/settings?tab=integraciones");
+      setActiveTab("integraciones");
+    } else if (shopifyStatus === "error") {
+      toast.error("Error conectando Shopify");
+      window.history.replaceState({}, "", "/settings?tab=integraciones");
+      setActiveTab("integraciones");
+    }
+  }, [searchParams, queryClient]);
 
   /* ── Dirty handlers ── */
   const makeDirtyHandler = useCallback(
@@ -163,6 +181,7 @@ export default function SettingsPage() {
 
         <TabsContent value="integraciones" className="space-y-6">
           <IntegrationSettings onDirtyChange={handleIntegDirty} />
+          <ShopifyIntegration />
         </TabsContent>
       </Tabs>
 
