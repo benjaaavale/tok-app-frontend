@@ -43,6 +43,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           role: meData.role || "admin",
           workerId: meData.worker_id || null,
           canRespondChats: meData.can_respond_chats ?? true,
+          canViewAllCalendar: meData.can_view_all_calendar ?? false,
           hasSeenTutorial: meData.has_seen_tutorial || false,
           plan: meData.plan || null,
           subscriptionStatus: meData.subscription_status || "none",

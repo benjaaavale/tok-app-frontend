@@ -84,6 +84,7 @@ export interface Worker {
   google_calendar_id: string | null;
   user_id: number | null;
   can_respond_chats: boolean;
+  can_view_all_calendar: boolean;
 }
 
 export interface CompanySettings {
