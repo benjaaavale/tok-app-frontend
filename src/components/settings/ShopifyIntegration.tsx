@@ -11,17 +11,28 @@ import {
   useDisconnectShopify,
 } from "@/hooks/useShopify";
 
-function ShopifyIcon({ size = 16 }: { size?: number }) {
+export function ShopifyLogo({ size = 20 }: { size?: number }) {
   return (
     <svg
       width={size}
-      height={size}
-      viewBox="0 0 109 124"
-      fill="currentColor"
-      style={{ flexShrink: 0, color: "#008060" }}
+      height={Math.round(size * 292 / 256)}
+      viewBox="0 0 256 292"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ flexShrink: 0 }}
       aria-label="Shopify"
     >
-      <path d="M74.7 14.8s-.3 0-.8.2c-.5-1.4-1.3-2.7-2.3-3.7-3.4-3.7-8.4-5.4-13.1-5.4-.3 0-.7 0-1 .1-.1-.2-.3-.4-.5-.5-2-2.2-4.6-3.2-7.7-3.1-6 .2-12 4.5-16.8 12.2-3.4 5.4-6 12.2-6.8 17.5-6.9 2.1-11.7 3.6-11.8 3.7-3.5 1.1-3.6 1.2-4 4.5C9.6 42.7 0 117.6 0 117.6l75.7 13.1V14.6c-.3 0-.7.1-1 .2zM57 20.2c-4 1.2-8.4 2.6-12.7 3.9 1.2-4.7 3.6-9.4 6.4-12.5 1.1-1.1 2.6-2.4 4.3-3.2 1.7 3.4 2.1 8.2 2 11.8zM49.6 8.2c1.4 0 2.6.3 3.6.9-1.6.8-3.2 2.1-4.6 3.6-3.7 4-6.5 10.2-7.7 16.1-3.5 1.1-7 2.1-10.2 3.1C32.6 21.2 40.6 8.4 49.6 8.2zM42.4 61.3c.3 5.2 14 6.3 14.8 18.5.6 9.6-5.1 16.1-13.2 16.6-9.8.6-15.2-5.2-15.2-5.2l2.1-8.8s5.4 4.1 9.7 3.8c2.8-.2 3.8-2.5 3.7-4.1-.4-6.8-11.5-6.4-12.3-17.5-.6-9.4 5.5-18.8 19.1-19.7 5.2-.3 7.9.9 7.9.9l-3.1 11.7s-3.4-1.6-7.5-1.3c-5.9.4-6 4.1-6 5.1zM60.7 19.5c0-3.2-.4-7.8-2-11.6 5.1 1 7.6 6.8 8.6 10.3-2 .6-4.2 1.2-6.6 1.3z" />
+      <path
+        d="M223.774 57.34c-.201-1.46-1.48-2.268-2.537-2.357-1.055-.088-23.383-1.743-23.383-1.743s-15.507-15.395-17.209-17.099c-1.703-1.703-5.029-1.185-6.32-.805-.19.056-3.388 1.043-8.678 2.68-5.18-14.906-14.322-28.604-30.405-28.604-.444 0-.901.018-1.358.044C129.31 3.407 123.644.779 118.75.779c-37.465 0-55.364 46.835-60.976 70.635-14.558 4.511-24.9 7.718-26.221 8.133-8.126 2.549-8.383 2.805-9.45 10.462C21.3 95.806.038 260.235.038 260.235l165.678 31.042 89.77-19.42S223.973 58.8 223.775 57.34zM156.49 40.848l-14.019 4.339c.005-.988.01-1.96.01-3.023 0-9.264-1.286-16.723-3.349-22.636 8.287 1.04 13.806 10.469 17.358 21.32zm-27.638-19.483c2.304 5.773 3.802 14.058 3.802 25.238 0 .572-.005 1.095-.01 1.624-9.117 2.824-19.024 5.89-28.953 8.966 5.575-21.516 16.025-31.908 25.161-35.828zm-11.131-10.537c1.617 0 3.246.549 4.805 1.622-12.007 5.65-24.877 19.88-30.312 48.297l-22.886 7.088C75.694 46.16 90.81 10.828 117.72 10.828z"
+        fill="#95BF46"
+      />
+      <path
+        d="M221.237 54.983c-1.055-.088-23.383-1.743-23.383-1.743s-15.507-15.395-17.209-17.099c-.637-.634-1.496-.959-2.394-1.099l-12.527 256.233 89.762-19.418S223.972 58.8 223.774 57.34c-.201-1.46-1.48-2.268-2.537-2.357"
+        fill="#5E8E3E"
+      />
+      <path
+        d="M135.242 104.585l-11.069 32.926s-9.698-5.176-21.586-5.176c-17.428 0-18.305 10.937-18.305 13.693 0 15.038 39.2 20.8 39.2 56.024 0 27.713-17.577 45.558-41.277 45.558-28.44 0-42.984-17.7-42.984-17.7l7.615-25.16s14.95 12.835 27.565 12.835c8.243 0 11.596-6.49 11.596-11.232 0-19.616-32.16-20.491-32.16-52.724 0-27.129 19.472-53.382 58.778-53.382 15.145 0 22.627 4.338 22.627 4.338"
+        fill="#FFF"
+      />
     </svg>
   );
 }
@@ -36,7 +47,7 @@ export function ShopifyIntegration() {
   const disconnectShopify = useDisconnectShopify();
 
   const isConnected = status?.connected ?? false;
-  const shopName = status?.shopName ?? null;
+  const shopName = status?.shop_name ?? null;
   const shopifyDomain = status?.domain ?? null;
 
   const handleConnect = () => {
@@ -82,13 +93,13 @@ export function ShopifyIntegration() {
     >
       {/* Connection status card */}
       <div className="flex items-center gap-3 p-3 rounded-xl bg-bg-primary border border-border-secondary">
-        <ShopifyIcon size={18} />
-        <div className="flex-1">
+        <ShopifyLogo size={22} />
+        <div className="flex-1 min-w-0">
           <p className="text-[12px] font-medium text-text-primary">
             {isConnected ? shopName || "Shopify conectado" : "No conectado"}
           </p>
           {isConnected && shopifyDomain && (
-            <p className="text-[11px] text-[#008060] font-medium">
+            <p className="text-[11px] text-[#008060] font-medium truncate">
               {shopifyDomain}
             </p>
           )}
@@ -99,7 +110,7 @@ export function ShopifyIntegration() {
           </p>
         </div>
         {isConnected ? (
-          <span className="flex items-center gap-1 text-[10px] text-[#008060] px-2 py-0.5 rounded-full bg-[#008060]/10 border border-[#008060]/20 font-medium">
+          <span className="flex items-center gap-1 text-[10px] text-[#008060] px-2 py-0.5 rounded-full bg-[#008060]/10 border border-[#008060]/20 font-medium whitespace-nowrap">
             <CheckCircle2 size={10} />
             Conectado
           </span>
@@ -141,7 +152,7 @@ export function ShopifyIntegration() {
               {connectShopify.isPending ? (
                 <Loader2 size={13} className="animate-spin" />
               ) : (
-                <ShopifyIcon size={13} />
+                <ShopifyLogo size={14} />
               )}
               {connectShopify.isPending ? "Conectando..." : "Conectar Shopify"}
             </button>
