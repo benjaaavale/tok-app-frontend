@@ -17,7 +17,6 @@ import { ServiceTypeManager } from "@/components/settings/ServiceTypeManager";
 import { UserProfileSettings } from "@/components/settings/UserProfileSettings";
 import { WorkerAssignmentSettings } from "@/components/settings/WorkerAssignmentSettings";
 import { ShopifyIntegration } from "@/components/settings/ShopifyIntegration";
-import { AbandonedCheckouts } from "@/components/settings/AbandonedCheckouts";
 import {
   LogOut,
   User,
@@ -183,7 +182,6 @@ export default function SettingsPage() {
         <TabsContent value="integraciones" className="space-y-6">
           <IntegrationSettings onDirtyChange={handleIntegDirty} />
           <ShopifyIntegration />
-          <AbandonedCheckouts />
         </TabsContent>
       </Tabs>
 

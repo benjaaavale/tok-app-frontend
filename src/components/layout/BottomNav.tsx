@@ -12,6 +12,7 @@ import {
   Settings,
   FileText,
   Bot,
+  ShoppingCart,
 } from "lucide-react";
 
 const allNavItems = [
@@ -20,6 +21,7 @@ const allNavItems = [
   { href: "/calendar", label: "Agenda", icon: CalendarDays, adminOnly: false },
   { href: "/templates", label: "Plantillas", icon: FileText, adminOnly: true },
   { href: "/agents", label: "Agentes", icon: Bot, adminOnly: true },
+  { href: "/shopify", label: "Shopify", icon: ShoppingCart, adminOnly: true },
   { href: "/settings", label: "Ajustes", icon: Settings, adminOnly: true },
 ];
 
