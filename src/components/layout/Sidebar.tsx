@@ -15,6 +15,7 @@ import {
   FileText,
   Bot,
   ChevronRight,
+  ShoppingCart,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useConversations } from "@/hooks/useConversations";
@@ -48,6 +49,7 @@ const mainNavItems: NavItem[] = [
     ],
   },
   { href: "/agents", label: "Agentes IA", icon: Bot },
+  { href: "/shopify", label: "Shopify", icon: ShoppingCart },
 ];
 
 const settingsItem: NavItem = {
