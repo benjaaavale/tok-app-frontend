@@ -229,7 +229,7 @@ export function ContactPanel() {
                       <span className="text-[11px] text-text-secondary flex items-center gap-1">
                         <CalendarDays size={10} />
                         {new Date(
-                          contact.next_appointment.fecha + "T12:00:00"
+                          contact.next_appointment.fecha.slice(0, 10) + "T12:00:00"
                         ).toLocaleDateString("es-CL", {
                           day: "numeric",
                           month: "short",
@@ -450,7 +450,7 @@ function MobileContactContent({
                 <div className="flex items-center gap-3 mt-1.5">
                   <span className="text-[11px] text-text-secondary flex items-center gap-1">
                     <CalendarDays size={10} />
-                    {new Date(contact.next_appointment.fecha + "T12:00:00").toLocaleDateString("es-CL", { day: "numeric", month: "short" })}
+                    {new Date(contact.next_appointment.fecha.slice(0, 10) + "T12:00:00").toLocaleDateString("es-CL", { day: "numeric", month: "short" })}
                   </span>
                   <span className="text-[11px] text-text-secondary flex items-center gap-1">
                     <Clock size={10} />
