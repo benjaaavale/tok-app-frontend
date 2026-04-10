@@ -75,7 +75,7 @@ function AgentCard({
                 {agent.use_knowledge && (
                   <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500">
                     <BookOpen size={8} className="inline mr-0.5" />
-                    Knowledge
+                    Conocimiento
                   </span>
                 )}
               </div>
@@ -327,7 +327,7 @@ function AgentFormModal({
               />
               <div>
                 <p className="text-[12px] font-medium text-text-primary">
-                  Usa knowledge
+                  Usa base de conocimiento
                 </p>
                 <p className="text-[10px] text-text-muted">
                   Consulta base de datos
@@ -515,7 +515,7 @@ export function AgentSettings() {
       queryClient.invalidateQueries({ queryKey: ["companySettings"] });
       toast.success("Telefono eliminado");
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Error");
+      toast.error(err instanceof Error ? err.message : "Error desconocido");
     }
   };
 

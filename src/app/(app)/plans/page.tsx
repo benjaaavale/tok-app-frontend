@@ -55,7 +55,7 @@ const PLAN_DETAILS: {
       "Todo lo de Pro, mas:",
       "Hasta 5.000 conversaciones/mes",
       "Integraciones Personalizadas (CRMs)",
-      "Manager de Cuenta Dedicado",
+      "Ejecutivo de Cuenta Dedicado",
       "Soporte Prioritario 24/7",
     ],
     cta: "Comenzar",
@@ -196,7 +196,7 @@ export default function PlansPage() {
           className="mt-8 text-sm font-medium underline"
           style={{ color: "var(--accent)" }}
         >
-          Ya tengo un plan activo, ir al dashboard
+          Ya tengo un plan activo, ir al inicio
         </button>
       )}
     </div>
