@@ -244,23 +244,11 @@ export function Sidebar() {
             style={{
               marginLeft: open ? 8 : 0,
               opacity: open ? 1 : 0,
-              maxWidth: open ? 100 : 0,
+              maxWidth: open ? 120 : 0,
               transition: `opacity 0.2s ease, max-width ${EASE}, margin-left ${EASE}`,
             }}
           >
-            <p
-              className="font-semibold text-text-primary leading-tight"
-              style={{
-                fontSize: (() => {
-                  const n = (companyNombre || "Mi empresa").length;
-                  if (n <= 12) return 13;
-                  if (n <= 17) return 11;
-                  if (n <= 22) return 9.5;
-                  return 8.5;
-                })(),
-                wordBreak: "break-word",
-              }}
-            >
+            <p className="text-[12px] font-semibold text-text-primary truncate">
               {companyNombre || "Mi empresa"}
             </p>
           </div>
