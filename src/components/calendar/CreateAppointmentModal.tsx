@@ -269,7 +269,7 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
               <AnimatedSelect
                 value={String(workerId)}
                 onChange={(v) => handleSelectWorker(v ? Number(v) : "")}
-                options={(workers ?? []).map((w) => ({ value: String(w.id), label: w.nombre }))}
+                options={(workers ?? []).filter((w) => w.is_active).map((w) => ({ value: String(w.id), label: w.nombre }))}
                 placeholder="Seleccionar trabajador"
               />
             )}

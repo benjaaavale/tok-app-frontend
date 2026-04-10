@@ -86,6 +86,7 @@ export interface Worker {
   user_id: number | null;
   can_respond_chats: boolean;
   can_view_all_calendar: boolean;
+  is_active: boolean;
 }
 
 export interface CompanySettings {

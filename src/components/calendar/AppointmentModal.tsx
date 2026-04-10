@@ -104,7 +104,7 @@ export function AppointmentModal({
                 color: appointment.worker_color || "#3B82F6",
               }}
             >
-              {appointment.estado}
+              {appointment.estado.charAt(0).toUpperCase() + appointment.estado.slice(1)}
             </span>
           </div>
 
