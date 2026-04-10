@@ -297,7 +297,7 @@ export function CreateAppointmentModal({ onClose, defaultDate, defaultTime }: Pr
             {!serviceTypes?.length && (
               <p className="text-[10px] text-text-muted mt-1">
                 Sin tipos de servicio.{" "}
-                <a href="/settings" className="text-accent hover:underline">Configurar en Settings</a>
+                <a href="/settings" className="text-accent hover:underline">Configurar en Ajustes</a>
               </p>
             )}
             {/* After selection: editable name + duration */}
