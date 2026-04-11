@@ -285,9 +285,16 @@ export function ConversationList() {
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <span className="text-[13px] font-medium text-text-primary truncate">
-                      {name}
-                    </span>
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="text-[13px] font-medium text-text-primary truncate">
+                        {name}
+                      </span>
+                      {hasPhones && conv.phone_label && (
+                        <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0 bg-accent/10 text-accent">
+                          {conv.phone_label}
+                        </span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
                       <span className="text-[10px] text-text-muted">
                         {conv.ultimo_mensaje_timestamp
@@ -319,11 +326,6 @@ export function ConversationList() {
                     {needsHuman && (
                       <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0 bg-amber-500/15 text-amber-600 dark:text-amber-400">
                         Ayuda humana
-                      </span>
-                    )}
-                    {hasPhones && conv.phone_label && (
-                      <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0 bg-accent/10 text-accent">
-                        {conv.phone_label}
                       </span>
                     )}
                     {conv.etapa && (
