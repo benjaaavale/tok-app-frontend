@@ -24,8 +24,6 @@ export function ConversationList() {
   const [showPhoneDropdown, setShowPhoneDropdown] = useState(false);
   const phoneDropdownRef = useRef<HTMLDivElement>(null);
 
-  const hasPhones = phoneItems.length > 0;
-
   const phoneItems = useMemo(() => {
     if (!companySettings) return [];
     const items: { slot: string; number: string; label: string }[] = [];
@@ -37,6 +35,8 @@ export function ConversationList() {
     }
     return items;
   }, [companySettings]);
+
+  const hasPhones = phoneItems.length > 0;
 
   // Close phone dropdown on click outside
   useEffect(() => {
