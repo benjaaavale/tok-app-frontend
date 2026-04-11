@@ -321,7 +321,7 @@ export function ConversationList() {
                         Ayuda humana
                       </span>
                     )}
-                    {hasTwoPhones && conv.phone_label && (
+                    {hasPhones && conv.phone_label && (
                       <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0 bg-accent/10 text-accent">
                         {conv.phone_label}
                       </span>
