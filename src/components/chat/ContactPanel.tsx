@@ -2,8 +2,10 @@
 
 import { useAuth } from "@clerk/nextjs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { useContact } from "@/hooks/useContact";
 import { useChatStore } from "@/stores/chat-store";
+import { useCalendarStore } from "@/stores/calendar-store";
 import { authFetch } from "@/lib/api";
 import { ETAPA_COLORS, ETAPA_LABELS, LEAD_OPTIONS } from "@/lib/constants";
 import { AnimatedSelect } from "@/components/ui/animated-select";
@@ -25,15 +27,38 @@ import {
   Sparkles,
   Info,
   X,
+  ArrowUpRight,
 } from "lucide-react";
 
 export function ContactPanel() {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
   const confirm = useConfirm();
+  const router = useRouter();
+  const { setPendingAppointment, setWeekOffset } = useCalendarStore();
   const { activePhone, activeName, showContactPanel, setActiveConversation, setShowContactPanel } =
     useChatStore();
   const { data: contact, isLoading } = useContact(activePhone);
+
+  const handleOpenAppointment = (appt: Record<string, unknown>) => {
+    const dateStr = String(appt.fecha).slice(0, 10);
+    const today = new Date();
+    const target = new Date(dateStr + "T12:00:00");
+    const todayDay = today.getDay();
+    const todayMonday = new Date(today);
+    todayMonday.setDate(today.getDate() - (todayDay === 0 ? 6 : todayDay - 1));
+    todayMonday.setHours(0, 0, 0, 0);
+    const targetDay = target.getDay();
+    const targetMonday = new Date(target);
+    targetMonday.setDate(target.getDate() - (targetDay === 0 ? 6 : targetDay - 1));
+    targetMonday.setHours(0, 0, 0, 0);
+    const weekOffset = Math.round(
+      (targetMonday.getTime() - todayMonday.getTime()) / (7 * 24 * 60 * 60 * 1000)
+    );
+    setWeekOffset(weekOffset);
+    setPendingAppointment(appt);
+    router.push("/calendar");
+  };
 
   const botToggle = useMutation({
     mutationFn: async () => {
@@ -218,7 +243,10 @@ export function ContactPanel() {
           {/* ── Próxima cita ── */}
           {contact.next_appointment && (
             <Section title="Próxima cita">
-              <div className="px-3 py-3 bg-accent-light rounded-xl border border-accent-muted">
+              <button
+                onClick={() => handleOpenAppointment(contact.next_appointment as Record<string, unknown>)}
+                className="w-full text-left px-3 py-3 bg-accent-light rounded-xl border border-accent-muted hover:border-accent/40 hover:bg-accent/10 transition-all group"
+              >
                 <div className="flex items-start gap-2.5">
                   <CalendarDays size={15} className="text-accent mt-0.5" />
                   <div className="flex-1">
@@ -243,11 +271,12 @@ export function ContactPanel() {
                     <span
                       className="inline-block mt-1.5 text-[9px] font-semibold px-2 py-0.5 rounded-full bg-accent/10 text-accent"
                     >
-                      {contact.next_appointment.estado}
+                      {contact.next_appointment.estado.charAt(0).toUpperCase() + contact.next_appointment.estado.slice(1)}
                     </span>
                   </div>
+                  <ArrowUpRight size={13} className="text-accent opacity-0 group-hover:opacity-60 transition-opacity flex-shrink-0 mt-0.5" />
                 </div>
-              </div>
+              </button>
             </Section>
           )}
 
@@ -360,6 +389,28 @@ function MobileContactContent({
 }) {
   const { setActiveConversation } = useChatStore();
   const confirm = useConfirm();
+  const router = useRouter();
+  const { setPendingAppointment, setWeekOffset } = useCalendarStore();
+
+  const handleOpenAppointment = (appt: Record<string, unknown>) => {
+    const dateStr = String(appt.fecha).slice(0, 10);
+    const today = new Date();
+    const target = new Date(dateStr + "T12:00:00");
+    const todayDay = today.getDay();
+    const todayMonday = new Date(today);
+    todayMonday.setDate(today.getDate() - (todayDay === 0 ? 6 : todayDay - 1));
+    todayMonday.setHours(0, 0, 0, 0);
+    const targetDay = target.getDay();
+    const targetMonday = new Date(target);
+    targetMonday.setDate(target.getDate() - (targetDay === 0 ? 6 : targetDay - 1));
+    targetMonday.setHours(0, 0, 0, 0);
+    const weekOffset = Math.round(
+      (targetMonday.getTime() - todayMonday.getTime()) / (7 * 24 * 60 * 60 * 1000)
+    );
+    setWeekOffset(weekOffset);
+    setPendingAppointment(appt);
+    router.push("/calendar");
+  };
 
   return (
     <div className="p-5 space-y-5 pb-24">
@@ -440,7 +491,10 @@ function MobileContactContent({
       {/* Próxima cita */}
       {contact.next_appointment && (
         <Section title="Próxima cita">
-          <div className="px-3 py-3 bg-accent-light rounded-xl border border-accent-muted">
+          <button
+            onClick={() => handleOpenAppointment(contact.next_appointment as Record<string, unknown>)}
+            className="w-full text-left px-3 py-3 bg-accent-light rounded-xl border border-accent-muted hover:border-accent/40 hover:bg-accent/10 transition-all group"
+          >
             <div className="flex items-start gap-2.5">
               <CalendarDays size={15} className="text-accent mt-0.5" />
               <div className="flex-1">
@@ -458,11 +512,12 @@ function MobileContactContent({
                   </span>
                 </div>
                 <span className="inline-block mt-1.5 text-[9px] font-semibold px-2 py-0.5 rounded-full bg-accent/10 text-accent">
-                  {contact.next_appointment.estado}
+                  {contact.next_appointment.estado.charAt(0).toUpperCase() + contact.next_appointment.estado.slice(1)}
                 </span>
               </div>
+              <ArrowUpRight size={13} className="text-accent opacity-0 group-hover:opacity-60 transition-opacity flex-shrink-0 mt-0.5" />
             </div>
-          </div>
+          </button>
         </Section>
       )}
 

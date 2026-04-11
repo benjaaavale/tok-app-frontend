@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAppointments } from "@/hooks/useAppointments";
 import { useCalendarStore } from "@/stores/calendar-store";
 import { useAuthStore } from "@/stores/auth-store";
@@ -37,7 +37,7 @@ function getWeekRange(offset: number) {
 }
 
 export default function CalendarPage() {
-  const { weekOffset, changeWeek, goToday } = useCalendarStore();
+  const { weekOffset, changeWeek, goToday, pendingAppointment, setPendingAppointment } = useCalendarStore();
   const { role } = useAuthStore();
   const isAdmin = role !== "worker";
   const [selectedAppointment, setSelectedAppointment] =
@@ -52,6 +52,17 @@ export default function CalendarPage() {
     range.from,
     range.to
   );
+
+  useEffect(() => {
+    if (!pendingAppointment || !appointments) return;
+    const found = appointments.find(
+      (a) => a.id === (pendingAppointment as Record<string, unknown>).id
+    );
+    if (found) {
+      setSelectedAppointment(found);
+      setPendingAppointment(null);
+    }
+  }, [appointments, pendingAppointment]);
 
   return (
     <div className="flex flex-col h-full">
