@@ -24,7 +24,7 @@ export function ConversationList() {
   const [showPhoneDropdown, setShowPhoneDropdown] = useState(false);
   const phoneDropdownRef = useRef<HTMLDivElement>(null);
 
-  const hasTwoPhones = !!(companySettings?.phone_2_number);
+  const hasPhones = phoneItems.length > 0;
 
   const phoneItems = useMemo(() => {
     if (!companySettings) return [];
@@ -92,8 +92,8 @@ export function ConversationList() {
 
   return (
     <div className="flex flex-col h-full border-r border-border-separator bg-bg-secondary">
-      {/* Phone selector (above search, only if 2 phones) */}
-      {hasTwoPhones && (
+      {/* Phone selector (above search, always visible if company has phones) */}
+      {hasPhones && (
         <div className="px-3 pt-3 pb-0" ref={phoneDropdownRef}>
           <div className="relative">
             <button
