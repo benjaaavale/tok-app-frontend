@@ -55,9 +55,9 @@ const settingsItem: NavItem = {
   label: "Configuración",
   icon: Settings,
   children: [
-    { param: "perfil", label: "Perfil" },
     { param: "equipo", label: "Equipo" },
     { param: "calendario", label: "Calendario" },
+    { param: "perfil", label: "Perfil" },
     { param: "integraciones", label: "Integraciones" },
   ],
 };
