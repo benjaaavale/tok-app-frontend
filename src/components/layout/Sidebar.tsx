@@ -95,14 +95,11 @@ export function Sidebar() {
   const isChildActive = (item: NavItem, child: NavChild) => {
     if (!isItemActive(item)) return false;
     const tab = searchParams.get("tab");
-    if (!tab) return child === item.children![0];
     return tab === child.param;
   };
 
   const childHref = (item: NavItem, child: NavChild) =>
-    child === item.children![0]
-      ? item.href
-      : `${item.href}?tab=${child.param}`;
+    `${item.href}?tab=${child.param}`;
 
   /* ── Render a nav item ── */
   const renderItem = (item: NavItem) => {
