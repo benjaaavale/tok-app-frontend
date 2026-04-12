@@ -290,7 +290,7 @@ export function ConversationList() {
                         {name}
                       </span>
                       {hasPhones && conv.phone_label && (
-                        <span className="text-[10px] text-text-muted flex-shrink-0">
+                        <span className="text-[9px] font-medium flex-shrink-0 text-accent">
                           {conv.phone_label}
                         </span>
                       )}
