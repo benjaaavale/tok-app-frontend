@@ -44,7 +44,7 @@ export default function SettingsPage() {
   const searchParams = useSearchParams();
 
   const tabFromUrl = searchParams.get("tab");
-  const [activeTab, setActiveTab] = useState("perfil");
+  const [activeTab, setActiveTab] = useState("equipo");
   const [shaking, setShaking] = useState(false);
 
   // Sync tab from URL search params (driven by sidebar)
