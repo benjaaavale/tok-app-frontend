@@ -1,4 +1,5 @@
 import { API_URL } from "./constants";
+import { useAuthStore } from "@/stores/auth-store";
 
 /**
  * Authenticated fetch wrapper.
@@ -15,6 +16,12 @@ export async function authFetch(
   if (getToken) {
     const token = await getToken();
     if (token) headers.set("Authorization", `Bearer ${token}`);
+  }
+
+  // Super admin impersonation header
+  const { impersonatingCompanyId } = useAuthStore.getState();
+  if (impersonatingCompanyId) {
+    headers.set("X-Impersonate-Company", String(impersonatingCompanyId));
   }
 
   if (!headers.has("Content-Type") && !(options.body instanceof FormData)) {

@@ -17,6 +17,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { CompanySelector } from "@/components/layout/CompanySelector";
 import { useConversations } from "@/hooks/useConversations";
 import { APP_VERSION } from "@/lib/constants";
 
@@ -70,7 +71,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { theme } = useTheme();
-  const { companyNombre, userAvatarUrl, userInitials, role, canRespondChats } =
+  const { companyNombre, userAvatarUrl, userInitials, role, canRespondChats, isSuperadmin } =
     useAuthStore();
   const isAdmin = role !== "worker";
 
@@ -250,6 +251,9 @@ export function Sidebar() {
             </p>
           </div>
         </div>
+
+        {/* Super admin company selector */}
+        {isSuperadmin && open && <CompanySelector />}
 
         {/* ── Main Navigation ── */}
         <nav className="flex-1 px-[12px] pt-3 space-y-0.5 overflow-y-auto overflow-x-hidden">
