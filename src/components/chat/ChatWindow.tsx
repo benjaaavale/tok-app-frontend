@@ -258,7 +258,9 @@ export function ChatWindow() {
 
       {/* Input or 24h block */}
       {(() => {
-        const windowExpired = activeConv?.last_inbound_at &&
+        // The 24h window restriction only applies to WhatsApp
+        const isWhatsApp = !activeConv?.channel || activeConv.channel === "whatsapp";
+        const windowExpired = isWhatsApp && activeConv?.last_inbound_at &&
           Date.now() - new Date(activeConv.last_inbound_at).getTime() > 24 * 60 * 60 * 1000;
 
         if (!windowExpired) return <ChatInput />;

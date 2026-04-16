@@ -9,6 +9,50 @@ import { cn, getInitials, timeAgo } from "@/lib/utils";
 import { ETAPA_COLORS, ETAPA_LABELS } from "@/lib/constants";
 import { Search, X, ChevronDown, Bot, User } from "lucide-react";
 import { AnimatedSelect } from "@/components/ui/animated-select";
+import type { Conversation } from "@/types/api";
+
+type ChannelFilter = "all" | "whatsapp" | "messenger" | "instagram";
+
+function MessengerIcon({ size = 14 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="12" fill="url(#msg_bg)" />
+      <path d="M12 4C7.582 4 4 7.376 4 11.527c0 2.236 1.012 4.235 2.621 5.625V20l2.41-1.327c.644.178 1.326.274 2.034.274 4.418 0 7.935-3.376 7.935-7.42C19.936 7.376 16.418 4 12 4zm.79 9.988l-2.02-2.155-3.946 2.155 4.338-4.609 2.072 2.155 3.893-2.155-4.337 4.61z" fill="white"/>
+      <defs>
+        <linearGradient id="msg_bg" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#00B2FF"/>
+          <stop offset="1" stopColor="#006AFF"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+}
+
+function InstagramIcon({ size = 14 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="24" height="24" rx="6" fill="url(#ig_bg)" />
+      <rect x="6" y="6" width="12" height="12" rx="3.5" stroke="white" strokeWidth="1.5" fill="none"/>
+      <circle cx="12" cy="12" r="3" stroke="white" strokeWidth="1.5" fill="none"/>
+      <circle cx="16" cy="8" r="1" fill="white"/>
+      <defs>
+        <linearGradient id="ig_bg" x1="0" y1="24" x2="24" y2="0" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#F9CE34"/>
+          <stop offset="0.35" stopColor="#EE2A7B"/>
+          <stop offset="1" stopColor="#6228D7"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+}
+
+function ChannelBadge({ conv }: { conv: Conversation }) {
+  const channel = conv.channel;
+  if (!channel || channel === "whatsapp") return null;
+  if (channel === "messenger") return <MessengerIcon size={13} />;
+  if (channel === "instagram") return <InstagramIcon size={13} />;
+  return null;
+}
 
 export function ConversationList() {
   const { data: conversations, isLoading } = useConversations();
@@ -20,6 +64,7 @@ export function ConversationList() {
   const [filterEtapa, setFilterEtapa] = useState("");
   const [filterWorker, setFilterWorker] = useState("");
   const [filterPhone, setFilterPhone] = useState("");
+  const [filterChannel, setFilterChannel] = useState<ChannelFilter>("all");
 
   const [showPhoneDropdown, setShowPhoneDropdown] = useState(false);
   const phoneDropdownRef = useRef<HTMLDivElement>(null);
@@ -76,9 +121,11 @@ export function ConversationList() {
           : String(c.assigned_worker_id) === filterWorker);
       const matchPhone =
         !filterPhone || String(c.phone_slot) === filterPhone;
-      return matchSearch && matchEstado && matchEtapa && matchWorker && matchPhone;
+      const matchChannel =
+        filterChannel === "all" || c.channel === filterChannel;
+      return matchSearch && matchEstado && matchEtapa && matchWorker && matchPhone && matchChannel;
     });
-  }, [conversations, search, filterEstado, filterEtapa, filterWorker, filterPhone]);
+  }, [conversations, search, filterEstado, filterEtapa, filterWorker, filterPhone, filterChannel]);
 
   const workerOptions = useMemo(() => {
     if (!workers) return [];
@@ -88,7 +135,7 @@ export function ConversationList() {
     ];
   }, [workers]);
 
-  const hasFilters = !!search || !!filterEstado || !!filterEtapa || !!filterWorker || !!filterPhone;
+  const hasFilters = !!search || !!filterEstado || !!filterEtapa || !!filterWorker || !!filterPhone || filterChannel !== "all";
 
   return (
     <div className="flex flex-col h-full border-r border-border-separator bg-bg-secondary">
@@ -171,6 +218,45 @@ export function ConversationList() {
           />
         </div>
 
+        {/* Channel filter buttons */}
+        <div className="flex items-center gap-1">
+          {(["all", "whatsapp", "messenger", "instagram"] as ChannelFilter[]).map((ch) => (
+            <button
+              key={ch}
+              onClick={() => setFilterChannel(ch)}
+              className={cn(
+                "flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-all border",
+                filterChannel === ch
+                  ? "bg-accent/10 border-accent/30 text-accent"
+                  : "bg-bg-primary border-border-secondary text-text-muted hover:text-text-primary hover:bg-bg-hover"
+              )}
+            >
+              {ch === "all" && <span>Todos</span>}
+              {ch === "whatsapp" && (
+                <>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" fill="#25D366"/>
+                    <path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.978-1.386A9.944 9.944 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2z" stroke="#25D366" strokeWidth="1.5" fill="none"/>
+                  </svg>
+                  <span>WhatsApp</span>
+                </>
+              )}
+              {ch === "messenger" && (
+                <>
+                  <MessengerIcon size={11} />
+                  <span>Messenger</span>
+                </>
+              )}
+              {ch === "instagram" && (
+                <>
+                  <InstagramIcon size={11} />
+                  <span>Instagram</span>
+                </>
+              )}
+            </button>
+          ))}
+        </div>
+
         {/* Filters */}
         <div className="flex gap-1.5">
           <AnimatedSelect
@@ -216,6 +302,7 @@ export function ConversationList() {
                 setFilterEtapa("");
                 setFilterWorker("");
                 setFilterPhone("");
+                setFilterChannel("all");
               }}
               className="px-2 rounded-lg bg-bg-primary border border-border-secondary text-text-muted hover:text-text-primary"
             >
@@ -280,6 +367,12 @@ export function ConversationList() {
                       <Bot size={8} className="text-white" />
                     )}
                   </div>
+                  {/* Channel badge (messenger / instagram only) */}
+                  {(conv.channel === "messenger" || conv.channel === "instagram") && (
+                    <div className="absolute -bottom-0.5 -right-0.5 w-[16px] h-[16px] rounded-full border-2 border-bg-secondary flex items-center justify-center overflow-hidden">
+                      <ChannelBadge conv={conv} />
+                    </div>
+                  )}
                 </div>
 
                 {/* Content */}

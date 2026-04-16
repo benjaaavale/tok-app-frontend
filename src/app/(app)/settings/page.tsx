@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { CompanySettings } from "@/components/settings/CompanySettings";
 import { IntegrationSettings } from "@/components/settings/IntegrationSettings";
+import { MetaIntegration } from "@/components/settings/MetaIntegration";
 import { GoogleCalendarSettings } from "@/components/settings/GoogleCalendarSettings";
 import { NotificationSettings } from "@/components/settings/NotificationSettings";
 import { WorkerManager } from "@/components/settings/WorkerManager";
@@ -68,6 +69,21 @@ export default function SettingsPage() {
     } else if (googleStatus === "error") {
       toast.error("Error conectando Google Calendar");
       window.history.replaceState({}, "", "/settings");
+    }
+  }, [searchParams]);
+
+  // Meta OAuth redirect handler
+  useEffect(() => {
+    const metaStatus = searchParams.get("meta");
+    if (metaStatus === "success") {
+      toast.success("Meta conectado correctamente");
+      window.history.replaceState({}, "", "/settings?tab=integraciones");
+      setActiveTab("integraciones");
+    } else if (metaStatus === "error") {
+      const reason = searchParams.get("reason");
+      toast.error(reason ? `Error al conectar Meta: ${reason}` : "Error al conectar Meta");
+      window.history.replaceState({}, "", "/settings?tab=integraciones");
+      setActiveTab("integraciones");
     }
   }, [searchParams]);
 
@@ -163,6 +179,9 @@ export default function SettingsPage() {
 
         <TabsContent value="integraciones" className="space-y-6">
           <IntegrationSettings onDirtyChange={handleIntegDirty} />
+          <div className="bg-bg-secondary rounded-2xl border border-border-secondary px-5 py-4">
+            <MetaIntegration />
+          </div>
         </TabsContent>
       </Tabs>
 

@@ -18,6 +18,9 @@ export interface Conversation {
   bot_desactivado: boolean;
   unread_count: number;
   last_inbound_at: string | null;
+  channel: 'whatsapp' | 'messenger' | 'instagram';
+  platform: string | null;
+  platform_id: string | null;
 }
 
 export interface Message {
@@ -108,6 +111,12 @@ export interface CompanySettings {
   phone_2_label: string;
   phone_2_preset: 'ventas' | 'soporte';
   worker_assignment_mode: 'ask_client' | 'round_robin';
+  messenger_connected: boolean;
+  instagram_connected: boolean;
+  facebook_page_name: string | null;
+  instagram_username: string | null;
+  meta_bot_enabled_messenger: boolean;
+  meta_bot_enabled_instagram: boolean;
 }
 
 export interface AgentConfig {
@@ -227,6 +236,7 @@ export interface StaleLead {
   last_message: string;
   conversation_id: number;
   phone_slot: number;
+  channel?: 'whatsapp' | 'messenger' | 'instagram';
 }
 
 export interface BulkSendResult {

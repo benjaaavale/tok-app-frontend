@@ -20,7 +20,9 @@ export function StaleLeadsList() {
   const [selected, setSelected] = useState<number[]>([]);
   const [bulkModalOpen, setBulkModalOpen] = useState(false);
 
-  const allIds = leads?.map((l) => l.contact_id) || [];
+  // Templates only work via WhatsApp Cloud API — filter to WhatsApp leads only
+  const whatsappLeads = leads?.filter((l) => !l.channel || l.channel === "whatsapp") || [];
+  const allIds = whatsappLeads.map((l) => l.contact_id);
   const allSelected = allIds.length > 0 && selected.length === allIds.length;
   const someSelected = selected.length > 0 && selected.length < allIds.length;
 
@@ -38,7 +40,7 @@ export function StaleLeadsList() {
     );
   };
 
-  const selectedLeads: StaleLead[] = leads?.filter((l) => selected.includes(l.contact_id)) || [];
+  const selectedLeads: StaleLead[] = whatsappLeads.filter((l) => selected.includes(l.contact_id));
 
   if (isLoading) {
     return (
@@ -55,7 +57,7 @@ export function StaleLeadsList() {
         <div>
           <h2 className="text-[16px] font-semibold text-[var(--text-primary)]">Leads sin respuesta</h2>
           <p className="text-[13px] text-[var(--text-secondary)] mt-0.5">
-            Contactos que no han respondido nuestros mensajes en más de 24 horas
+            Contactos de WhatsApp que no han respondido en mas de 24 horas
           </p>
         </div>
         {selected.length > 0 && (
@@ -70,7 +72,7 @@ export function StaleLeadsList() {
       </div>
 
       {/* Empty state */}
-      {!leads || leads.length === 0 ? (
+      {!leads || whatsappLeads.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <Users size={40} className="text-[var(--text-muted)] mb-3" />
           <p className="text-[14px] font-medium text-[var(--text-primary)]">No hay leads sin respuesta</p>
@@ -112,7 +114,7 @@ export function StaleLeadsList() {
               </tr>
             </thead>
             <tbody>
-              {leads.map((lead) => {
+              {whatsappLeads.map((lead) => {
                 const isChecked = selected.includes(lead.contact_id);
                 const etapaColor = lead.etapa ? ETAPA_COLORS[lead.etapa] : "#94A3B8";
                 const etapaLabel = lead.etapa ? (ETAPA_LABELS[lead.etapa] || lead.etapa) : "—";
