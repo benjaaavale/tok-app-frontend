@@ -34,21 +34,36 @@ type NavItem = {
   children?: NavChild[];
 };
 
-/* ── Nav definitions ── */
-const mainNavItems: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/conversations", label: "Mensajes", icon: MessageCircle },
-  { href: "/calendar", label: "Agenda", icon: CalendarDays },
+type NavSection = {
+  title: string;
+  items: NavItem[];
+};
+
+/* ── Nav definitions (grouped by section) ── */
+const navSections: NavSection[] = [
   {
-    href: "/templates",
-    label: "Plantillas",
-    icon: FileText,
-    children: [
-      { param: "plantillas", label: "Plantillas" },
-      { param: "leads", label: "Leads sin respuesta" },
+    title: "Principal",
+    items: [
+      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/conversations", label: "Mensajes", icon: MessageCircle },
+      { href: "/calendar", label: "Agenda", icon: CalendarDays },
     ],
   },
-  { href: "/agents", label: "Agentes IA", icon: Bot },
+  {
+    title: "Herramientas",
+    items: [
+      {
+        href: "/templates",
+        label: "Plantillas",
+        icon: FileText,
+        children: [
+          { param: "plantillas", label: "Plantillas" },
+          { param: "leads", label: "Leads sin respuesta" },
+        ],
+      },
+      { href: "/agents", label: "Agentes IA", icon: Bot },
+    ],
+  },
 ];
 
 const settingsItem: NavItem = {
@@ -79,16 +94,6 @@ export function Sidebar() {
   const { data: conversations } = useConversations();
   const hasPendingChats = conversations?.some((c) => c.unread_count > 0) ?? false;
 
-  /* ── Filter nav items by role ── */
-  const visibleItems = mainNavItems.filter(
-    (item) =>
-      !(
-        item.href === "/conversations" &&
-        role === "worker" &&
-        !canRespondChats
-      ),
-  );
-
   /* ── Helpers ── */
   const isItemActive = (item: NavItem) =>
     pathname === item.href || pathname.startsWith(item.href + "/");
@@ -101,6 +106,17 @@ export function Sidebar() {
 
   const childHref = (item: NavItem, child: NavChild) =>
     `${item.href}?tab=${child.param}`;
+
+  /* ── Filter items by role inside a section ── */
+  const filterItems = (items: NavItem[]) =>
+    items.filter(
+      (item) =>
+        !(
+          item.href === "/conversations" &&
+          role === "worker" &&
+          !canRespondChats
+        ),
+    );
 
   /* ── Render a nav item ── */
   const renderItem = (item: NavItem) => {
@@ -115,7 +131,7 @@ export function Sidebar() {
           title={!open ? item.label : undefined}
           data-tour={`nav-${item.href.replace("/", "")}`}
           className={cn(
-            "flex items-center h-[44px] rounded-xl text-[13px] font-medium",
+            "relative flex items-center h-[42px] rounded-lg text-[13px] font-medium",
             "transition-colors duration-150",
             isActive
               ? "bg-accent-light text-accent font-semibold"
@@ -128,11 +144,18 @@ export function Sidebar() {
             transition: `gap ${EASE}`,
           }}
         >
+          {/* Accent bar on active */}
+          <span
+            aria-hidden
+            className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-r-full bg-accent"
+            style={{
+              height: isActive ? 18 : 0,
+              opacity: isActive ? 1 : 0,
+              transition: "height 0.2s ease, opacity 0.2s ease",
+            }}
+          />
           <div className="relative flex-shrink-0">
-            <item.icon
-              size={20}
-              strokeWidth={isActive ? 2 : 1.5}
-            />
+            <item.icon size={19} strokeWidth={isActive ? 2.2 : 1.6} />
             {item.href === "/conversations" && hasPendingChats && (
               <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-bg-sidebar" />
             )}
@@ -141,7 +164,7 @@ export function Sidebar() {
             className="whitespace-nowrap overflow-hidden"
             style={{
               opacity: open ? 1 : 0,
-              maxWidth: open ? 125 : 0,
+              maxWidth: open ? 130 : 0,
               transition: `opacity 0.2s ease, max-width ${EASE}`,
             }}
           >
@@ -149,14 +172,14 @@ export function Sidebar() {
           </span>
           {hasChildren && (
             <ChevronRight
-              size={14}
+              size={13}
               className={cn(
-                "flex-shrink-0 transition-transform duration-200",
+                "flex-shrink-0 transition-transform duration-200 ml-auto",
                 isActive && "rotate-90",
               )}
               style={{
-                opacity: open ? 0.4 : 0,
-                maxWidth: open ? 14 : 0,
+                opacity: open ? 0.45 : 0,
+                maxWidth: open ? 13 : 0,
                 overflow: "hidden",
                 transition: `opacity 0.2s ease, max-width ${EASE}`,
               }}
@@ -170,13 +193,13 @@ export function Sidebar() {
             className="overflow-hidden"
             style={{
               maxHeight: showChildren
-                ? `${item.children!.length * 36 + 8}px`
+                ? `${item.children!.length * 34 + 8}px`
                 : 0,
               opacity: showChildren ? 1 : 0,
               transition: `max-height 0.2s ease, opacity 0.2s ease`,
             }}
           >
-            <div className="ml-[20px] pl-[16px] border-l border-border-secondary space-y-0.5 py-1">
+            <div className="ml-[22px] pl-[14px] border-l border-border-secondary space-y-0.5 py-1 mt-0.5">
               {item.children!.map((child) => {
                 const active = isChildActive(item, child);
                 return (
@@ -184,7 +207,7 @@ export function Sidebar() {
                     key={child.param}
                     href={childHref(item, child)}
                     className={cn(
-                      "block py-1.5 px-2 rounded-lg text-[12px] transition-colors duration-150",
+                      "block py-[6px] px-2 rounded-md text-[12px] transition-colors duration-150",
                       active
                         ? "text-accent font-semibold bg-accent-light"
                         : "text-text-muted hover:text-text-primary hover:bg-bg-hover",
@@ -201,12 +224,37 @@ export function Sidebar() {
     );
   };
 
+  /* ── Render a section (header + items) ── */
+  const renderSection = (section: NavSection) => {
+    const items = filterItems(section.items);
+    if (items.length === 0) return null;
+
+    return (
+      <div key={section.title} className="space-y-0.5">
+        {/* Section header (only visible when sidebar is open) */}
+        <div
+          className="overflow-hidden"
+          style={{
+            maxHeight: open ? 24 : 0,
+            opacity: open ? 1 : 0,
+            transition: `max-height ${EASE}, opacity 0.2s ease`,
+          }}
+        >
+          <p className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-text-muted whitespace-nowrap">
+            {section.title}
+          </p>
+        </div>
+        {items.map(renderItem)}
+      </div>
+    );
+  };
+
   return (
     <>
       <aside
-        className="hidden lg:flex flex-col h-screen bg-bg-sidebar flex-shrink-0 overflow-hidden"
+        className="hidden lg:flex flex-col h-screen bg-bg-sidebar flex-shrink-0 overflow-hidden border-r border-border-secondary"
         style={{
-          width: open ? 200 : 68,
+          width: open ? 220 : 72,
           transition: `width ${EASE}`,
         }}
         onMouseEnter={() => setOpen(true)}
@@ -214,17 +262,18 @@ export function Sidebar() {
       >
         {/* ── Logo + Company name ── */}
         <div
-          className="flex items-center h-[68px]"
+          className="flex items-center h-[64px] flex-shrink-0"
           style={{
-            paddingLeft: open ? 16 : 18,
-            transition: `padding-left ${EASE}`,
+            paddingLeft: open ? 16 : 20,
+            paddingRight: open ? 12 : 0,
+            transition: `padding ${EASE}`,
           }}
         >
           <div
             className="flex-shrink-0"
             style={{
-              width: open ? 40 : 32,
-              height: open ? 40 : 32,
+              width: open ? 34 : 32,
+              height: open ? 34 : 32,
               transition: `width ${EASE}, height ${EASE}`,
             }}
           >
@@ -240,39 +289,71 @@ export function Sidebar() {
           <div
             className="min-w-0 overflow-hidden"
             style={{
-              marginLeft: open ? 8 : 0,
+              marginLeft: open ? 10 : 0,
               opacity: open ? 1 : 0,
-              maxWidth: open ? 120 : 0,
+              maxWidth: open ? 140 : 0,
               transition: `opacity 0.2s ease, max-width ${EASE}, margin-left ${EASE}`,
             }}
           >
-            <p className="text-[12px] font-semibold text-text-primary truncate">
+            <p className="text-[10px] font-medium uppercase tracking-wider text-text-muted leading-none mb-[3px]">
+              Empresa
+            </p>
+            <p className="text-[13px] font-semibold text-text-primary truncate leading-tight">
               {companyNombre || "Mi empresa"}
             </p>
           </div>
         </div>
 
+        {/* Separator under header */}
+        <div
+          className="mx-3 border-t border-border-secondary"
+          style={{
+            opacity: open ? 1 : 0,
+            transition: "opacity 0.2s ease",
+          }}
+        />
+
         {/* Super admin company selector */}
-        {isSuperadmin && open && <CompanySelector />}
+        {isSuperadmin && open && (
+          <div className="pt-2">
+            <CompanySelector />
+          </div>
+        )}
 
         {/* ── Main Navigation ── */}
-        <nav className="flex-1 px-[12px] pt-3 space-y-0.5 overflow-y-auto overflow-x-hidden">
-          {visibleItems.map(renderItem)}
+        <nav className="flex-1 px-[12px] pt-3 pb-2 space-y-3 overflow-y-auto overflow-x-hidden">
+          {navSections.map(renderSection)}
         </nav>
 
         {/* ── Bottom area ── */}
-        <div className="px-[12px] pb-4 space-y-0.5">
-          {isAdmin && renderItem(settingsItem)}
+        <div className="px-[12px] pb-3 space-y-0.5 flex-shrink-0">
+          {isAdmin && (
+            <>
+              <div
+                className="overflow-hidden"
+                style={{
+                  maxHeight: open ? 24 : 0,
+                  opacity: open ? 1 : 0,
+                  transition: `max-height ${EASE}, opacity 0.2s ease`,
+                }}
+              >
+                <p className="px-3 pt-1 pb-1 text-[10px] font-semibold uppercase tracking-wider text-text-muted whitespace-nowrap">
+                  Sistema
+                </p>
+              </div>
+              {renderItem(settingsItem)}
+            </>
+          )}
 
-          <div className="flex items-center justify-center py-2">
+          <div className="flex items-center justify-center pt-2 pb-1">
             <ThemeToggle compact={!open} />
           </div>
 
-          <div className="border-t border-border-secondary pt-1 mt-1" />
+          <div className="border-t border-border-secondary pt-2 mt-1" />
 
           {/* User profile */}
           <div
-            className="flex items-center h-[50px]"
+            className="flex items-center h-[48px]"
             style={{
               gap: open ? 10 : 0,
               paddingLeft: open ? 10 : 5,
@@ -284,11 +365,11 @@ export function Sidebar() {
               <img
                 src={resolveMediaUrl(userAvatarUrl)}
                 alt="Avatar"
-                className="w-[34px] h-[34px] rounded-full object-cover flex-shrink-0"
+                className="w-[32px] h-[32px] rounded-full object-cover flex-shrink-0"
               />
             ) : (
               <div
-                className="w-[34px] h-[34px] rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0"
+                className="w-[32px] h-[32px] rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0"
                 style={{ background: "var(--gradient-accent)" }}
               >
                 {userInitials || "TK"}
@@ -298,28 +379,18 @@ export function Sidebar() {
               className="min-w-0 overflow-hidden"
               style={{
                 opacity: open ? 1 : 0,
-                maxWidth: open ? 110 : 0,
+                maxWidth: open ? 130 : 0,
                 transition: `opacity 0.2s ease, max-width ${EASE}`,
               }}
             >
-              <p className="text-[12px] font-medium text-text-primary truncate">
+              <p className="text-[12px] font-medium text-text-primary truncate leading-tight">
                 {isAdmin ? "Administrador" : "Trabajador"}
+              </p>
+              <p className="text-[10px] text-text-muted truncate leading-tight mt-[2px]">
+                v{APP_VERSION}
               </p>
             </div>
           </div>
-
-          {/* Version */}
-          <p
-            className="text-center text-text-muted"
-            style={{
-              fontSize: 10,
-              opacity: open ? 0.6 : 0.4,
-              transition: `opacity 0.2s ease`,
-              paddingTop: 4,
-            }}
-          >
-            v{APP_VERSION}
-          </p>
         </div>
       </aside>
     </>
