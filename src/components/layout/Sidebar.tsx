@@ -52,6 +52,7 @@ const navSections: NavSection[] = [
   {
     title: "Herramientas",
     items: [
+      { href: "/agents", label: "Agentes IA", icon: Bot },
       {
         href: "/templates",
         label: "Plantillas",
@@ -61,7 +62,6 @@ const navSections: NavSection[] = [
           { param: "leads", label: "Leads sin respuesta" },
         ],
       },
-      { href: "/agents", label: "Agentes IA", icon: Bot },
     ],
   },
 ];
