@@ -11,7 +11,7 @@ import { Search, X, ChevronDown, Bot, User } from "lucide-react";
 import { AnimatedSelect } from "@/components/ui/animated-select";
 import type { Conversation } from "@/types/api";
 
-type ChannelFilter = "all" | "whatsapp" | "messenger" | "instagram";
+type ChannelOption = "whatsapp" | "messenger" | "instagram";
 
 function MessengerIcon({ size = 14 }: { size?: number }) {
   return (
@@ -82,7 +82,7 @@ export function ConversationList() {
   const [filterEtapa, setFilterEtapa] = useState("");
   const [filterWorker, setFilterWorker] = useState("");
   const [filterPhone, setFilterPhone] = useState("");
-  const [filterChannel, setFilterChannel] = useState<ChannelFilter>("all");
+  const [filterChannels, setFilterChannels] = useState<Set<ChannelOption>>(new Set());
 
   const [showPhoneDropdown, setShowPhoneDropdown] = useState(false);
   const phoneDropdownRef = useRef<HTMLDivElement>(null);
@@ -140,10 +140,11 @@ export function ConversationList() {
       const matchPhone =
         !filterPhone || String(c.phone_slot) === filterPhone;
       const matchChannel =
-        filterChannel === "all" || c.channel === filterChannel;
+        filterChannels.size === 0 ||
+        filterChannels.has((c.channel || "whatsapp") as ChannelOption);
       return matchSearch && matchEstado && matchEtapa && matchWorker && matchPhone && matchChannel;
     });
-  }, [conversations, search, filterEstado, filterEtapa, filterWorker, filterPhone, filterChannel]);
+  }, [conversations, search, filterEstado, filterEtapa, filterWorker, filterPhone, filterChannels]);
 
   const workerOptions = useMemo(() => {
     if (!workers) return [];
@@ -153,7 +154,7 @@ export function ConversationList() {
     ];
   }, [workers]);
 
-  const hasFilters = !!search || !!filterEstado || !!filterEtapa || !!filterWorker || !!filterPhone || filterChannel !== "all";
+  const hasFilters = !!search || !!filterEstado || !!filterEtapa || !!filterWorker || !!filterPhone || filterChannels.size > 0;
 
   return (
     <div className="flex flex-col h-full border-r border-border-separator bg-bg-secondary">
@@ -236,45 +237,56 @@ export function ConversationList() {
           />
         </div>
 
-        {/* Channel filter buttons */}
-        <div className="flex items-center gap-1 overflow-x-auto scrollbar-none"
+        {/* Channel filter buttons — multi-select, ninguno = todos */}
+        <div
+          className="flex items-center gap-1 overflow-x-auto scrollbar-none"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
-          {(["all", "whatsapp", "messenger", "instagram"] as ChannelFilter[]).map((ch) => (
-            <button
-              key={ch}
-              onClick={() => setFilterChannel(ch)}
-              className={cn(
-                "flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-all border",
-                filterChannel === ch
-                  ? "bg-accent/10 border-accent/30 text-accent"
-                  : "bg-bg-primary border-border-secondary text-text-muted hover:text-text-primary hover:bg-bg-hover"
-              )}
-            >
-              {ch === "all" && <span>Todos</span>}
-              {ch === "whatsapp" && (
-                <>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" fill="#25D366"/>
-                    <path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.978-1.386A9.944 9.944 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2z" stroke="#25D366" strokeWidth="1.5" fill="none"/>
-                  </svg>
-                  <span>WhatsApp</span>
-                </>
-              )}
-              {ch === "messenger" && (
-                <>
-                  <MessengerIcon size={11} />
-                  <span>Messenger</span>
-                </>
-              )}
-              {ch === "instagram" && (
-                <>
-                  <InstagramIcon size={11} />
-                  <span>Instagram</span>
-                </>
-              )}
-            </button>
-          ))}
+          {(["whatsapp", "messenger", "instagram"] as ChannelOption[]).map((ch) => {
+            const active = filterChannels.has(ch);
+            const toggle = () => {
+              setFilterChannels((prev) => {
+                const next = new Set(prev);
+                if (next.has(ch)) next.delete(ch);
+                else next.add(ch);
+                return next;
+              });
+            };
+            return (
+              <button
+                key={ch}
+                onClick={toggle}
+                className={cn(
+                  "flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-all border flex-shrink-0",
+                  active
+                    ? "bg-accent/10 border-accent/30 text-accent"
+                    : "bg-bg-primary border-border-secondary text-text-muted hover:text-text-primary hover:bg-bg-hover"
+                )}
+              >
+                {ch === "whatsapp" && (
+                  <>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" fill="#25D366"/>
+                      <path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.978-1.386A9.944 9.944 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2z" stroke="#25D366" strokeWidth="1.5" fill="none"/>
+                    </svg>
+                    <span>WhatsApp</span>
+                  </>
+                )}
+                {ch === "messenger" && (
+                  <>
+                    <MessengerIcon size={11} />
+                    <span>Messenger</span>
+                  </>
+                )}
+                {ch === "instagram" && (
+                  <>
+                    <InstagramIcon size={11} />
+                    <span>Instagram</span>
+                  </>
+                )}
+              </button>
+            );
+          })}
         </div>
 
         {/* Filters */}
@@ -322,7 +334,7 @@ export function ConversationList() {
                 setFilterEtapa("");
                 setFilterWorker("");
                 setFilterPhone("");
-                setFilterChannel("all");
+                setFilterChannels(new Set());
               }}
               className="px-2 rounded-lg bg-bg-primary border border-border-secondary text-text-muted hover:text-text-primary"
             >
