@@ -237,7 +237,9 @@ export function ConversationList() {
         </div>
 
         {/* Channel filter buttons */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 overflow-x-auto scrollbar-none"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
           {(["all", "whatsapp", "messenger", "instagram"] as ChannelFilter[]).map((ch) => (
             <button
               key={ch}
