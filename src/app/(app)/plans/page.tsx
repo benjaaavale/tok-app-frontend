@@ -9,12 +9,20 @@ import { Check, Loader2, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PlanKey } from "@/types/api";
 
-// Descuentos: (mensual - anual) / mensual → Starter 22%, Pro 2%, Enterprise 14%
-const PLAN_DETAILS: {
+// ─── Descuentos anuales canónicos ───────────────────────────────────────────
+// Starter 15% · Pro 20% · Enterprise 23%
+// priceAnnual se DERIVA de priceMonthly × (1 − discountPct/100), redondeado a
+// la decena más cercana. Si cambias priceMonthly, el precio anual se recalcula
+// automáticamente manteniendo el mismo porcentaje de descuento.
+// ────────────────────────────────────────────────────────────────────────────
+function annualPrice(monthly: number, discountPct: number) {
+  return Math.round(monthly * (1 - discountPct / 100) / 10) * 10;
+}
+
+const PLAN_BASE: {
   id: PlanKey;
   name: string;
   priceMonthly: number;
-  priceAnnual: number;
   discountPct: number;
   description: string;
   features: string[];
@@ -25,8 +33,7 @@ const PLAN_DETAILS: {
     id: "starter",
     name: "Starter",
     priceMonthly: 119990,
-    priceAnnual: 99990,
-    discountPct: 17,
+    discountPct: 15,
     description: "Ideal para pequeños negocios y startups que buscan empezar con IA.",
     features: [
       "Acceso al Agente IA",
@@ -40,8 +47,7 @@ const PLAN_DETAILS: {
     id: "pro",
     name: "Pro",
     priceMonthly: 254990,
-    priceAnnual: 219990,
-    discountPct: 14,
+    discountPct: 20,
     description: "El mejor valor para negocios listos para escalar sus ventas.",
     popular: true,
     features: [
@@ -58,8 +64,7 @@ const PLAN_DETAILS: {
     id: "enterprise",
     name: "Enterprise",
     priceMonthly: 499990,
-    priceAnnual: 514990,
-    discountPct: 0,
+    discountPct: 23,
     description: "Plan avanzado con límites extendidos y soporte prioritario.",
     features: [
       "Todo lo de Pro, más:",
@@ -71,6 +76,11 @@ const PLAN_DETAILS: {
     cta: "Comenzar",
   },
 ];
+
+const PLAN_DETAILS = PLAN_BASE.map((p) => ({
+  ...p,
+  priceAnnual: annualPrice(p.priceMonthly, p.discountPct),
+}));
 
 function formatCLP(n: number) {
   return "$" + n.toLocaleString("es-CL");
@@ -147,7 +157,7 @@ export default function PlansPage() {
                 : "bg-emerald-500/15 text-emerald-500"
             )}
           >
-            Ahorra hasta 17%
+            Ahorra hasta 23%
           </span>
         </button>
       </div>
