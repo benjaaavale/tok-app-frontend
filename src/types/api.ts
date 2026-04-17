@@ -265,4 +265,23 @@ export interface SubscriptionInfo {
     max_conversations_per_month: number;
   } | null;
   conversations_this_period: number;
+  overage_price_clp: number;
+  current_overage_count: number;
+  current_overage_amount_clp: number;
+}
+
+export interface BillingOverage {
+  id: number;
+  period_start: string;
+  period_end: string | null;
+  plan: string;
+  conversations_count: number;
+  plan_limit: number;
+  overage_count: number;
+  amount_clp: number;
+  status: "pending" | "charged" | "failed";
+  ventipay_charge_id: string | null;
+  created_at: string;
+  charged_at: string | null;
+  error_message: string | null;
 }
