@@ -5,13 +5,17 @@ import { useRouter } from "next/navigation";
 import { useCreateSubscription } from "@/hooks/useSubscription";
 import { useAuthStore } from "@/stores/auth-store";
 import { toast } from "sonner";
-import { Check, Loader2 } from "lucide-react";
+import { Check, Loader2, Zap } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { PlanKey } from "@/types/api";
 
+// Descuentos: (mensual - anual) / mensual → Starter 22%, Pro 2%, Enterprise 14%
 const PLAN_DETAILS: {
   id: PlanKey;
   name: string;
-  price: string;
+  priceMonthly: number;
+  priceAnnual: number;
+  discountPct: number;
   description: string;
   features: string[];
   popular?: boolean;
@@ -20,12 +24,14 @@ const PLAN_DETAILS: {
   {
     id: "starter",
     name: "Starter",
-    price: "$119.990",
-    description: "Ideal para pequenos negocios y startups que buscan empezar con IA.",
+    priceMonthly: 119990,
+    priceAnnual: 92990,
+    discountPct: 22,
+    description: "Ideal para pequeños negocios y startups que buscan empezar con IA.",
     features: [
       "Acceso al Agente IA",
-      "Conecta 1 numero de WhatsApp",
-      "Alimentacion manual de documentos",
+      "Conecta 1 número de WhatsApp",
+      "Alimentación manual de documentos",
       "Hasta 500 conversaciones/mes",
     ],
     cta: "Comenzar",
@@ -33,15 +39,17 @@ const PLAN_DETAILS: {
   {
     id: "pro",
     name: "Pro",
-    price: "$309.990",
+    priceMonthly: 254990,
+    priceAnnual: 249990,
+    discountPct: 2,
     description: "El mejor valor para negocios listos para escalar sus ventas.",
     popular: true,
     features: [
-      "Todo lo de Starter, mas:",
-      "Conecta hasta 2 numeros de WhatsApp",
-      "Sincronizacion con Google Calendar",
-      "Agendamiento y Reagendamiento Automatico",
-      "Calendarios para Multiples Trabajadores",
+      "Todo lo de Starter, más:",
+      "Conecta hasta 2 números de WhatsApp",
+      "Sincronización con Google Calendar",
+      "Agendamiento y Reagendamiento Automático",
+      "Calendarios para Múltiples Trabajadores",
       "Hasta 2.000 conversaciones/mes",
     ],
     cta: "Comenzar",
@@ -49,10 +57,12 @@ const PLAN_DETAILS: {
   {
     id: "enterprise",
     name: "Enterprise",
-    price: "$544.990",
-    description: "Plan avanzado con limites personalizados y soporte prioritario.",
+    priceMonthly: 499990,
+    priceAnnual: 430990,
+    discountPct: 14,
+    description: "Plan avanzado con límites extendidos y soporte prioritario.",
     features: [
-      "Todo lo de Pro, mas:",
+      "Todo lo de Pro, más:",
       "Hasta 5.000 conversaciones/mes",
       "Integraciones Personalizadas (CRMs)",
       "Ejecutivo de Cuenta Dedicado",
@@ -62,13 +72,17 @@ const PLAN_DETAILS: {
   },
 ];
 
+function formatCLP(n: number) {
+  return "$" + n.toLocaleString("es-CL");
+}
+
 export default function PlansPage() {
   const createSubscription = useCreateSubscription();
   const { subscriptionStatus } = useAuthStore();
   const router = useRouter();
   const [loadingPlan, setLoadingPlan] = useState<PlanKey | null>(null);
+  const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
 
-  // If user already has active subscription, let them go to dashboard
   const isActive = subscriptionStatus === "active";
 
   const handleSelectPlan = async (planId: PlanKey) => {
@@ -76,13 +90,12 @@ export default function PlansPage() {
     try {
       const data = await createSubscription.mutateAsync(planId);
       if (data.url) {
-        // Redirect to VentiPay checkout
         window.location.href = data.url;
       } else {
         toast.error("No se obtuvo URL de pago");
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Error al crear suscripcion");
+      toast.error(err instanceof Error ? err.message : "Error al crear suscripción");
     } finally {
       setLoadingPlan(null);
     }
@@ -91,102 +104,170 @@ export default function PlansPage() {
   return (
     <div className="min-h-dvh flex flex-col items-center justify-center px-4 py-12 bg-bg-primary">
       {/* Header */}
-      <div className="text-center mb-10 max-w-xl">
+      <div className="text-center mb-8 max-w-xl">
         <div className="flex items-center justify-center mb-4">
           <img src="/favicon.png" alt="ToK" className="w-10 h-10" />
         </div>
-        <h1 className="text-2xl sm:text-3xl font-bold mb-3" style={{ color: "var(--text-primary)" }}>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-3 text-text-primary">
           Elige tu plan
         </h1>
-        <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+        <p className="text-sm text-text-muted">
           Automatiza tus ventas por WhatsApp con agentes IA. Todos los planes incluyen acceso completo al Agente IA.
         </p>
       </div>
 
+      {/* Billing toggle */}
+      <div className="flex items-center gap-1 p-1 rounded-xl border border-border-secondary bg-bg-secondary mb-8">
+        <button
+          onClick={() => setBilling("monthly")}
+          className={cn(
+            "px-4 py-1.5 rounded-lg text-[13px] font-medium transition-all",
+            billing === "monthly"
+              ? "bg-accent text-white shadow-sm"
+              : "text-text-muted hover:text-text-primary"
+          )}
+        >
+          Mensual
+        </button>
+        <button
+          onClick={() => setBilling("annual")}
+          className={cn(
+            "px-4 py-1.5 rounded-lg text-[13px] font-medium transition-all flex items-center gap-1.5",
+            billing === "annual"
+              ? "bg-accent text-white shadow-sm"
+              : "text-text-muted hover:text-text-primary"
+          )}
+        >
+          Anual
+          <span
+            className={cn(
+              "text-[10px] font-semibold px-1.5 py-0.5 rounded-full",
+              billing === "annual"
+                ? "bg-white/20 text-white"
+                : "bg-emerald-500/15 text-emerald-500"
+            )}
+          >
+            Ahorra hasta 22%
+          </span>
+        </button>
+      </div>
+
       {/* Plan cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl w-full">
-        {PLAN_DETAILS.map((plan) => (
-          <div
-            key={plan.id}
-            className="relative flex flex-col rounded-2xl border p-6 transition-shadow hover:shadow-lg"
-            style={{
-              background: "var(--bg-primary)",
-              borderColor: plan.popular ? "var(--accent)" : "var(--border-secondary)",
-              borderWidth: plan.popular ? 2 : 1,
-            }}
-          >
-            {/* Popular badge */}
-            {plan.popular && (
-              <div
-                className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-semibold text-white uppercase tracking-wider"
-                style={{ background: "var(--accent)" }}
-              >
-                Mas Popular
-              </div>
-            )}
+        {PLAN_DETAILS.map((plan) => {
+          const displayPrice = billing === "annual" ? plan.priceAnnual : plan.priceMonthly;
 
-            {/* Plan name */}
-            <h2 className="text-lg font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
-              {plan.name}
-            </h2>
-
-            {/* Price */}
-            <div className="flex items-baseline gap-1 mb-2">
-              <span className="text-3xl font-bold" style={{ color: "var(--text-primary)" }}>
-                {plan.price}
-              </span>
-              <span className="text-sm" style={{ color: "var(--text-muted)" }}>/mes + IVA</span>
-            </div>
-
-            {/* Description */}
-            <p className="text-xs mb-5" style={{ color: "var(--text-muted)" }}>
-              {plan.description}
-            </p>
-
-            {/* Divider */}
-            <div className="h-px mb-4" style={{ background: "var(--border-secondary)" }} />
-
-            {/* Features header */}
-            <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: "var(--text-primary)" }}>
-              Incluye:
-            </p>
-
-            {/* Features list */}
-            <ul className="space-y-2.5 flex-1 mb-6">
-              {plan.features.map((feature, i) => (
-                <li key={i} className="flex items-start gap-2.5">
-                  <div
-                    className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center mt-0.5"
-                    style={{ background: "var(--accent)" }}
-                  >
-                    <Check className="w-3 h-3 text-white" strokeWidth={3} />
-                  </div>
-                  <span className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                    {feature}
-                  </span>
-                </li>
-              ))}
-            </ul>
-
-            {/* CTA Button */}
-            <button
-              onClick={() => handleSelectPlan(plan.id)}
-              disabled={loadingPlan !== null}
-              className="w-full py-3 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-              style={{
-                background: plan.popular ? "var(--accent)" : "transparent",
-                color: plan.popular ? "#fff" : "var(--text-primary)",
-                border: plan.popular ? "none" : "1px solid var(--border-secondary)",
-              }}
-            >
-              {loadingPlan === plan.id ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                plan.cta
+          return (
+            <div
+              key={plan.id}
+              className={cn(
+                "relative flex flex-col rounded-2xl border p-6 transition-shadow hover:shadow-lg",
+                plan.popular ? "border-[var(--accent)] border-2" : "border-border-secondary"
               )}
-            </button>
-          </div>
-        ))}
+              style={{ background: "var(--bg-primary)" }}
+            >
+              {/* Popular badge */}
+              {plan.popular && (
+                <div
+                  className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-semibold text-white uppercase tracking-wider"
+                  style={{ background: "var(--accent)" }}
+                >
+                  Más Popular
+                </div>
+              )}
+
+              {/* Plan name */}
+              <h2 className="text-lg font-semibold mb-1 text-text-primary">
+                {plan.name}
+              </h2>
+
+              {/* Price */}
+              <div className="flex items-end gap-2 mb-1">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-bold text-text-primary">
+                    {formatCLP(displayPrice)}
+                  </span>
+                  <span className="text-sm text-text-muted">/mes + IVA</span>
+                </div>
+                {billing === "annual" && plan.discountPct > 0 && (
+                  <span className="mb-0.5 text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500">
+                    −{plan.discountPct}%
+                  </span>
+                )}
+              </div>
+
+              {/* Annual billing note */}
+              {billing === "annual" ? (
+                <p className="text-[11px] text-text-muted mb-3">
+                  Facturado anualmente ({formatCLP(displayPrice * 12)}/año)
+                </p>
+              ) : (
+                <p className="text-[11px] text-text-muted mb-3">
+                  Facturado mensualmente
+                </p>
+              )}
+
+              {/* Description */}
+              <p className="text-xs text-text-muted mb-5">
+                {plan.description}
+              </p>
+
+              {/* Divider */}
+              <div className="h-px mb-4 bg-border-secondary" />
+
+              {/* Features header */}
+              <p className="text-xs font-bold uppercase tracking-wider mb-3 text-text-primary">
+                Incluye:
+              </p>
+
+              {/* Features list */}
+              <ul className="space-y-2.5 flex-1 mb-4">
+                {plan.features.map((feature, i) => (
+                  <li key={i} className="flex items-start gap-2.5">
+                    <div
+                      className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center mt-0.5"
+                      style={{ background: "var(--accent)" }}
+                    >
+                      <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                    </div>
+                    <span className="text-sm text-text-secondary">
+                      {feature}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+
+              {/* Overage note */}
+              <div className="flex items-start gap-1.5 px-3 py-2 rounded-lg bg-bg-secondary border border-border-secondary mb-5">
+                <Zap size={12} className="text-amber-500 flex-shrink-0 mt-0.5" />
+                <p className="text-[11px] text-text-muted leading-snug">
+                  Conversaciones extra sobre el límite:{" "}
+                  <span className="font-semibold text-text-primary">$300 c/u</span>
+                  {" "}se cobran en la próxima mensualidad.
+                </p>
+              </div>
+
+              {/* CTA Button */}
+              <button
+                onClick={() => handleSelectPlan(plan.id)}
+                disabled={loadingPlan !== null}
+                className={cn(
+                  "w-full py-3 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2",
+                  plan.popular
+                    ? "text-white"
+                    : "border border-border-secondary text-text-primary hover:bg-bg-secondary"
+                )}
+                style={plan.popular ? { background: "var(--accent)" } : undefined}
+              >
+                {loadingPlan === plan.id ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  plan.cta
+                )}
+              </button>
+            </div>
+          );
+        })}
       </div>
 
       {/* Already subscribed */}
