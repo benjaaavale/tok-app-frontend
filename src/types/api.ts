@@ -251,8 +251,10 @@ export interface Plan {
   id: PlanKey;
   name: string;
   price: number;
+  price_annual: number;
   max_phone_slots: number;
   max_conversations_per_month: number;
+  overage_price_clp: number;
 }
 
 export interface SubscriptionInfo {
