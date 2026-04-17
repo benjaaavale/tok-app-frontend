@@ -27,7 +27,10 @@ export function LeadsChart({ data }: LeadsChartProps) {
   }));
 
   return (
-    <ChartCard title="Leads por etapa">
+    <ChartCard
+      title="Leads por etapa"
+      description="Distribución actual de tus contactos según la etapa en la que se encuentran en el proceso de venta."
+    >
       <ResponsiveContainer width="100%" height={220}>
         <PieChart>
           <Pie

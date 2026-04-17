@@ -8,6 +8,7 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
+import { InfoTooltip } from "./InfoTooltip";
 
 const COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#06B6D4", "#84CC16"];
 
@@ -23,7 +24,10 @@ export function ServiciosChart({ data }: ServiciosChartProps) {
   const chartData = data.map((d) => ({ name: d.nombre, value: d.cantidad }));
 
   return (
-    <ChartCard title="Servicios más solicitados">
+    <ChartCard
+      title="Servicios más solicitados"
+      description="Ranking de los servicios o productos que más mencionan tus clientes en las conversaciones. Te ayuda a detectar la demanda real."
+    >
       <ResponsiveContainer width="100%" height={220}>
         <PieChart>
           <Pie
@@ -63,16 +67,21 @@ export function ServiciosChart({ data }: ServiciosChartProps) {
 // Shared chart wrapper
 export function ChartCard({
   title,
+  description,
   children,
 }: {
   title: string;
+  description?: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-bg-secondary border border-border-secondary rounded-2xl p-5 shadow-sm">
-      <h3 className="text-[13px] font-semibold text-text-primary mb-3">
-        {title}
-      </h3>
+    <div className="bg-bg-secondary border border-border-secondary rounded-2xl p-5 shadow-sm overflow-visible">
+      <div className="flex items-center gap-1.5 mb-3">
+        <h3 className="text-[13px] font-semibold text-text-primary">
+          {title}
+        </h3>
+        {description && <InfoTooltip text={description} />}
+      </div>
       {children}
     </div>
   );
