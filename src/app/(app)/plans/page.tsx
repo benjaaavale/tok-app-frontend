@@ -25,8 +25,8 @@ const PLAN_DETAILS: {
     id: "starter",
     name: "Starter",
     priceMonthly: 119990,
-    priceAnnual: 92990,
-    discountPct: 22,
+    priceAnnual: 99990,
+    discountPct: 17,
     description: "Ideal para pequeños negocios y startups que buscan empezar con IA.",
     features: [
       "Acceso al Agente IA",
@@ -40,8 +40,8 @@ const PLAN_DETAILS: {
     id: "pro",
     name: "Pro",
     priceMonthly: 254990,
-    priceAnnual: 249990,
-    discountPct: 2,
+    priceAnnual: 219990,
+    discountPct: 14,
     description: "El mejor valor para negocios listos para escalar sus ventas.",
     popular: true,
     features: [
@@ -58,8 +58,8 @@ const PLAN_DETAILS: {
     id: "enterprise",
     name: "Enterprise",
     priceMonthly: 499990,
-    priceAnnual: 430990,
-    discountPct: 14,
+    priceAnnual: 514990,
+    discountPct: 0,
     description: "Plan avanzado con límites extendidos y soporte prioritario.",
     features: [
       "Todo lo de Pro, más:",
@@ -147,7 +147,7 @@ export default function PlansPage() {
                 : "bg-emerald-500/15 text-emerald-500"
             )}
           >
-            Ahorra hasta 22%
+            Ahorra hasta 17%
           </span>
         </button>
       </div>
