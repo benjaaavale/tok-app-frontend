@@ -8,6 +8,7 @@ import {
   TrendingUp,
   type LucideIcon,
 } from "lucide-react";
+import { InfoTooltip } from "./InfoTooltip";
 
 interface KPICardProps {
   title: string;
@@ -15,6 +16,7 @@ interface KPICardProps {
   icon: LucideIcon;
   accent?: boolean;
   delta?: number;
+  description?: string;
 }
 
 function TriangleUp({ className }: { className?: string }) {
@@ -74,11 +76,11 @@ function DeltaBadge({ delta, onDark }: { delta: number; onDark?: boolean }) {
   );
 }
 
-export function KPICard({ title, value, icon: Icon, accent, delta }: KPICardProps) {
+export function KPICard({ title, value, icon: Icon, accent, delta, description }: KPICardProps) {
   return (
     <div
       className={cn(
-        "rounded-xl p-3.5 sm:p-5 transition-all duration-200 hover:-translate-y-0.5 overflow-hidden",
+        "rounded-xl p-3.5 sm:p-5 transition-all duration-200 hover:-translate-y-0.5 overflow-visible",
         accent
           ? "text-white shadow-md"
           : "bg-bg-secondary border border-border-secondary shadow-sm hover:shadow-md"
@@ -87,14 +89,17 @@ export function KPICard({ title, value, icon: Icon, accent, delta }: KPICardProp
     >
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <p
-            className={cn(
-              "text-[11px] sm:text-[12px] font-medium truncate",
-              accent ? "text-white/70" : "text-text-muted"
-            )}
-          >
-            {title}
-          </p>
+          <div className="flex items-center gap-1 min-w-0">
+            <p
+              className={cn(
+                "text-[11px] sm:text-[12px] font-medium truncate",
+                accent ? "text-white/70" : "text-text-muted"
+              )}
+            >
+              {title}
+            </p>
+            {description && <InfoTooltip text={description} onDark={accent} />}
+          </div>
           <p className={cn("text-[22px] sm:text-[28px] font-bold mt-0.5 sm:mt-1 tracking-tight", accent ? "text-white" : "text-text-primary")}>
             {value}
           </p>
@@ -149,24 +154,28 @@ export function KPIGrid({
         icon={MessageCircle}
         accent
         delta={deltas?.conversaciones}
+        description="Total de conversaciones nuevas iniciadas en el período seleccionado. Cuenta cada chat único que llegó por WhatsApp, Messenger o Instagram."
       />
       <KPICard
         title="Leads calificados"
         value={qualifiedLeads}
         icon={UserCheck}
         delta={deltas?.leads}
+        description="Conversaciones donde el cliente mostró intención clara de compra o contratación. Son los contactos con mayor probabilidad de convertirse en cita."
       />
       <KPICard
         title="Citas agendadas"
         value={scheduledAppointments}
         icon={CalendarCheck}
         delta={deltas?.citas}
+        description="Cantidad de citas confirmadas a través del agente IA o manualmente durante el período."
       />
       <KPICard
         title="Conversión"
         value={`${conversionRate}%`}
         icon={TrendingUp}
         delta={deltas?.conversion}
+        description="Porcentaje de conversaciones que terminaron en cita agendada. Se calcula como citas agendadas ÷ conversaciones recibidas."
       />
     </div>
   );

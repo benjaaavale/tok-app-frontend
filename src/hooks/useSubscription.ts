@@ -3,7 +3,7 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
 import { authFetch } from "@/lib/api";
-import type { Plan, PlanKey } from "@/types/api";
+import type { Plan, PlanKey, SubscriptionInfo, BillingOverage } from "@/types/api";
 
 export function usePlans() {
   return useQuery<Plan[]>({
@@ -31,10 +31,21 @@ export function useCreateSubscription() {
 
 export function useSubscription() {
   const { getToken } = useAuth();
-  return useQuery({
+  return useQuery<SubscriptionInfo>({
     queryKey: ["subscription"],
     queryFn: async () => {
       const res = await authFetch("/subscription", {}, () => getToken());
+      return res.json();
+    },
+  });
+}
+
+export function useBillingOverages() {
+  const { getToken } = useAuth();
+  return useQuery<BillingOverage[]>({
+    queryKey: ["billing-overages"],
+    queryFn: async () => {
+      const res = await authFetch("/billing/overages", {}, () => getToken());
       return res.json();
     },
   });

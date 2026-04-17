@@ -26,7 +26,10 @@ export function HorariosChart({ data }: HorariosChartProps) {
   }));
 
   return (
-    <ChartCard title="Actividad por hora">
+    <ChartCard
+      title="Actividad por hora"
+      description="Distribución de mensajes recibidos según la hora del día. Útil para identificar los horarios peak y ajustar tus tiempos de respuesta."
+    >
       <ResponsiveContainer width="100%" height={220}>
         <BarChart data={chartData} barCategoryGap="20%">
           <CartesianGrid

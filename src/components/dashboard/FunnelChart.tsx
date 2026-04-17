@@ -27,7 +27,10 @@ export function FunnelChart({ data }: FunnelChartProps) {
   }));
 
   return (
-    <ChartCard title="Funnel de conversión">
+    <ChartCard
+      title="Funnel de conversión"
+      description="Cómo avanzan tus clientes por las etapas: desde el primer contacto hasta la cita agendada. Muestra dónde pierdes más leads."
+    >
       <ResponsiveContainer width="100%" height={220}>
         <BarChart data={chartData} layout="vertical" barCategoryGap="25%">
           <CartesianGrid

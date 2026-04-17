@@ -11,6 +11,7 @@ import { FunnelChart } from "@/components/dashboard/FunnelChart";
 import { LeadsChart } from "@/components/dashboard/LeadsChart";
 import { MessageSquare, BarChart3, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { InfoTooltip } from "@/components/dashboard/InfoTooltip";
 
 export default function DashboardPage() {
   const { companyNombre } = useAuthStore();
@@ -69,18 +70,21 @@ export default function DashboardPage() {
               label="Total mensajes"
               value={stats.mensajes_totales}
               delta={stats.deltas?.mensajes}
+              description="Suma total de mensajes enviados y recibidos en todas las conversaciones del período."
             />
             <MiniStat
               icon={<BarChart3 size={14} />}
               label="Promedio msg/conv"
               value={stats.promedio_mensajes}
               delta={stats.deltas?.promedio}
+              description="Mensajes promedio por conversación. Conversaciones más largas suelen indicar mayor interés o dudas del cliente."
             />
             <MiniStat
               icon={<Clock size={14} />}
               label="Leads fuera de horario"
               value={stats.leads_fuera_de_horario}
               delta={stats.deltas?.fuera_horario}
+              description="Clientes que escribieron fuera de tu horario de atención. El agente IA responde igualmente para no perder oportunidades."
             />
           </div>
 
@@ -106,19 +110,24 @@ function MiniStat({
   label,
   value,
   delta,
+  description,
 }: {
   icon: React.ReactNode;
   label: string;
   value: number;
   delta?: number;
+  description?: string;
 }) {
   return (
-    <div className="bg-bg-secondary border border-border-secondary rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2.5 sm:gap-3 shadow-sm overflow-hidden">
+    <div className="bg-bg-secondary border border-border-secondary rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2.5 sm:gap-3 shadow-sm overflow-visible">
       <div className="w-7 h-7 rounded-lg bg-accent/10 text-accent flex items-center justify-center flex-shrink-0">
         {icon}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[10px] sm:text-[11px] text-text-muted truncate">{label}</p>
+        <div className="flex items-center gap-1 min-w-0">
+          <p className="text-[10px] sm:text-[11px] text-text-muted truncate">{label}</p>
+          {description && <InfoTooltip text={description} />}
+        </div>
         <div className="flex items-center gap-1.5 sm:gap-2">
           <p className="text-[15px] sm:text-[16px] font-semibold text-text-primary">{value}</p>
           {delta !== undefined && (
