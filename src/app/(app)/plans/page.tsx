@@ -98,7 +98,7 @@ export default function PlansPage() {
   const handleSelectPlan = async (planId: PlanKey) => {
     setLoadingPlan(planId);
     try {
-      const data = await createSubscription.mutateAsync(planId);
+      const data = await createSubscription.mutateAsync({ plan: planId, billing });
       if (data.url) {
         window.location.href = data.url;
       } else {

@@ -18,10 +18,10 @@ export function usePlans() {
 export function useCreateSubscription() {
   const { getToken } = useAuth();
   return useMutation({
-    mutationFn: async (plan: PlanKey) => {
+    mutationFn: async ({ plan, billing }: { plan: PlanKey; billing: "monthly" | "annual" }) => {
       const res = await authFetch(
         "/subscriptions/create",
-        { method: "POST", body: JSON.stringify({ plan }) },
+        { method: "POST", body: JSON.stringify({ plan, billing }) },
         () => getToken()
       );
       return res.json();
