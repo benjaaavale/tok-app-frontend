@@ -11,7 +11,6 @@ import {
   FieldRow,
   InputField,
 } from "./SettingsSection";
-import { UsageCard } from "./UsageCard";
 
 const DIAS = [
   { key: "lunes", label: "Lun" },
@@ -141,7 +140,6 @@ export function CompanySettings({ onDirtyChange }: CompanySettingsProps) {
 
   return (
     <div className="space-y-6">
-      <UsageCard />
     <SettingsSection
       title="Empresa"
       description="Nombre y horarios de atención"
