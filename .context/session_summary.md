@@ -1,206 +1,120 @@
 ---
-name: Session Summary 2026-03-26
-description: Complete conversation summary covering multi-phone YCloud, security audit, templates feature, and mobile fixes — for session continuity
+name: Session Summary — actualizado 2026-04-18
+description: Sesión de Meta OAuth, Instagram, rediseño UI estructural (fases 1-2), planes de precios y más
 type: project
 ---
 
-# Full Session Summary — 2026-03-26
+# Full Session Summary — 2026-04-18
 
-## What was COMPLETED (all committed + pushed)
+## Sesión anterior (2026-03-26) — ver historial completo arriba
 
-### 1. Mobile UI Fixes (Frontend)
-- **Removed mobile hamburger menu** — BottomNav already has all nav items, MobileSidebar was redundant
-- **Fixed tutorial on mobile** — driver.js now targets BottomNav elements (data-tour attrs) with `side: "top"` on mobile
-- **Fixed KPI delta overflow** — DeltaBadge uses plain text on mobile (no border/padding), badges only on `sm:`
-- **Fixed MiniStat overflow** — Grid changed from `grid-cols-3` to `grid-cols-1 sm:grid-cols-3`
-- **Fixed ContactPanel on mobile** — Full-screen overlay `fixed inset-0 z-[90]` with close button
-- **Removed settings "Configuración" header** — Redundant with bottom nav
-- **Added MobileHeader** — Small ToK logo at top, `lg:hidden`
-- **Fixed sidebar animation** — Rewrote from framer-motion to pure CSS transitions (no layout jumps)
-- **Fixed funnel chart labels** — YAxis width 100→120px + `whiteSpace: nowrap` so labels don't wrap
+## Cambios en sesiones recientes (2026-04 en adelante)
 
-### 2. Filter & Dialog Fixes (Frontend)
-- **Filter dropdowns** — "Estado"/"Etapa" titles replaced with "Sin estado"/"Sin etapa" as clearable options
-- **Custom ConfirmDialog** — Replaced ALL native `confirm()` dialogs with styled `useConfirm()` in:
-  - ContactPanel (delete contact, desktop + mobile)
-  - AppointmentModal (cancel appointment)
-  - GoogleCalendarSettings (disconnect calendar)
-  - WorkerManager (delete team member)
+---
 
-### 3. Multi-Phone YCloud Support (Backend + Frontend)
-**Full feature implemented.** Max 2 phones per company.
+### 1. Dashboard — InfoTooltips + UsageCard (Frontend)
+- `InfoTooltip.tsx` nuevo componente: tooltip CSS-only con ícono ℹ️, onDark/onLight props
+- `KPICard.tsx`: prop `description?`, overflow-visible, InfoTooltip en title
+- `ServiciosChart.tsx`: ChartCard acepta `description?`, InfoTooltip
+- `dashboard/page.tsx`: MiniStat tiene `description?`, UsageCard importado aquí desde Settings
+- `CompanySettings.tsx`: removido UsageCard
+- `UsageCard.tsx`: removido texto de cargo por overage
+
+### 2. Planes de precios (Frontend + Backend)
+**Frontend (`plans/page.tsx`):**
+- Reescritura completa con toggle mensual/anual
+- `annualPrice()` helper: `monthly * (1 - discountPct/100)` redondeado a múltiplo de 10
+- Precios: Starter $119.990/mes, Pro $254.990/mes, Enterprise $499.990/mes
+- Descuentos: Starter 15%, Pro 20%, Enterprise 23% → anuales derivados automáticamente
+- `PLAN_BASE` array con `discountPct` canonical (si cambia mensual, anual se actualiza solo)
+- IDs VentiPay anuales hardcodeados: Starter pl_y0hxx..., Pro pl_SrPol..., Enterprise pl_bABRQ...
+- Nota overage: ⚡ "$300 c/u se cobran en la próxima mensualidad"
+- Toggle muestra "Ahorra hasta 23%"
 
 **Backend (server.js):**
-- DB migrations: `phone_1_number`, `phone_1_label`, `phone_1_preset`, `phone_2_number`, `phone_2_label`, `phone_2_preset` on `companies`
-- `conversations.phone_slot` (SMALLINT 1 or 2)
-- `agent_config.phone_slot` with unique index `(company_id, phone_slot)`
-- Webhook lookup: `WHERE phone_1_number OR phone_2_number`, determines phoneSlot
-- Fallback lookup: also tries `ycloud_phone_number` (legacy) + auto-registers to empty slot
-- AI pipeline: routes by preset (`ventas` = discriminator→scheduler/RAG, `soporte` = always RAG)
-- New prompt: `buildSupportPrompt()` for support preset
-- `GET/PUT /company/settings` — returns/accepts phone_1/2 fields
-- `GET/PUT /agent/config` — parameterized by `?phone_slot=`
-- `GET /conversations` — returns phone_slot + phone_label, supports `?phone_slot=` filter
-- `DELETE /company/phone/:slot` — clears a phone slot
-- `POST /company/detect-phones` — calls YCloud API to auto-detect phone numbers
+- PLANS: Pro $254.990, Enterprise $499.990 mensual
+- `price_annual`, `discount_pct`, `overage_price_clp`, `ventipay_plan_id_annual` en PLANS
+- `/subscriptions/create` acepta `billing: "monthly" | "annual"`, usa plan ID correcto, guarda `billing_cycle`
+- Migration: `billing_cycle TEXT DEFAULT 'monthly'`
+
+### 3. Meta OAuth — múltiples fixes (Backend)
+**`server.js`:**
+- `/auth/meta/url`: scopes expandidos: `pages_manage_metadata`, `pages_read_engagement`, `business_management`, `instagram_basic`, `instagram_manage_messages`
+- `/auth/meta/callback`: todos los `res.redirect()` usan `frontendUrl` (antes eran rutas relativas → bug "Cannot GET /settings")
+- Logging detallado: permisos otorgados, token debug info, pages response, Instagram lookup
+- Instagram lookup: prueba `instagram_business_account` luego `connected_instagram_account` fallback
+- Webhook Messenger: `/{pageId}/subscribed_apps` con `messages,messaging_postbacks`
+- App-level Instagram webhook: `POST /{appId}/subscriptions?object=instagram` con app token (esto funcionó: `{"success":true}`)
+- Disconnect Meta: ahora llama `DELETE /{pageId}/subscribed_apps` + `DELETE /{userId}/permissions` antes de limpiar DB
+- Migration: `facebook_user_id TEXT` en companies
+- Webhook handler: log completo para eventos `object=instagram`, fallback lookup por `facebook_page_id`
+
+### 4. Instagram standalone Login (sin Facebook Page) (Backend + Frontend)
+**Backend:**
+- `GET /auth/instagram/url`: OAuth via `instagram.com/oauth/authorize`, scopes `instagram_business_basic,instagram_business_manage_messages`
+- `GET /auth/instagram/callback`: token exchange via `api.instagram.com`, long-lived token via `graph.instagram.com`, guarda `instagram_access_token` y `instagram_only=TRUE`
+- `DELETE /auth/instagram/disconnect`: limpia IG, intenta unsub webhook
+- `/meta/status` retorna `instagram_only`, `instagram_has_token`
+- Migrations: `instagram_access_token TEXT`, `instagram_only BOOLEAN DEFAULT FALSE`
+- Webhook handler: usa `instagram_access_token` cuando `instagram_only=true`
+- **Requiere env vars**: `INSTAGRAM_APP_ID`, `INSTAGRAM_APP_SECRET`, `INSTAGRAM_REDIRECT_URI`
 
 **Frontend:**
-- Types updated: `Conversation.phone_slot/phone_label`, `CompanySettings.phone_1_*/phone_2_*`
-- `useAgentConfig(phoneSlot)` — parameterized hook
-- ConversationList: phone filter dropdown + phone label badges (only when 2 phones configured)
-- Settings tab: "Agentes IA" (renamed from "Agente IA"), phone cards + per-phone agent config
+- `useMeta.ts`: nuevos hooks `useConnectInstagram`, `useDisconnectInstagram`
+- `MetaIntegration.tsx`: botón "Conectar solo Instagram" con gradiente IG, oculta Messenger UI cuando `instagram_only=true`, disconnect dinámico por tipo
+- `settings/page.tsx`: handler URL param `?instagram=connected|error`
 
-### 4. Security Audit Fixes (Backend)
-**All committed + pushed (commit 23eab45):**
-- **webhookAuth**: rejects if WEBHOOK_SECRET not configured (was allowing all)
-- **RLS webhook endpoints**: 3 endpoints now JOIN companies.token for ownership validation
-- **RLS /contacts/:phone**: appointment + history queries now filter by company_id
-- **RLS POST /appointments**: validates contact_id and worker_id belong to company
-- **Rate limit AI pipeline**: 20 calls/min per company (in-memory counter)
-- **Rate limit bulk send**: 5/min via express-rate-limit
-- **Rate limit auth**: 30/15min on POST /auth/sync
-- **API key masking**: returns only `'••••••••'` (no partial chars)
-- **Webhook rate limit**: reduced from 100 to 60/min
-- **Bulk send validation**: max 100 contacts per request
+### 5. YCloud — test + guía paso a paso (Frontend)
+- `IntegrationSettings.tsx` reescrito: `YCloudTestButton` (idle/loading/ok/error), `YCloudGuide` colapsable con 5 pasos + slots de imagen
+- Imágenes: `/public/guides/ycloud/paso-1.png` ... `paso-5.png` (Benjamin las pondrá)
+- Backend: `POST /company/ycloud/test` endpoint
 
-### 5. Templates Feature — PARTIALLY COMPLETE
+### 6. MetaIntegration — logos y renombrado (Frontend)
+- `MetaLogo`, `MetaWordmark`, `MessengerLogo`, `InstagramLogo` SVG components en `MetaIntegration.tsx`
+- "Bot" → "Agente IA" en todos los labels de Meta
+- Logos Messenger (gradiente azul) e Instagram (gradiente multicolor) en status y toggles
 
-**Backend (server.js) — DONE + pushed:**
-- DB migration: `waba_id` column on companies
-- Capture wabaId in detect-phones endpoint
-- `GET /templates` — proxy to YCloud list
-- `POST /templates` — proxy to YCloud create (validates name, category, waba_id)
-- `PATCH /templates/:name/:language` — proxy to YCloud edit
-- `DELETE /templates/:name` — proxy to YCloud delete
-- `GET /leads/stale` — SQL query with LATERAL join for contacts with no response 24h+, excluding agendado/no_encaja/pausado
-- `POST /templates/send` — bulk send with 150ms delay, saves to messages table, emits socket events, supports personalize flag
+### 7. Rediseño estructural UI — Fases 1 y 2 (Frontend)
+**Fase 1 — Sidebar más delgado (commit 88a78a3):**
+- Ancho: 72/220 → 60/208 px colapsado/expandido
+- Item height: 42→38px, text 13→12.5px, íconos 19→18px
+- Header 64→60px, paddings ajustados
+- Mobile: sin cambios (usa BottomNav separado)
 
-**Frontend — DONE + pushed:**
-- Types: WhatsAppTemplate, TemplateComponent, StaleLead, BulkSendResult
-- Hooks: `useTemplates.ts` (CRUD), `useStaleLeads.ts`
-- Constants: TEMPLATE_STATUS_COLORS, TEMPLATE_STATUS_LABELS, TEMPLATE_CATEGORIES (3: Marketing, Utilidad, Autenticación)
-- Navigation: FileText icon in Sidebar + BottomNav (adminOnly)
-- Page: `/templates` with 2 tabs (Plantillas + Leads sin respuesta)
-- TemplateList: card grid with status badges, edit/delete buttons
-- TemplateForm: modal with name, category (radio with info tooltips), body textarea
-  - Category warning: amber text about Meta rejection/ban risk
-  - 24h info banner explaining WhatsApp template window rule
-- StaleLeadsList: table with checkboxes, select all, etapa badges, relative time
-- BulkSendModal: template selector, phone slot selector, personalize toggle, send with confirm
-
-**Latest change on TemplateForm:** Added amber warning text below category selector:
-> "Elegir la categoría correcta es importante. Meta puede rechazar la plantilla o suspender tu cuenta si no coincide con el contenido del mensaje."
+**Fase 2 — Channel badges mejorados (commit bcd725d):**
+- `ChannelIcons.tsx` nuevo archivo compartido: `MessengerIcon`, `InstagramIcon`, `WhatsAppIcon`, `ChannelBadge`
+- Avatar conversación: 36→40px, badge canal 16→18px con `ring-2 shadow-sm`
+- Indicador bot/human: movido a top-left (era bottom-left, chocaba con badge de canal)
+- `ChatWindow.tsx`: también muestra channel badge en el header de la conversación abierta
+- IG con radial gradient oficial, WhatsApp con ícono de burbuja más limpio
 
 ---
 
-### 6. Login Redesign (Frontend) — 2026-03-26
-- **Theme toggle on login** — Animated Sun/Moon button (top-right corner) with AnimatePresence rotation transitions
-- **Card glassmorphism container** — Form wrapped in rounded card with `backdrop-blur-md`, semi-transparent bg adapting to theme
-- **Inputs adapt to theme** — Light: `bg-bg-secondary`, Dark: `bg-bg-primary/60` (semi-transparent)
-- **Auto system theme detection** — Already configured via `next-themes` with `defaultTheme="system"`, user can override with toggle
-- **Typography adjusted** — Titles `text-2xl`, subtitles `text-sm` for better card proportions
-- **Footer** — Subtle "Potenciado por ToK" at bottom
-- **Three.js removed** — Confirmed not used anywhere in the project, can be uninstalled (`npm uninstall three @react-three/fiber @types/three`)
-
-### 7. Scheduler Agent Context + Worker Assignment Mode — 2026-03-28
-**Backend (ai/ + server.js):**
-- **Services injected into scheduler prompt** — `service_types` (name, duration, which workers do each) queried at pipeline start and added to system prompt
-- **Workers injected into scheduler prompt** — Full team list shown to the agent
-- **Prompt enforces service list** — Agent told to ONLY offer services from the configured list
-- **New field `worker_assignment_mode`** on `companies` table (`'ask_client'` | `'round_robin'`, default `'ask_client'`)
-- **ask_client mode** — Agent asks the client which professional they prefer
-- **round_robin mode** — Agent doesn't ask; `agendarReunion` tool auto-selects worker with fewest appointments that day (filtered by service's worker_ids)
-- **Duration auto-resolution** — If agent doesn't specify duration, tool looks up service_type.duracion
-- **GET/PUT /company/settings** — Expose `worker_assignment_mode`
-- **Pipeline (index.js)** — 3 parallel queries (service_types, workers, assignment_mode) before building scheduler prompt
-- **Agent scheduler** — Passes `workerAssignmentMode` and `serviceTypes` to tool context
-
-**Frontend (AgentSettings.tsx):**
-- **New section "Asignación de profesional"** — Radio card selector with two options
-- **"El cliente elige"** (Users icon) — Agent asks client preference
-- **"Asignación automática"** (RefreshCw icon) — Round robin, saves immediately on click
-- **CompanySettings type** — Added `worker_assignment_mode`
-
-### 8. Knowledge Base Compilation System — 2026-03-29
-**Cambio de arquitectura RAG:**
-- **Antes**: Upload doc → chunk → embed directo al vector store (cada doc independiente)
-- **Ahora**: Upload docs (solo raw) → usuario clickea "Compilar" → Claude lee TODOS los docs → genera documento organizado unificado → borra embeddings viejos → embede el compilado
-
-**Backend (ai/embeddings.js + server.js):**
-- **`compileKnowledgeBase()`** — Lee todos los `knowledge_documents` (excl. tipo 'compiled'), los combina, envía a Claude Haiku 4.5 con prompt de organización, genera doc unificado, borra embeddings, chunk + embed el nuevo
-- **Upload/text/website endpoints** ya NO crean embeddings — solo guardan raw en `knowledge_documents`
-- **`POST /knowledge/compile`** — Endpoint para compilar (llama compileKnowledgeBase)
-- **`GET /knowledge/compiled`** — Retorna texto compilado + timestamp
-- **DB**: `knowledge_compiled_text TEXT` y `knowledge_compiled_at TIMESTAMPTZ` en companies
-- **Doc tipo 'compiled'** — Se crea/actualiza un registro especial en knowledge_documents para FK de embeddings
-
-**Frontend (KnowledgeBase.tsx):**
-- **Banner de estado** — Amber "desactualizada" si hay docs más nuevos que última compilación, verde "actualizada" si no
-- **Botón "Compilar"/"Recompilar"** — Con spinner durante compilación
-- **Preview colapsable** — Muestra el texto compilado con scroll
-- **Toasts actualizados** — "Compila para actualizar el agente" después de cada add/delete
-- **Filtra docs 'compiled'** de la lista visible (solo muestra fuentes)
-
-### 9. AI Agent Builder — 2026-03-29
-**Sistema de generación de prompts con Sonnet 4.6:**
-- **Antes**: 4 textareas manuales (tone, examples, response_structure, system_prompt_custom)
-- **Ahora**: Usuario elige tipo de agente → describe comportamiento → Sonnet 4.6 genera prompts optimizados → Haiku 4.5 los usa en runtime
-
-**Backend (ai/agent-builder.js + server.js + prompt-builder.js + index.js):**
-- **`ai/agent-builder.js`** — Meta-prompts diferenciados: Informativo genera `scheduler_prompt` + `rag_prompt`, Soporte genera `support_prompt`
-- **DB migrations** — 6 columnas en agent_config: `agent_type`, `user_description`, `generated_scheduler_prompt`, `generated_rag_prompt`, `generated_support_prompt`, `generated_at`
-- **`POST /agent/generate`** — Valida tipo+descripción, llama Sonnet 4.6, upsert agent_config, sincroniza phone_X_preset
-- **`GET /agent/config`** — Retorna columnas nuevas + viejas
-- **`prompt-builder.js`** — Si hay prompt generado, reemplaza placeholders `{{BUSINESS_INFO}}`, `{{SERVICES_SECTION}}`, `{{ASSIGNMENT_SECTION}}`, `{{KNOWLEDGE_BASE}}`; si no, fallback a hardcoded
-- **`ai/index.js`** — SELECT actualizado con columnas nuevas
-
-**Frontend (AgentSettings.tsx + useAgentConfig.ts + types/api.ts):**
-- **Tipo AgentConfig** — Nuevos campos: agent_type, user_description, generated_*_prompt, generated_at
-- **useGenerateAgent hook** — Mutation para POST /agent/generate
-- **AgentSettings rewrite** —
-  - Tipo de agente: radio cards Informativo (BookOpen) / Soporte (Headphones)
-  - Textarea de descripción con placeholder contextual
-  - Botón "Generar agente con IA" (Sparkles) con spinner
-  - Banner verde con timestamp post-generación
-  - Preview colapsable de prompts generados (read-only)
-  - Gate de activación: no se puede habilitar agente sin tipo + descripción + generación
-  - PhoneCard simplificado: sin dropdown preset, badge de tipo de agente
+## APP_VERSION actual: 1.9.1
 
 ---
 
-## What is PENDING / TODO
+## Pendiente / TODO
 
-### Templates — User requested changes (NOT YET DONE):
-1. **Remove personalized variables** — Remove {{1}}, {{2}} variable support from TemplateForm and BulkSendModal. Keep it simple, no variables for now.
-2. **3 categories with tooltips** — Verify there are 3 categories (MARKETING, UTILITY, AUTHENTICATION). Each should have an info icon with hover tooltip explaining what the category is for:
-   - Marketing: ofertas, promociones, newsletters, re-engagement
-   - Utility: confirmaciones de citas, actualizaciones de pedidos, alertas de cuenta
-   - Authentication: códigos de verificación, OTPs, confirmaciones de login
-3. **Info icon tooltip on hover** — Each category option should have a small info circle (ℹ️) icon next to it, and hovering shows the description above/beside it
+### Meta / Instagram:
+- Instagram DMs aún no llegan aunque app-level webhook está suscrito → debug en curso
+- Posible causa: "Allow access to messages" en configuración IG, o app en modo desarrollo
+- Falta agregar `INSTAGRAM_APP_ID/SECRET/REDIRECT_URI` en env de producción (Easypanel)
+- Agregar producto Instagram en Meta App Dashboard para flujo standalone
 
-### Clerk email change issue:
-- User gets 403 "you need to provide additional verification" when changing email (Clerk reverification)
-- `@clerk/nextjs` v7.0.1 — need to implement reverification flow or handle the error
-- Left as TODO for now
+### UI Rediseño (próximas fases):
+- **Fase 3**: Contact panel con secciones colapsables (Info / Asignación / Lifecycle / Notas)
+- **Fase 4**: Inbox sidebar (lifecycle + filtros) más bonito
+- **Fase 5**: Settings como "Workspace Settings" con panel secundario jerárquico
 
-### General pre-beta:
-- Test all new features end-to-end
-- Verify backend deploys correctly with all new migrations
-- Test multi-phone webhook flow with real YCloud messages
+### Anteriores pendientes:
+- Templates: quitar variables {{1}}/{{2}}, verificar 3 categorías con tooltips de info
+- Clerk email reverification (403 al cambiar email)
+- Testing end-to-end pre-beta
 
 ---
 
-## Key Technical Decisions
-- **Max 2 phones**: Simple columns on companies table instead of separate table (user decision)
-- **Agent presets**: `ventas` (discriminator→scheduler/RAG) vs `soporte` (always RAG, no scheduling)
-- **Templates not cached locally**: Always fetched fresh from YCloud since status changes server-side
-- **Stale leads**: LATERAL join for last message per conversation, 24h threshold, excludes terminal stages
-- **Security**: RLS on all endpoints, rate limiting per-company for AI, masked API keys
-
-## User Preferences
-- Execute plans with Sonnet 4.6, plan with Opus 4.6
-- Always commit + push after changes (unless told otherwise)
-- Spanish UI, code comments in English/neutral
-- Prefers simple solutions (e.g., 2 columns vs separate table)
-- Wants admin-only access for Templates section
-- Templates should be simple (no variables for now)
+## Cómo revertir cambios recientes:
+- Fase 1 sidebar: `git revert 88a78a3`
+- Fase 2 badges: `git revert bcd725d`
+- Instagram standalone: `git revert 0a5c640` (backend), `git revert 6868268` (frontend)
