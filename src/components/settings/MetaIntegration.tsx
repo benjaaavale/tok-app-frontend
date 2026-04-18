@@ -16,6 +16,43 @@ interface MetaStatus {
   bot_enabled_instagram: boolean;
 }
 
+// Messenger logo — gradient "M"
+function MessengerLogo({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="msg_grad" x1="14" y1="0" x2="14" y2="28" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#00B2FF"/>
+          <stop offset="100%" stopColor="#006AFF"/>
+        </linearGradient>
+      </defs>
+      <circle cx="14" cy="14" r="14" fill="url(#msg_grad)"/>
+      <path d="M14 4C8.477 4 4 8.198 4 13.385c0 2.965 1.487 5.61 3.813 7.35V24l3.469-1.904A10.3 10.3 0 0014 22.77c5.523 0 10-4.198 10-9.385C24 8.198 19.523 4 14 4zm1.012 12.637L12.4 13.97l-5.097 2.667 5.6-5.942 2.653 2.667 5.065-2.667-5.61 5.942z" fill="white"/>
+    </svg>
+  );
+}
+
+// Instagram logo — gradient camera
+function InstagramLogo({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="ig_radial" cx="30%" cy="107%" r="150%" gradientUnits="objectBoundingBox">
+          <stop offset="0%" stopColor="#fdf497"/>
+          <stop offset="5%" stopColor="#fdf497"/>
+          <stop offset="45%" stopColor="#fd5949"/>
+          <stop offset="60%" stopColor="#d6249f"/>
+          <stop offset="90%" stopColor="#285AEB"/>
+        </radialGradient>
+      </defs>
+      <rect width="28" height="28" rx="7" fill="url(#ig_radial)"/>
+      <rect x="7" y="7" width="14" height="14" rx="4" stroke="white" strokeWidth="1.8" fill="none"/>
+      <circle cx="14" cy="14" r="3.5" stroke="white" strokeWidth="1.8" fill="none"/>
+      <circle cx="19" cy="9" r="1" fill="white"/>
+    </svg>
+  );
+}
+
 // Official Meta infinity-loop symbol (solo el símbolo)
 function MetaLogo({ size = 20, color }: { size?: number; color?: string }) {
   const h = Math.round((size * 191) / 287.56);
@@ -74,7 +111,7 @@ function MetaWordmark({ size = 18, color = "white" }: { size?: number; color?: "
   );
 }
 
-export { MetaLogo, MetaWordmark };
+export { MetaLogo, MetaWordmark, MessengerLogo, InstagramLogo };
 
 export function MetaIntegration() {
   const { data: status, isLoading } = useMetaStatus() as { data: MetaStatus | undefined; isLoading: boolean };
@@ -143,12 +180,18 @@ export function MetaIntegration() {
               </div>
             )}
             <div className="flex items-center justify-between">
-              <span className="text-[11px] text-text-muted">Messenger</span>
+              <div className="flex items-center gap-1.5">
+                <MessengerLogo size={15} />
+                <span className="text-[11px] text-text-muted">Messenger</span>
+              </div>
               <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500">Conectado</span>
             </div>
             {status.instagram_connected && (
               <div className="flex items-center justify-between">
-                <span className="text-[11px] text-text-muted">Instagram</span>
+                <div className="flex items-center gap-1.5">
+                  <InstagramLogo size={15} />
+                  <span className="text-[11px] text-text-muted">Instagram</span>
+                </div>
                 <div className="flex items-center gap-1.5">
                   {status.instagram_username && <span className="text-[12px] text-text-primary">@{status.instagram_username}</span>}
                   <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500">Conectado</span>
@@ -161,12 +204,18 @@ export function MetaIntegration() {
           <div className="px-3 py-3 bg-bg-primary rounded-xl border border-border-secondary space-y-3">
             <p className="text-[11px] font-medium text-text-secondary uppercase tracking-wider">Agente IA por canal</p>
             <div className="flex items-center justify-between">
-              <span className="text-[12px] text-text-primary">Agente IA en Messenger</span>
+              <div className="flex items-center gap-1.5">
+                <MessengerLogo size={14} />
+                <span className="text-[12px] text-text-primary">Agente IA en Messenger</span>
+              </div>
               <Switch checked={messengerBot} onCheckedChange={handleToggleMessengerBot} />
             </div>
             {status.instagram_connected && (
               <div className="flex items-center justify-between">
-                <span className="text-[12px] text-text-primary">Agente IA en Instagram</span>
+                <div className="flex items-center gap-1.5">
+                  <InstagramLogo size={14} />
+                  <span className="text-[12px] text-text-primary">Agente IA en Instagram</span>
+                </div>
                 <Switch checked={instagramBot} onCheckedChange={handleToggleInstagramBot} />
               </div>
             )}
