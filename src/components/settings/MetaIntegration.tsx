@@ -157,16 +157,16 @@ export function MetaIntegration() {
             )}
           </div>
 
-          {/* Bot toggles per channel */}
+          {/* Agent IA toggles per channel */}
           <div className="px-3 py-3 bg-bg-primary rounded-xl border border-border-secondary space-y-3">
-            <p className="text-[11px] font-medium text-text-secondary uppercase tracking-wider">Bot por canal</p>
+            <p className="text-[11px] font-medium text-text-secondary uppercase tracking-wider">Agente IA por canal</p>
             <div className="flex items-center justify-between">
-              <span className="text-[12px] text-text-primary">Bot en Messenger</span>
+              <span className="text-[12px] text-text-primary">Agente IA en Messenger</span>
               <Switch checked={messengerBot} onCheckedChange={handleToggleMessengerBot} />
             </div>
             {status.instagram_connected && (
               <div className="flex items-center justify-between">
-                <span className="text-[12px] text-text-primary">Bot en Instagram</span>
+                <span className="text-[12px] text-text-primary">Agente IA en Instagram</span>
                 <Switch checked={instagramBot} onCheckedChange={handleToggleInstagramBot} />
               </div>
             )}
