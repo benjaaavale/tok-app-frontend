@@ -75,13 +75,20 @@ export default function SettingsPage() {
   // Meta OAuth redirect handler
   useEffect(() => {
     const metaStatus = searchParams.get("meta");
-    if (metaStatus === "success") {
-      toast.success("Meta conectado correctamente");
+    if (metaStatus === "connected") {
+      toast.success("Meta conectado correctamente ✓");
       window.history.replaceState({}, "", "/settings?tab=integraciones");
       setActiveTab("integraciones");
     } else if (metaStatus === "error") {
       const reason = searchParams.get("reason");
-      toast.error(reason ? `Error al conectar Meta: ${reason}` : "Error al conectar Meta");
+      if (reason === "no_pages") {
+        toast.error(
+          "No se encontraron Páginas de Facebook. Asegúrate de seleccionar tu página cuando Facebook lo solicite, o revoca el acceso desde Configuración de Facebook y vuelve a intentarlo.",
+          { duration: 8000 }
+        );
+      } else {
+        toast.error("Error al conectar Meta. Intenta de nuevo.");
+      }
       window.history.replaceState({}, "", "/settings?tab=integraciones");
       setActiveTab("integraciones");
     }
