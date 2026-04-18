@@ -72,6 +72,25 @@ export default function SettingsPage() {
     }
   }, [searchParams]);
 
+  // Instagram-only OAuth redirect handler
+  useEffect(() => {
+    const igStatus = searchParams.get("instagram");
+    if (igStatus === "connected") {
+      toast.success("Instagram conectado correctamente ✓");
+      window.history.replaceState({}, "", "/settings?tab=integraciones");
+      setActiveTab("integraciones");
+    } else if (igStatus === "error") {
+      const reason = searchParams.get("reason");
+      toast.error(
+        reason
+          ? `Error al conectar Instagram: ${reason}`
+          : "Error al conectar Instagram. Intenta de nuevo."
+      );
+      window.history.replaceState({}, "", "/settings?tab=integraciones");
+      setActiveTab("integraciones");
+    }
+  }, [searchParams]);
+
   // Meta OAuth redirect handler
   useEffect(() => {
     const metaStatus = searchParams.get("meta");

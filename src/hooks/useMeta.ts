@@ -37,6 +37,28 @@ export function useDisconnectMeta() {
   });
 }
 
+export function useConnectInstagram() {
+  const { getToken } = useAuth();
+  return useMutation({
+    mutationFn: async () => {
+      const res = await authFetch("/auth/instagram/url", {}, () => getToken());
+      const data = await res.json();
+      window.location.href = data.url;
+    },
+  });
+}
+
+export function useDisconnectInstagram() {
+  const { getToken } = useAuth();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      await authFetch("/auth/instagram/disconnect", { method: "DELETE" }, () => getToken());
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["meta-status"] }),
+  });
+}
+
 export function useMetaBotSettings() {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
