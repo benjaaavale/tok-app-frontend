@@ -131,16 +131,16 @@ export function Sidebar() {
           title={!open ? item.label : undefined}
           data-tour={`nav-${item.href.replace("/", "")}`}
           className={cn(
-            "relative flex items-center h-[42px] rounded-lg text-[13px] font-medium",
+            "relative flex items-center h-[38px] rounded-lg text-[12.5px] font-medium",
             "transition-colors duration-150",
             isActive
               ? "bg-accent-light text-accent font-semibold"
               : "text-text-secondary hover:bg-bg-hover hover:text-text-primary",
           )}
           style={{
-            gap: open ? 12 : 0,
-            paddingLeft: 12,
-            paddingRight: 12,
+            gap: open ? 11 : 0,
+            paddingLeft: 10,
+            paddingRight: 10,
             transition: `gap ${EASE}`,
           }}
         >
@@ -155,7 +155,7 @@ export function Sidebar() {
             }}
           />
           <div className="relative flex-shrink-0">
-            <item.icon size={19} strokeWidth={isActive ? 2.2 : 1.6} />
+            <item.icon size={18} strokeWidth={isActive ? 2.2 : 1.6} />
             {item.href === "/conversations" && hasPendingChats && (
               <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-bg-sidebar" />
             )}
@@ -254,7 +254,7 @@ export function Sidebar() {
       <aside
         className="hidden lg:flex flex-col h-screen bg-bg-sidebar flex-shrink-0 overflow-hidden border-r border-border-secondary"
         style={{
-          width: open ? 220 : 72,
+          width: open ? 208 : 60,
           transition: `width ${EASE}`,
         }}
         onMouseEnter={() => setOpen(true)}
@@ -262,18 +262,18 @@ export function Sidebar() {
       >
         {/* ── Logo + Company name ── */}
         <div
-          className="flex items-center h-[64px] flex-shrink-0"
+          className="flex items-center h-[60px] flex-shrink-0"
           style={{
-            paddingLeft: open ? 16 : 20,
-            paddingRight: open ? 12 : 0,
+            paddingLeft: open ? 14 : 15,
+            paddingRight: open ? 10 : 0,
             transition: `padding ${EASE}`,
           }}
         >
           <div
             className="flex-shrink-0"
             style={{
-              width: open ? 34 : 32,
-              height: open ? 34 : 32,
+              width: open ? 32 : 30,
+              height: open ? 32 : 30,
               transition: `width ${EASE}, height ${EASE}`,
             }}
           >
@@ -321,12 +321,12 @@ export function Sidebar() {
         )}
 
         {/* ── Main Navigation ── */}
-        <nav className="flex-1 px-[12px] pt-3 pb-2 space-y-3 overflow-y-auto overflow-x-hidden">
+        <nav className="flex-1 px-[10px] pt-3 pb-2 space-y-3 overflow-y-auto overflow-x-hidden">
           {navSections.map(renderSection)}
         </nav>
 
         {/* ── Bottom area ── */}
-        <div className="px-[12px] pb-3 space-y-0.5 flex-shrink-0">
+        <div className="px-[10px] pb-3 space-y-0.5 flex-shrink-0">
           {isAdmin && (
             <>
               <div
