@@ -12,6 +12,7 @@ import { MessageBubble } from "./MessageBubble";
 import { ChatInput } from "./ChatInput";
 import { getInitials } from "@/lib/utils";
 import { ArrowLeft, MessageCircle, PanelRightOpen, PanelRightClose, Clock, FileText, Hourglass, ChevronDown, UserMinus, BotOff } from "lucide-react";
+import { ChannelBadge } from "./ChannelIcons";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -115,8 +116,13 @@ export function ChatWindow() {
           <ArrowLeft size={18} />
         </button>
 
-        <div className="w-8 h-8 rounded-full bg-accent/15 text-accent flex items-center justify-center text-[11px] font-semibold">
-          {getInitials(activeName || "?")}
+        <div className="relative w-9 h-9 flex-shrink-0">
+          <div className="w-9 h-9 rounded-full bg-accent/15 text-accent flex items-center justify-center text-[11px] font-semibold">
+            {getInitials(activeName || "?")}
+          </div>
+          <div className="absolute -bottom-0.5 -right-0.5 rounded-full ring-2 ring-bg-secondary shadow-sm overflow-hidden flex items-center justify-center">
+            <ChannelBadge channel={activeConv?.channel} size={15} />
+          </div>
         </div>
 
         <div className="flex-1 min-w-0">

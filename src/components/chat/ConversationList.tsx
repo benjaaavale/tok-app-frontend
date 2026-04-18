@@ -10,67 +10,9 @@ import { ETAPA_COLORS, ETAPA_LABELS } from "@/lib/constants";
 import { Search, X, ChevronDown, Bot, User } from "lucide-react";
 import { AnimatedSelect } from "@/components/ui/animated-select";
 import type { Conversation } from "@/types/api";
+import { MessengerIcon, InstagramIcon, ChannelBadge } from "./ChannelIcons";
 
 type ChannelOption = "whatsapp" | "messenger" | "instagram";
-
-function MessengerIcon({ size = 14 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="12" cy="12" r="12" fill="url(#msg_bg)" />
-      <path d="M12 4C7.582 4 4 7.376 4 11.527c0 2.236 1.012 4.235 2.621 5.625V20l2.41-1.327c.644.178 1.326.274 2.034.274 4.418 0 7.935-3.376 7.935-7.42C19.936 7.376 16.418 4 12 4zm.79 9.988l-2.02-2.155-3.946 2.155 4.338-4.609 2.072 2.155 3.893-2.155-4.337 4.61z" fill="white"/>
-      <defs>
-        <linearGradient id="msg_bg" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#00B2FF"/>
-          <stop offset="1" stopColor="#006AFF"/>
-        </linearGradient>
-      </defs>
-    </svg>
-  );
-}
-
-function InstagramIcon({ size = 14 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="24" height="24" rx="6" fill="url(#ig_bg)" />
-      <rect x="6" y="6" width="12" height="12" rx="3.5" stroke="white" strokeWidth="1.5" fill="none"/>
-      <circle cx="12" cy="12" r="3" stroke="white" strokeWidth="1.5" fill="none"/>
-      <circle cx="16" cy="8" r="1" fill="white"/>
-      <defs>
-        <linearGradient id="ig_bg" x1="0" y1="24" x2="24" y2="0" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#F9CE34"/>
-          <stop offset="0.35" stopColor="#EE2A7B"/>
-          <stop offset="1" stopColor="#6228D7"/>
-        </linearGradient>
-      </defs>
-    </svg>
-  );
-}
-
-function WhatsAppIcon({ size = 14 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="24" cy="24" r="24" fill="#25D366"/>
-      {/* Speech bubble with tail bottom-left */}
-      <path
-        d="M24 10C16.268 10 10 16.268 10 24c0 2.938.84 5.68 2.294 8.006L10 38l6.18-2.258A13.933 13.933 0 0024 38c7.732 0 14-6.268 14-14S31.732 10 24 10z"
-        fill="white"
-      />
-      {/* Phone handset */}
-      <path
-        d="M30.32 26.26c-.38-.19-2.24-1.1-2.59-1.23-.34-.12-.59-.19-.84.19-.25.38-.97 1.23-1.19 1.48-.22.25-.44.28-.82.09-.38-.19-1.6-.59-3.05-1.88-1.13-1-1.89-2.24-2.11-2.62-.22-.38-.02-.58.17-.77.17-.17.38-.44.57-.66.19-.22.25-.38.38-.63.13-.25.06-.47-.03-.66-.09-.19-.84-2.05-1.16-2.81-.31-.74-.62-.63-.84-.65-.22-.01-.47-.01-.72-.01-.25 0-.66.09-1.01.47-.34.38-1.31 1.29-1.31 3.15 0 1.86 1.35 3.66 1.54 3.91.19.25 2.66 4.07 6.46 5.71.9.39 1.61.62 2.16.79.91.29 1.73.25 2.38.15.73-.11 2.24-.92 2.56-1.8.31-.88.31-1.64.22-1.8-.09-.16-.34-.25-.72-.44z"
-        fill="#25D366"
-      />
-    </svg>
-  );
-}
-
-function ChannelBadge({ conv }: { conv: Conversation }) {
-  const channel = conv.channel;
-  if (channel === "messenger") return <MessengerIcon size={13} />;
-  if (channel === "instagram") return <InstagramIcon size={13} />;
-  // Default: WhatsApp (including null/undefined for backward compat)
-  return <WhatsAppIcon size={13} />;
-}
 
 export function ConversationList() {
   const { data: conversations, isLoading } = useConversations();
@@ -380,14 +322,14 @@ export function ConversationList() {
                 )}
               >
                 {/* Avatar */}
-                <div className="relative w-9 h-9 flex-shrink-0">
-                  <div className="w-9 h-9 rounded-full bg-accent/15 text-accent flex items-center justify-center text-[11px] font-semibold">
+                <div className="relative w-10 h-10 flex-shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-accent/15 text-accent flex items-center justify-center text-[11px] font-semibold">
                     {getInitials(name)}
                   </div>
-                  {/* Bot / Human indicator */}
+                  {/* Bot / Human indicator — top-left */}
                   <div
                     className={cn(
-                      "absolute -bottom-0.5 -left-0.5 w-[16px] h-[16px] rounded-full flex items-center justify-center border-2 border-bg-secondary",
+                      "absolute -top-0.5 -left-0.5 w-[15px] h-[15px] rounded-full flex items-center justify-center ring-2 ring-bg-secondary shadow-sm",
                       conv.bot_desactivado
                         ? "bg-emerald-500"
                         : "bg-blue-500"
@@ -399,9 +341,9 @@ export function ConversationList() {
                       <Bot size={8} className="text-white" />
                     )}
                   </div>
-                  {/* Channel badge — always visible, bottom-right */}
-                  <div className="absolute -bottom-0.5 -right-0.5 w-[16px] h-[16px] rounded-full border-2 border-bg-secondary flex items-center justify-center overflow-hidden">
-                    <ChannelBadge conv={conv} />
+                  {/* Channel badge — bottom-right, más prominente */}
+                  <div className="absolute -bottom-0.5 -right-0.5 rounded-full ring-2 ring-bg-secondary shadow-sm overflow-hidden flex items-center justify-center">
+                    <ChannelBadge channel={conv.channel} size={17} />
                   </div>
                 </div>
 
