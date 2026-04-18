@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useMetaStatus, useConnectMeta, useDisconnectMeta, useMetaBotSettings } from "@/hooks/useMeta";
+import { useMetaStatus, useConnectMeta, useDisconnectMeta, useMetaBotSettings, useConnectInstagram, useDisconnectInstagram } from "@/hooks/useMeta";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Switch } from "@/components/ui/switch";
 import { Loader2 } from "lucide-react";
@@ -14,6 +14,7 @@ interface MetaStatus {
   instagram_username: string | null;
   bot_enabled_messenger: boolean;
   bot_enabled_instagram: boolean;
+  instagram_only?: boolean;
 }
 
 // Messenger logo — gradient "M"
@@ -117,6 +118,8 @@ export function MetaIntegration() {
   const { data: status, isLoading } = useMetaStatus() as { data: MetaStatus | undefined; isLoading: boolean };
   const connectMeta = useConnectMeta();
   const disconnectMeta = useDisconnectMeta();
+  const connectInstagram = useConnectInstagram();
+  const disconnectInstagram = useDisconnectInstagram();
   const botSettings = useMetaBotSettings();
   const confirm = useConfirm();
   const [messengerBot, setMessengerBot] = useState(true);
@@ -131,13 +134,19 @@ export function MetaIntegration() {
   }
 
   const handleDisconnect = async () => {
+    const isIgOnly = status?.instagram_only;
     const ok = await confirm({
-      title: "Desconectar Meta",
-      description: "Se desconectaran Messenger e Instagram. Las conversaciones existentes se mantendran.",
+      title: isIgOnly ? "Desconectar Instagram" : "Desconectar Meta",
+      description: isIgOnly
+        ? "Se desconectara Instagram. Las conversaciones existentes se mantendran."
+        : "Se desconectaran Messenger e Instagram. Las conversaciones existentes se mantendran.",
       confirmText: "Desconectar",
       cancelText: "Cancelar",
     });
-    if (ok) disconnectMeta.mutate();
+    if (ok) {
+      if (isIgOnly) disconnectInstagram.mutate();
+      else disconnectMeta.mutate();
+    }
   };
 
   const handleToggleMessengerBot = (checked: boolean) => {
@@ -173,19 +182,21 @@ export function MetaIntegration() {
         <div className="space-y-3">
           {/* Connected info */}
           <div className="px-3 py-3 bg-bg-primary rounded-xl border border-border-secondary space-y-2">
-            {status.facebook_page_name && (
+            {!status.instagram_only && status.facebook_page_name && (
               <div className="flex items-center justify-between">
                 <span className="text-[11px] text-text-muted">Pagina de Facebook</span>
                 <span className="text-[12px] font-medium text-text-primary">{status.facebook_page_name}</span>
               </div>
             )}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <MessengerLogo size={15} />
-                <span className="text-[11px] text-text-muted">Messenger</span>
+            {!status.instagram_only && (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <MessengerLogo size={15} />
+                  <span className="text-[11px] text-text-muted">Messenger</span>
+                </div>
+                <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500">Conectado</span>
               </div>
-              <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500">Conectado</span>
-            </div>
+            )}
             {status.instagram_connected && (
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
@@ -203,13 +214,15 @@ export function MetaIntegration() {
           {/* Agent IA toggles per channel */}
           <div className="px-3 py-3 bg-bg-primary rounded-xl border border-border-secondary space-y-3">
             <p className="text-[11px] font-medium text-text-secondary uppercase tracking-wider">Agente IA por canal</p>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <MessengerLogo size={14} />
-                <span className="text-[12px] text-text-primary">Agente IA en Messenger</span>
+            {!status.instagram_only && (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <MessengerLogo size={14} />
+                  <span className="text-[12px] text-text-primary">Agente IA en Messenger</span>
+                </div>
+                <Switch checked={messengerBot} onCheckedChange={handleToggleMessengerBot} />
               </div>
-              <Switch checked={messengerBot} onCheckedChange={handleToggleMessengerBot} />
-            </div>
+            )}
             {status.instagram_connected && (
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
@@ -223,27 +236,48 @@ export function MetaIntegration() {
 
           <button
             onClick={handleDisconnect}
-            disabled={disconnectMeta.isPending}
+            disabled={disconnectMeta.isPending || disconnectInstagram.isPending}
             className="w-full py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-[12px] font-medium hover:bg-red-500/20 transition-all disabled:opacity-50"
           >
-            {disconnectMeta.isPending ? "Desconectando..." : "Desconectar Meta"}
+            {(status.instagram_only ? disconnectInstagram.isPending : disconnectMeta.isPending)
+              ? "Desconectando..."
+              : status.instagram_only
+                ? "Desconectar Instagram"
+                : "Desconectar Meta"}
           </button>
         </div>
       ) : (
-        <button
-          onClick={() => connectMeta.mutate()}
-          disabled={connectMeta.isPending}
-          className="w-full flex items-center justify-center gap-2.5 py-2.5 rounded-xl bg-[#0081FB] text-white text-[13px] font-medium hover:bg-[#0064E0] transition-all disabled:opacity-50"
-        >
-          {connectMeta.isPending ? (
-            <Loader2 size={14} className="animate-spin" />
-          ) : (
-            <>
-              <span className="text-white font-medium">Conectar con</span>
-              <MetaWordmark size={16} color="white" />
-            </>
-          )}
-        </button>
+        <div className="space-y-2">
+          <p className="text-[11px] text-text-muted text-center">Elige cómo conectar tus canales</p>
+          <button
+            onClick={() => connectMeta.mutate()}
+            disabled={connectMeta.isPending || connectInstagram.isPending}
+            className="w-full flex items-center justify-center gap-2.5 py-2.5 rounded-xl bg-[#0081FB] text-white text-[13px] font-medium hover:bg-[#0064E0] transition-all disabled:opacity-50"
+          >
+            {connectMeta.isPending ? (
+              <Loader2 size={14} className="animate-spin" />
+            ) : (
+              <>
+                <span className="text-white font-medium">Conectar con</span>
+                <MetaWordmark size={16} color="white" />
+              </>
+            )}
+          </button>
+          <button
+            onClick={() => connectInstagram.mutate()}
+            disabled={connectMeta.isPending || connectInstagram.isPending}
+            className="w-full flex items-center justify-center gap-2.5 py-2.5 rounded-xl bg-gradient-to-tr from-[#fdf497] via-[#d6249f] to-[#285AEB] text-white text-[13px] font-medium hover:opacity-90 transition-all disabled:opacity-50"
+          >
+            {connectInstagram.isPending ? (
+              <Loader2 size={14} className="animate-spin" />
+            ) : (
+              <>
+                <InstagramLogo size={16} />
+                <span className="text-white font-medium">Conectar solo Instagram</span>
+              </>
+            )}
+          </button>
+        </div>
       )}
     </div>
   );
