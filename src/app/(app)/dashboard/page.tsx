@@ -12,6 +12,7 @@ import { LeadsChart } from "@/components/dashboard/LeadsChart";
 import { MessageSquare, BarChart3, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { InfoTooltip } from "@/components/dashboard/InfoTooltip";
+import { UsageCard } from "@/components/settings/UsageCard";
 
 export default function DashboardPage() {
   const { companyNombre } = useAuthStore();
@@ -62,6 +63,9 @@ export default function DashboardPage() {
               conversion: stats.deltas.conversion,
             } : undefined}
           />
+
+          {/* Consumo del mes */}
+          <UsageCard />
 
           {/* Mini stats */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">

@@ -77,10 +77,6 @@ export function UsageCard() {
           </div>
         </div>
 
-        <p className="text-[11px] text-text-muted leading-relaxed">
-          Cada conversación extra sobre el límite se cobra a{" "}
-          <span className="font-semibold text-text-primary">{formatCLP(overagePrice)}</span> en la próxima mensualidad.
-        </p>
       </div>
 
       {/* Overage alert (active period) */}
