@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useAuthStore } from "@/stores/auth-store";
 import { resolveMediaUrl, cn } from "@/lib/utils";
@@ -14,7 +14,6 @@ import {
   Settings,
   FileText,
   Bot,
-  ChevronRight,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { CompanySelector } from "@/components/layout/CompanySelector";
@@ -22,7 +21,6 @@ import { useConversations } from "@/hooks/useConversations";
 import { APP_VERSION } from "@/lib/constants";
 
 /* ── Types ── */
-type NavChild = { param: string; label: string };
 type NavItem = {
   href: string;
   label: string;
@@ -31,7 +29,6 @@ type NavItem = {
     strokeWidth?: number;
     className?: string;
   }>;
-  children?: NavChild[];
 };
 
 type NavSection = {
@@ -53,15 +50,7 @@ const navSections: NavSection[] = [
     title: "Herramientas",
     items: [
       { href: "/agents", label: "Agentes IA", icon: Bot },
-      {
-        href: "/templates",
-        label: "Plantillas",
-        icon: FileText,
-        children: [
-          { param: "plantillas", label: "Plantillas" },
-          { param: "leads", label: "Leads sin respuesta" },
-        ],
-      },
+      { href: "/templates", label: "Plantillas", icon: FileText },
     ],
   },
 ];
@@ -70,12 +59,6 @@ const settingsItem: NavItem = {
   href: "/settings",
   label: "Configuración",
   icon: Settings,
-  children: [
-    { param: "equipo", label: "Equipo" },
-    { param: "calendario", label: "Calendario" },
-    { param: "perfil", label: "Perfil" },
-    { param: "integraciones", label: "Integraciones" },
-  ],
 };
 
 /* ── Shared transition ── */
@@ -84,7 +67,6 @@ const EASE = "0.25s cubic-bezier(0.4, 0, 0.2, 1)";
 export function Sidebar() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const { theme } = useTheme();
   const { companyNombre, userAvatarUrl, userInitials, role, canRespondChats, isSuperadmin } =
     useAuthStore();
@@ -97,15 +79,6 @@ export function Sidebar() {
   /* ── Helpers ── */
   const isItemActive = (item: NavItem) =>
     pathname === item.href || pathname.startsWith(item.href + "/");
-
-  const isChildActive = (item: NavItem, child: NavChild) => {
-    if (!isItemActive(item)) return false;
-    const tab = searchParams.get("tab");
-    return tab === child.param;
-  };
-
-  const childHref = (item: NavItem, child: NavChild) =>
-    `${item.href}?tab=${child.param}`;
 
   /* ── Filter items by role inside a section ── */
   const filterItems = (items: NavItem[]) =>
@@ -121,106 +94,53 @@ export function Sidebar() {
   /* ── Render a nav item ── */
   const renderItem = (item: NavItem) => {
     const isActive = isItemActive(item);
-    const hasChildren = !!item.children;
-    const showChildren = hasChildren && isActive && open;
-
     return (
-      <div key={item.href}>
-        <Link
-          href={item.href}
-          title={!open ? item.label : undefined}
-          data-tour={`nav-${item.href.replace("/", "")}`}
-          className={cn(
-            "relative flex items-center h-[38px] rounded-lg text-[12.5px] font-medium",
-            "transition-colors duration-150",
-            isActive
-              ? "bg-accent-light text-accent font-semibold"
-              : "text-text-secondary hover:bg-bg-hover hover:text-text-primary",
-          )}
+      <Link
+        key={item.href}
+        href={item.href}
+        title={!open ? item.label : undefined}
+        data-tour={`nav-${item.href.replace("/", "")}`}
+        className={cn(
+          "relative flex items-center h-[38px] rounded-lg text-[12.5px] font-medium",
+          "transition-colors duration-150",
+          isActive
+            ? "bg-accent-light text-accent font-semibold"
+            : "text-text-secondary hover:bg-bg-hover hover:text-text-primary",
+        )}
+        style={{
+          gap: open ? 11 : 0,
+          paddingLeft: 10,
+          paddingRight: 10,
+          transition: `gap ${EASE}`,
+        }}
+      >
+        {/* Accent bar on active */}
+        <span
+          aria-hidden
+          className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-r-full bg-accent"
           style={{
-            gap: open ? 11 : 0,
-            paddingLeft: 10,
-            paddingRight: 10,
-            transition: `gap ${EASE}`,
+            height: isActive ? 18 : 0,
+            opacity: isActive ? 1 : 0,
+            transition: "height 0.2s ease, opacity 0.2s ease",
+          }}
+        />
+        <div className="relative flex-shrink-0">
+          <item.icon size={18} strokeWidth={isActive ? 2.2 : 1.6} />
+          {item.href === "/conversations" && hasPendingChats && (
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-bg-sidebar" />
+          )}
+        </div>
+        <span
+          className="whitespace-nowrap overflow-hidden"
+          style={{
+            opacity: open ? 1 : 0,
+            maxWidth: open ? 130 : 0,
+            transition: `opacity 0.2s ease, max-width ${EASE}`,
           }}
         >
-          {/* Accent bar on active */}
-          <span
-            aria-hidden
-            className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-r-full bg-accent"
-            style={{
-              height: isActive ? 18 : 0,
-              opacity: isActive ? 1 : 0,
-              transition: "height 0.2s ease, opacity 0.2s ease",
-            }}
-          />
-          <div className="relative flex-shrink-0">
-            <item.icon size={18} strokeWidth={isActive ? 2.2 : 1.6} />
-            {item.href === "/conversations" && hasPendingChats && (
-              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-bg-sidebar" />
-            )}
-          </div>
-          <span
-            className="whitespace-nowrap overflow-hidden"
-            style={{
-              opacity: open ? 1 : 0,
-              maxWidth: open ? 130 : 0,
-              transition: `opacity 0.2s ease, max-width ${EASE}`,
-            }}
-          >
-            {item.label}
-          </span>
-          {hasChildren && (
-            <ChevronRight
-              size={13}
-              className={cn(
-                "flex-shrink-0 transition-transform duration-200 ml-auto",
-                isActive && "rotate-90",
-              )}
-              style={{
-                opacity: open ? 0.45 : 0,
-                maxWidth: open ? 13 : 0,
-                overflow: "hidden",
-                transition: `opacity 0.2s ease, max-width ${EASE}`,
-              }}
-            />
-          )}
-        </Link>
-
-        {/* Children — only when section is active */}
-        {hasChildren && (
-          <div
-            className="overflow-hidden"
-            style={{
-              maxHeight: showChildren
-                ? `${item.children!.length * 34 + 8}px`
-                : 0,
-              opacity: showChildren ? 1 : 0,
-              transition: `max-height 0.2s ease, opacity 0.2s ease`,
-            }}
-          >
-            <div className="ml-[22px] pl-[14px] border-l border-border-secondary space-y-0.5 py-1 mt-0.5">
-              {item.children!.map((child) => {
-                const active = isChildActive(item, child);
-                return (
-                  <Link
-                    key={child.param}
-                    href={childHref(item, child)}
-                    className={cn(
-                      "block py-[6px] px-2 rounded-md text-[12px] transition-colors duration-150",
-                      active
-                        ? "text-accent font-semibold bg-accent-light"
-                        : "text-text-muted hover:text-text-primary hover:bg-bg-hover",
-                    )}
-                  >
-                    {child.label}
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
+          {item.label}
+        </span>
+      </Link>
     );
   };
 

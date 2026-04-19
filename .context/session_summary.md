@@ -120,7 +120,18 @@ type: project
 - OAuth redirects (Google, Meta, Instagram) actualizados a `?section=meta` / `?section=calendario`
 - Revertir: `git revert <hash>`
 
-## APP_VERSION actual: 1.12.0
+### 13. Refinamientos UI post-feedback — v1.12.1
+- `ChannelIcons.tsx`: handset WhatsApp escalado 70% dentro del círculo (se veía muy grande)
+- `ConversationList.tsx`:
+  - Bot/Human indicator: 15→16px circle, icon 8→9px con strokeWidth 2.5 para centrado visual correcto
+  - Filtro "Ayuda humana" ahora también incluye conversaciones asignadas a trabajadores (OR logic)
+  - Botón "Más filtros" (SlidersHorizontal) movido al row de canales (al lado de Instagram) para evitar scroll horizontal
+  - Phone selector solo aparece cuando filterChannels = {whatsapp} (auto-reset cuando cambia)
+- `ContactPanel.tsx`: `FlatSection` component nuevo — Asignación / Ciclo de vida / Notas ya no son colapsables (una sola función). Solo Información mantiene collapsible
+- `Sidebar.tsx`: eliminados TODOS los dropdowns/children. `/settings` y `/templates` ahora son items flat (sin sub-items), la navegación interna ocurre dentro del panel secundario de cada página
+- `templates/page.tsx` reescrito: panel secundario jerárquico (240px) estilo Settings, grupo "Mensajería" con Plantillas + Leads sin respuesta, mobile con slide-over drawer
+
+## APP_VERSION actual: 1.12.1
 
 ---
 
