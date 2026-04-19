@@ -649,8 +649,8 @@ export function AgentSettings() {
         </button>
       </div>
 
-      {/* Phone config */}
-      {useInternalAgent && (
+      {/* Phone config — siempre visible para poder crear/detectar antes de activar */}
+      {(
         <SettingsSection
           title="Telefonos configurados"
           description="Los numeros se detectan automaticamente desde tu cuenta de YCloud"
@@ -716,8 +716,8 @@ export function AgentSettings() {
         </SettingsSection>
       )}
 
-      {/* Agents list */}
-      {useInternalAgent && hasAnyPhone && (
+      {/* Agents list — siempre visible si hay teléfono, para poder crear antes de activar */}
+      {hasAnyPhone && (
         <SettingsSection
           title="Agentes"
           description="Crea multiples agentes con diferentes roles. El sistema elige automaticamente cual usar segun el mensaje del cliente."
