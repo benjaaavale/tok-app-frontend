@@ -7,7 +7,7 @@ import { useWorkers } from "@/hooks/useWorkers";
 import { useChatStore } from "@/stores/chat-store";
 import { cn, getInitials, timeAgo } from "@/lib/utils";
 import { ETAPA_COLORS, ETAPA_LABELS } from "@/lib/constants";
-import { Search, X, ChevronDown, Bot, User } from "lucide-react";
+import { Search, X, ChevronDown, Bot, User, SlidersHorizontal, Inbox, Circle, AlertCircle, UserX } from "lucide-react";
 import { AnimatedSelect } from "@/components/ui/animated-select";
 import type { Conversation } from "@/types/api";
 import { MessengerIcon, InstagramIcon, ChannelBadge } from "./ChannelIcons";
@@ -25,6 +25,8 @@ export function ConversationList() {
   const [filterWorker, setFilterWorker] = useState("");
   const [filterPhone, setFilterPhone] = useState("");
   const [filterChannels, setFilterChannels] = useState<Set<ChannelOption>>(new Set());
+  const [quickFilter, setQuickFilter] = useState<"all" | "unread" | "human" | "unassigned">("all");
+  const [showMoreFilters, setShowMoreFilters] = useState(false);
 
   const [showPhoneDropdown, setShowPhoneDropdown] = useState(false);
   const phoneDropdownRef = useRef<HTMLDivElement>(null);
@@ -84,9 +86,14 @@ export function ConversationList() {
       const matchChannel =
         filterChannels.size === 0 ||
         filterChannels.has((c.channel || "whatsapp") as ChannelOption);
-      return matchSearch && matchEstado && matchEtapa && matchWorker && matchPhone && matchChannel;
+      const matchQuick =
+        quickFilter === "all" ||
+        (quickFilter === "unread" && c.unread_count > 0) ||
+        (quickFilter === "human" && c.etiqueta === "Necesita ayuda humana") ||
+        (quickFilter === "unassigned" && !c.assigned_worker_id);
+      return matchSearch && matchEstado && matchEtapa && matchWorker && matchPhone && matchChannel && matchQuick;
     });
-  }, [conversations, search, filterEstado, filterEtapa, filterWorker, filterPhone, filterChannels]);
+  }, [conversations, search, filterEstado, filterEtapa, filterWorker, filterPhone, filterChannels, quickFilter]);
 
   const workerOptions = useMemo(() => {
     if (!workers) return [];
@@ -96,7 +103,19 @@ export function ConversationList() {
     ];
   }, [workers]);
 
-  const hasFilters = !!search || !!filterEstado || !!filterEtapa || !!filterWorker || !!filterPhone || filterChannels.size > 0;
+  const hasAdvancedFilters = !!filterEstado || !!filterEtapa || !!filterWorker;
+  const hasFilters = !!search || hasAdvancedFilters || !!filterPhone || filterChannels.size > 0 || quickFilter !== "all";
+
+  const unreadCount = conversations?.filter((c) => c.unread_count > 0).length ?? 0;
+  const humanCount = conversations?.filter((c) => c.etiqueta === "Necesita ayuda humana").length ?? 0;
+  const unassignedCount = conversations?.filter((c) => !c.assigned_worker_id).length ?? 0;
+
+  const quickChips: { id: typeof quickFilter; label: string; icon: React.ReactNode; badge?: number }[] = [
+    { id: "all", label: "Todos", icon: <Inbox size={11} /> },
+    { id: "unread", label: "No leídos", icon: <Circle size={8} className="fill-current" />, badge: unreadCount },
+    { id: "human", label: "Ayuda humana", icon: <AlertCircle size={11} />, badge: humanCount },
+    { id: "unassigned", label: "Sin asignar", icon: <UserX size={11} />, badge: unassignedCount },
+  ];
 
   return (
     <div className="flex flex-col h-full border-r border-border-separator bg-bg-secondary">
@@ -231,43 +250,56 @@ export function ConversationList() {
           })}
         </div>
 
-        {/* Filters */}
-        <div className="flex gap-1.5">
-          <AnimatedSelect
-            value={filterEstado}
-            onChange={setFilterEstado}
-            options={[
-              { value: "bot", label: "Bot" },
-              { value: "human", label: "Ayuda humana" },
-            ]}
-            placeholder="Sin estado"
-            size="sm"
-            className="flex-1"
-          />
-          <AnimatedSelect
-            value={filterEtapa}
-            onChange={setFilterEtapa}
-            options={[
-              { value: "frio", label: "Frío 🧊" },
-              { value: "interesado", label: "Interesado 🤔" },
-              { value: "calificado", label: "Calificado ✅" },
-              { value: "alta_intencion", label: "Alta intención 🔥" },
-              { value: "agendado", label: "Agendado 🗓️" },
-              { value: "no_encaja", label: "No encaja ⛔" },
-              { value: "pausado", label: "Pausado ⏸️" },
-            ]}
-            placeholder="Sin etapa"
-            size="sm"
-            className="flex-1"
-          />
-          <AnimatedSelect
-            value={filterWorker}
-            onChange={setFilterWorker}
-            options={workerOptions}
-            placeholder="Trabajador"
-            size="sm"
-            className="flex-1"
-          />
+        {/* Quick lifecycle chips */}
+        <div
+          className="flex items-center gap-1 overflow-x-auto scrollbar-none"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          {quickChips.map((chip) => {
+            const active = quickFilter === chip.id;
+            return (
+              <button
+                key={chip.id}
+                onClick={() => setQuickFilter(chip.id)}
+                className={cn(
+                  "flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-all border flex-shrink-0",
+                  active
+                    ? "bg-accent text-white border-accent shadow-sm"
+                    : "bg-bg-primary border-border-secondary text-text-muted hover:text-text-primary hover:bg-bg-hover"
+                )}
+              >
+                <span className={active ? "text-white" : ""}>{chip.icon}</span>
+                <span>{chip.label}</span>
+                {chip.badge !== undefined && chip.badge > 0 && (
+                  <span
+                    className={cn(
+                      "ml-0.5 min-w-[16px] px-1 h-[15px] inline-flex items-center justify-center rounded-full text-[9px] font-bold",
+                      active
+                        ? "bg-white/25 text-white"
+                        : "bg-bg-hover text-text-secondary"
+                    )}
+                  >
+                    {chip.badge > 99 ? "99+" : chip.badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+          <button
+            onClick={() => setShowMoreFilters((v) => !v)}
+            className={cn(
+              "flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-all border flex-shrink-0 ml-auto",
+              hasAdvancedFilters || showMoreFilters
+                ? "bg-accent/10 border-accent/30 text-accent"
+                : "bg-bg-primary border-border-secondary text-text-muted hover:text-text-primary hover:bg-bg-hover"
+            )}
+            title="Más filtros"
+          >
+            <SlidersHorizontal size={11} />
+            {hasAdvancedFilters && (
+              <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+            )}
+          </button>
           {hasFilters && (
             <button
               onClick={() => {
@@ -277,13 +309,57 @@ export function ConversationList() {
                 setFilterWorker("");
                 setFilterPhone("");
                 setFilterChannels(new Set());
+                setQuickFilter("all");
+                setShowMoreFilters(false);
               }}
-              className="px-2 rounded-lg bg-bg-primary border border-border-secondary text-text-muted hover:text-text-primary"
+              className="px-2 py-1 rounded-lg bg-bg-primary border border-border-secondary text-text-muted hover:text-text-primary flex-shrink-0"
+              title="Limpiar filtros"
             >
               <X size={12} />
             </button>
           )}
         </div>
+
+        {/* Advanced filters (collapsible) */}
+        {showMoreFilters && (
+          <div className="flex gap-1.5 pt-1 animate-in fade-in slide-in-from-top-1 duration-150">
+            <AnimatedSelect
+              value={filterEstado}
+              onChange={setFilterEstado}
+              options={[
+                { value: "bot", label: "Bot" },
+                { value: "human", label: "Ayuda humana" },
+              ]}
+              placeholder="Estado"
+              size="sm"
+              className="flex-1"
+            />
+            <AnimatedSelect
+              value={filterEtapa}
+              onChange={setFilterEtapa}
+              options={[
+                { value: "frio", label: "Frío 🧊" },
+                { value: "interesado", label: "Interesado 🤔" },
+                { value: "calificado", label: "Calificado ✅" },
+                { value: "alta_intencion", label: "Alta intención 🔥" },
+                { value: "agendado", label: "Agendado 🗓️" },
+                { value: "no_encaja", label: "No encaja ⛔" },
+                { value: "pausado", label: "Pausado ⏸️" },
+              ]}
+              placeholder="Etapa"
+              size="sm"
+              className="flex-1"
+            />
+            <AnimatedSelect
+              value={filterWorker}
+              onChange={setFilterWorker}
+              options={workerOptions}
+              placeholder="Agente"
+              size="sm"
+              className="flex-1"
+            />
+          </div>
+        )}
       </div>
 
       {/* Conversation items */}

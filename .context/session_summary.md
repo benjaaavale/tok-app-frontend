@@ -90,7 +90,27 @@ type: project
 
 ---
 
-## APP_VERSION actual: 1.9.1
+### 8. WhatsApp icon invertido (Frontend) — v1.9.2
+- `ChannelIcons.tsx`: WhatsAppIcon ahora usa estilo del filtro pero invertido — fondo verde sólido (#25D366) + handset blanco con stroke de círculo blanco
+- Antes era fondo verde con líneas verdes (se veía mal en el badge del avatar)
+
+### 9. Fase 3 — ContactPanel colapsable (Frontend) — v1.10.0
+- `ContactPanel.tsx` reescrito: extraído `ContactPanelBody` compartido desktop + mobile (elimina ~190 líneas duplicadas)
+- `CollapsibleSection` component: chevron animado, border + bg-primary/40
+- Secciones: **Información** (datos contacto), **Asignación** (Agente IA toggle + subtitle), **Ciclo de vida** (etapa + próxima cita + historial unificados), **Notas** (placeholder "próximamente")
+- Revertir: `git revert b9536a2`
+
+### 10. Fase 4 — Inbox sidebar bonito (Frontend) — v1.11.0
+- `ConversationList.tsx`: chips rápidos de ciclo de vida arriba (Todos / No leídos / Ayuda humana / Sin asignar) con badges numéricos
+- 3 AnimatedSelects (Estado / Etapa / Agente) colapsados detrás de botón `SlidersHorizontal`, se expanden con animate-in
+- Chip activo: fondo accent sólido con badge blanco semi-transparente
+- Botón X limpia todo incluyendo quickFilter + showMoreFilters
+
+### 11. Agentes Claude Code (`.claude/agents/`)
+- `tok-backend.md`: especialista server.js, migraciones, webhooks, Meta OAuth, RLS obligatorio, push solo a dev
+- `tok-frontend.md`: especialista Next.js, Tailwind v4, TanStack Query, bump APP_VERSION obligatorio, push solo a dev
+
+## APP_VERSION actual: 1.11.0
 
 ---
 
