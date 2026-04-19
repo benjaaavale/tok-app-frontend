@@ -103,11 +103,14 @@ export function AppTutorial() {
               <span class="tok-tutorial-step-num">2</span>
               <div>
                 <p class="tok-tutorial-step-title">Configura el Webhook en YCloud</p>
-                <p class="tok-tutorial-step-desc">En YCloud ve a <strong>Settings → Webhooks</strong> y pega esta URL:</p>
-                <div class="tok-tutorial-url-box">
+                <a href="https://www.ycloud.com/console/#/whatsapp/webhook" target="_blank" rel="noopener noreferrer" class="tok-tutorial-btn">
+                  Abrir Settings → Webhooks en YCloud ↗
+                </a>
+                <p class="tok-tutorial-step-desc" style="margin-top:8px">Pega esta URL en el campo de webhook:</p>
+                ${companyToken ? `<div class="tok-tutorial-url-box">
                   <code class="tok-tutorial-url">${webhookUrl}</code>
                   <button onclick="navigator.clipboard.writeText('${webhookUrl}');this.textContent='Copiado!';setTimeout(()=>this.textContent='Copiar',2000)" class="tok-tutorial-copy-btn">Copiar</button>
-                </div>
+                </div>` : `<p class="tok-tutorial-step-desc" style="color:var(--color-warning,#F59E0B);margin-top:4px">Recarga la pagina para obtener tu URL personalizada.</p>`}
                 <p class="tok-tutorial-step-desc" style="margin-top:6px">Marca estas casillas de eventos:</p>
                 <ul class="tok-tutorial-events">
                   <li>whatsapp.inbound_message.received</li>
@@ -119,7 +122,10 @@ export function AppTutorial() {
               <span class="tok-tutorial-step-num">3</span>
               <div>
                 <p class="tok-tutorial-step-title">Copia tu API Key</p>
-                <p class="tok-tutorial-step-desc">En YCloud ve a <strong>Settings → API Keys</strong>, copia tu key y pegala en ToK en <strong>Configuracion → Integraciones</strong>.</p>
+                <p class="tok-tutorial-step-desc">Ve a Settings → API Keys, copia tu key y pegala en ToK en <strong>Configuracion → Integraciones</strong>.</p>
+                <a href="https://www.ycloud.com/console/#/api-key/list" target="_blank" rel="noopener noreferrer" class="tok-tutorial-btn">
+                  Abrir Settings → API Keys en YCloud ↗
+                </a>
               </div>
             </div>
           </div>
