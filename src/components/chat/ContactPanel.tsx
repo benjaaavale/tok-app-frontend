@@ -212,7 +212,7 @@ function ContactPanelBody({
         )}
       </div>
 
-      {/* ── Información ── */}
+      {/* ── Información (colapsable — tiene múltiples filas) ── */}
       <CollapsibleSection title="Información" defaultOpen>
         <div className="space-y-0.5">
           <InfoRow icon={<Phone size={13} />} label="Teléfono" value={contact.telefono} />
@@ -222,8 +222,8 @@ function ContactPanelBody({
         </div>
       </CollapsibleSection>
 
-      {/* ── Asignación (Agente IA toggle) ── */}
-      <CollapsibleSection title="Asignación" defaultOpen>
+      {/* ── Asignación (Agente IA toggle) — flat, una sola función ── */}
+      <FlatSection title="Asignación">
         <div className="flex items-center justify-between px-3 py-3 bg-bg-primary rounded-xl border border-border-secondary">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
@@ -246,10 +246,10 @@ function ContactPanelBody({
             size="sm"
           />
         </div>
-      </CollapsibleSection>
+      </FlatSection>
 
-      {/* ── Ciclo de vida (etapa + próxima cita + historial) ── */}
-      <CollapsibleSection title="Ciclo de vida" defaultOpen>
+      {/* ── Ciclo de vida (etapa + próxima cita + historial) — flat ── */}
+      <FlatSection title="Ciclo de vida">
         <div className="space-y-3">
           {!contact.bot_desactivado && (
             <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-accent/5 border border-accent/15">
@@ -322,16 +322,16 @@ function ContactPanelBody({
             </div>
           )}
         </div>
-      </CollapsibleSection>
+      </FlatSection>
 
-      {/* ── Notas (placeholder — próximamente) ── */}
-      <CollapsibleSection title="Notas">
+      {/* ── Notas (placeholder) — flat ── */}
+      <FlatSection title="Notas">
         <div className="px-3 py-4 rounded-xl border border-dashed border-border-secondary bg-bg-primary/40 text-center">
           <p className="text-[11px] text-text-muted">
             Próximamente: agrega notas internas sobre este contacto.
           </p>
         </div>
-      </CollapsibleSection>
+      </FlatSection>
 
       {/* ── Eliminar ── */}
       <div className="pt-2 border-t border-border-secondary">
@@ -358,6 +358,24 @@ function ContactPanelBody({
           Eliminar contacto
         </button>
       </div>
+    </div>
+  );
+}
+
+/* ── Flat Section (no collapse, solo heading) ── */
+function FlatSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <p className="px-1 mb-2 text-[11px] font-bold text-text-secondary uppercase tracking-[1.1px]">
+        {title}
+      </p>
+      {children}
     </div>
   );
 }

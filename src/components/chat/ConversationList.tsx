@@ -56,6 +56,12 @@ export function ConversationList() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  // Reset phone filter when channels no longer include only WhatsApp
+  useEffect(() => {
+    const whatsappOnly = filterChannels.size === 1 && filterChannels.has("whatsapp");
+    if (!whatsappOnly && filterPhone) setFilterPhone("");
+  }, [filterChannels, filterPhone]);
+
   const selectedPhoneItem = phoneItems.find((p) => p.slot === filterPhone);
   const phoneDisplayText = selectedPhoneItem
     ? selectedPhoneItem.number
@@ -89,7 +95,8 @@ export function ConversationList() {
       const matchQuick =
         quickFilter === "all" ||
         (quickFilter === "unread" && c.unread_count > 0) ||
-        (quickFilter === "human" && c.etiqueta === "Necesita ayuda humana") ||
+        (quickFilter === "human" &&
+          (c.etiqueta === "Necesita ayuda humana" || !!c.assigned_worker_id)) ||
         (quickFilter === "unassigned" && !c.assigned_worker_id);
       return matchSearch && matchEstado && matchEtapa && matchWorker && matchPhone && matchChannel && matchQuick;
     });
@@ -107,8 +114,14 @@ export function ConversationList() {
   const hasFilters = !!search || hasAdvancedFilters || !!filterPhone || filterChannels.size > 0 || quickFilter !== "all";
 
   const unreadCount = conversations?.filter((c) => c.unread_count > 0).length ?? 0;
-  const humanCount = conversations?.filter((c) => c.etiqueta === "Necesita ayuda humana").length ?? 0;
+  const humanCount =
+    conversations?.filter(
+      (c) => c.etiqueta === "Necesita ayuda humana" || !!c.assigned_worker_id
+    ).length ?? 0;
   const unassignedCount = conversations?.filter((c) => !c.assigned_worker_id).length ?? 0;
+
+  const showPhoneSelector =
+    hasPhones && filterChannels.size === 1 && filterChannels.has("whatsapp");
 
   const quickChips: { id: typeof quickFilter; label: string; icon: React.ReactNode; badge?: number }[] = [
     { id: "all", label: "Todos", icon: <Inbox size={11} /> },
@@ -119,8 +132,8 @@ export function ConversationList() {
 
   return (
     <div className="flex flex-col h-full border-r border-border-separator bg-bg-secondary">
-      {/* Phone selector (above search, always visible if company has phones) */}
-      {hasPhones && (
+      {/* Phone selector — solo cuando WhatsApp está seleccionado específicamente */}
+      {showPhoneSelector && (
         <div className="px-3 pt-3 pb-0" ref={phoneDropdownRef}>
           <div className="relative">
             <button
@@ -198,7 +211,7 @@ export function ConversationList() {
           />
         </div>
 
-        {/* Channel filter buttons — multi-select, ninguno = todos */}
+        {/* Channel filter buttons — multi-select, ninguno = todos. Filtros avanzados al final. */}
         <div
           className="flex items-center gap-1 overflow-x-auto scrollbar-none"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
@@ -248,6 +261,20 @@ export function ConversationList() {
               </button>
             );
           })}
+          {/* Filtros avanzados — al final del row de canales para evitar scroll */}
+          <button
+            onClick={() => setShowMoreFilters((v) => !v)}
+            className={cn(
+              "flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-all border flex-shrink-0 ml-auto",
+              hasAdvancedFilters || showMoreFilters
+                ? "bg-accent/10 border-accent/30 text-accent"
+                : "bg-bg-primary border-border-secondary text-text-muted hover:text-text-primary hover:bg-bg-hover"
+            )}
+            title="Más filtros"
+          >
+            <SlidersHorizontal size={11} />
+            {hasAdvancedFilters && <span className="w-1.5 h-1.5 rounded-full bg-accent" />}
+          </button>
         </div>
 
         {/* Quick lifecycle chips */}
@@ -285,21 +312,6 @@ export function ConversationList() {
               </button>
             );
           })}
-          <button
-            onClick={() => setShowMoreFilters((v) => !v)}
-            className={cn(
-              "flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-all border flex-shrink-0 ml-auto",
-              hasAdvancedFilters || showMoreFilters
-                ? "bg-accent/10 border-accent/30 text-accent"
-                : "bg-bg-primary border-border-secondary text-text-muted hover:text-text-primary hover:bg-bg-hover"
-            )}
-            title="Más filtros"
-          >
-            <SlidersHorizontal size={11} />
-            {hasAdvancedFilters && (
-              <span className="w-1.5 h-1.5 rounded-full bg-accent" />
-            )}
-          </button>
           {hasFilters && (
             <button
               onClick={() => {
@@ -312,7 +324,7 @@ export function ConversationList() {
                 setQuickFilter("all");
                 setShowMoreFilters(false);
               }}
-              className="px-2 py-1 rounded-lg bg-bg-primary border border-border-secondary text-text-muted hover:text-text-primary flex-shrink-0"
+              className="px-2 py-1 rounded-lg bg-bg-primary border border-border-secondary text-text-muted hover:text-text-primary flex-shrink-0 ml-auto"
               title="Limpiar filtros"
             >
               <X size={12} />
@@ -405,16 +417,14 @@ export function ConversationList() {
                   {/* Bot / Human indicator — top-left */}
                   <div
                     className={cn(
-                      "absolute -top-0.5 -left-0.5 w-[15px] h-[15px] rounded-full flex items-center justify-center ring-2 ring-bg-secondary shadow-sm",
-                      conv.bot_desactivado
-                        ? "bg-emerald-500"
-                        : "bg-blue-500"
+                      "absolute -top-0.5 -left-0.5 w-[16px] h-[16px] rounded-full flex items-center justify-center ring-2 ring-bg-secondary shadow-sm",
+                      conv.bot_desactivado ? "bg-emerald-500" : "bg-blue-500"
                     )}
                   >
                     {conv.bot_desactivado ? (
-                      <User size={8} className="text-white" />
+                      <User size={9} strokeWidth={2.5} className="text-white" />
                     ) : (
-                      <Bot size={8} className="text-white" />
+                      <Bot size={9} strokeWidth={2.5} className="text-white" />
                     )}
                   </div>
                   {/* Channel badge — bottom-right, más prominente */}
