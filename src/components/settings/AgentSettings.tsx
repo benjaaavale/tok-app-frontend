@@ -25,6 +25,8 @@ import {
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { AnimatePresence, motion } from "framer-motion";
 import type { Agent } from "@/types/api";
+import { AgentTemplatePicker } from "./AgentTemplatePicker";
+import type { AgentTemplate } from "@/hooks/useAgentTemplates";
 
 /* ── Agent Card ── */
 function AgentCard({
@@ -438,6 +440,7 @@ export function AgentSettings() {
   const [detecting, setDetecting] = useState(false);
   const [formAgent, setFormAgent] = useState<Partial<Agent> | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
 
   const phone1Number = settings?.phone_1_number || "";
   const phone2Number = settings?.phone_2_number || "";
@@ -649,8 +652,8 @@ export function AgentSettings() {
         </button>
       </div>
 
-      {/* Phone config */}
-      {useInternalAgent && (
+      {/* Phone config — siempre visible para poder crear/detectar antes de activar */}
+      {(
         <SettingsSection
           title="Telefonos configurados"
           description="Los numeros se detectan automaticamente desde tu cuenta de YCloud"
@@ -716,8 +719,8 @@ export function AgentSettings() {
         </SettingsSection>
       )}
 
-      {/* Agents list */}
-      {useInternalAgent && hasAnyPhone && (
+      {/* Agents list — siempre visible si hay teléfono, para poder crear antes de activar */}
+      {hasAnyPhone && (
         <SettingsSection
           title="Agentes"
           description="Crea multiples agentes con diferentes roles. El sistema elige automaticamente cual usar segun el mensaje del cliente."
@@ -751,8 +754,7 @@ export function AgentSettings() {
 
             <button
               onClick={() => {
-                setFormAgent(null);
-                setShowForm(true);
+                setShowPicker(true);
               }}
               className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-dashed border-accent/30 text-[12px] font-medium text-accent hover:bg-accent/5 transition-all"
             >
@@ -762,6 +764,17 @@ export function AgentSettings() {
           </div>
         </SettingsSection>
       )}
+
+      {/* Template picker */}
+      <AgentTemplatePicker
+        open={showPicker}
+        onClose={() => setShowPicker(false)}
+        onSelect={(template: AgentTemplate) => {
+          setFormAgent({ ...template.defaults });
+          setShowPicker(false);
+          setShowForm(true);
+        }}
+      />
 
       {/* Agent form modal */}
       <AnimatePresence>
