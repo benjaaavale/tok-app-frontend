@@ -4,6 +4,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
 import { authFetch } from "@/lib/api";
 
+export type KnowledgeSectionCategory =
+  | 'general'
+  | 'precios'
+  | 'catalogo'
+  | 'horarios'
+  | 'faq'
+  | 'politicas'
+  | 'servicios';
+
 export interface KnowledgeSection {
   id: number;
   title: string;
@@ -11,6 +20,7 @@ export interface KnowledgeSection {
   content: string;
   always_include: boolean;
   display_order: number;
+  category?: KnowledgeSectionCategory;
   created_at: string;
 }
 

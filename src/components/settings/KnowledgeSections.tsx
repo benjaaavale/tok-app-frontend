@@ -7,9 +7,11 @@ import {
   useUpdateKnowledgeSection,
   useDeleteKnowledgeSection,
   type KnowledgeSection,
+  type KnowledgeSectionCategory,
 } from "@/hooks/useKnowledgeSections";
 import { SettingsSection } from "./SettingsSection";
 import { useConfirm } from "@/components/ui/confirm-dialog";
+import { AnimatedSelect } from "@/components/ui/animated-select";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Plus, Pencil, Trash2, ChevronDown, ChevronUp, Pin } from "lucide-react";
@@ -17,6 +19,26 @@ import { Plus, Pencil, Trash2, ChevronDown, ChevronUp, Pin } from "lucide-react"
 const inputCls =
   "w-full px-3 py-2 rounded-lg bg-bg-secondary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30";
 const labelCls = "text-[11px] font-medium text-text-secondary uppercase tracking-wider mb-1 block";
+
+const KNOWLEDGE_CATEGORIES: { value: KnowledgeSectionCategory; label: string }[] = [
+  { value: "general", label: "General" },
+  { value: "precios", label: "Precios" },
+  { value: "catalogo", label: "Catálogo" },
+  { value: "horarios", label: "Horarios" },
+  { value: "faq", label: "FAQ" },
+  { value: "politicas", label: "Políticas" },
+  { value: "servicios", label: "Servicios" },
+];
+
+const CATEGORY_BADGE: Record<KnowledgeSectionCategory, string> = {
+  general:   "bg-gray-100    text-gray-600    dark:bg-gray-800    dark:text-gray-400",
+  precios:   "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400",
+  catalogo:  "bg-blue-100    text-blue-700    dark:bg-blue-900/40    dark:text-blue-400",
+  horarios:  "bg-violet-100  text-violet-700  dark:bg-violet-900/40  dark:text-violet-400",
+  faq:       "bg-amber-100   text-amber-700   dark:bg-amber-900/40   dark:text-amber-400",
+  politicas: "bg-rose-100    text-rose-700    dark:bg-rose-900/40    dark:text-rose-400",
+  servicios: "bg-cyan-100    text-cyan-700    dark:bg-cyan-900/40    dark:text-cyan-400",
+};
 
 const SECTION_TEMPLATES = [
   { title: "Información General", description: "Nombre del negocio, dirección, contacto e introducción", always_include: true },
@@ -39,18 +61,36 @@ function SectionForm({ initial, onSave, onCancel, isSaving }: SectionFormProps) 
   const [description, setDescription] = useState(initial?.description ?? "");
   const [content, setContent] = useState(initial?.content ?? "");
   const [alwaysInclude, setAlwaysInclude] = useState(initial?.always_include ?? false);
+  const [category, setCategory] = useState<KnowledgeSectionCategory>(initial?.category ?? "general");
 
   const handleSubmit = () => {
     if (!title.trim()) { toast.error("El título es obligatorio"); return; }
     if (!content.trim()) { toast.error("El contenido es obligatorio"); return; }
-    onSave({ title: title.trim(), description: description.trim(), content: content.trim(), always_include: alwaysInclude, display_order: initial?.display_order ?? 0 });
+    onSave({
+      title: title.trim(),
+      description: description.trim(),
+      content: content.trim(),
+      always_include: alwaysInclude,
+      display_order: initial?.display_order ?? 0,
+      category,
+    });
   };
 
   return (
     <div className="space-y-3 p-4 bg-bg-primary rounded-xl border border-border-secondary">
-      <div>
-        <label className={labelCls}>Título de la sección *</label>
-        <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="ej: Servicios y Precios" className={inputCls} />
+      <div className="flex gap-3">
+        <div className="flex-1">
+          <label className={labelCls}>Título de la sección *</label>
+          <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="ej: Servicios y Precios" className={inputCls} />
+        </div>
+        <div className="w-36 flex-shrink-0">
+          <label className={labelCls}>Categoría</label>
+          <AnimatedSelect
+            value={category}
+            onChange={(v) => setCategory(v as KnowledgeSectionCategory)}
+            options={KNOWLEDGE_CATEGORIES}
+          />
+        </div>
       </div>
       <div>
         <label className={labelCls}>
@@ -104,6 +144,16 @@ function SectionForm({ initial, onSave, onCancel, isSaving }: SectionFormProps) 
         </button>
       </div>
     </div>
+  );
+}
+
+function CategoryBadge({ category }: { category?: KnowledgeSectionCategory }) {
+  const cat = category ?? "general";
+  const label = KNOWLEDGE_CATEGORIES.find((c) => c.value === cat)?.label ?? cat;
+  return (
+    <span className={cn("inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium flex-shrink-0", CATEGORY_BADGE[cat])}>
+      {label}
+    </span>
   );
 }
 
@@ -162,7 +212,10 @@ export function KnowledgeSections() {
                       <Pin size={11} className="text-accent flex-shrink-0" />
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-[12px] font-medium text-text-primary truncate">{s.title}</p>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <p className="text-[12px] font-medium text-text-primary truncate">{s.title}</p>
+                        <CategoryBadge category={s.category} />
+                      </div>
                       {s.description && (
                         <p className="text-[10px] text-text-muted truncate">{s.description}</p>
                       )}
@@ -219,7 +272,6 @@ export function KnowledgeSections() {
                   onClick={() => {
                     setShowTemplates(false);
                     setShowForm(true);
-                    // Pre-fill handled by setting initial in form
                   }}
                   className={cn(
                     "w-full text-left px-3 py-2 rounded-lg border text-[12px] transition-all",
