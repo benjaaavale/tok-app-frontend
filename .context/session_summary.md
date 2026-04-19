@@ -110,7 +110,17 @@ type: project
 - `tok-backend.md`: especialista server.js, migraciones, webhooks, Meta OAuth, RLS obligatorio, push solo a dev
 - `tok-frontend.md`: especialista Next.js, Tailwind v4, TanStack Query, bump APP_VERSION obligatorio, push solo a dev
 
-## APP_VERSION actual: 1.11.0
+### 12. Fase 5 — Workspace Settings jerárquico (Frontend) — v1.12.0
+- `settings/page.tsx` reescrito completo: tabs horizontales → nav panel secundario (240px) con grupos
+- Grupos: **Cuenta** (Perfil) / **Workspace** (Empresa, Equipo, Servicios) / **Canales** (WhatsApp, Meta) / **Automatización** (Calendario, Notificaciones)
+- URL param `?section=<id>` + legacy map de `?tab=` → `?section=` para compatibilidad
+- Cada sección tiene header con ícono + descripción
+- Mobile: breadcrumb arriba + slide-over drawer con framer-motion
+- Content router `SectionContent` separa cada sección, dirty-state preservado
+- OAuth redirects (Google, Meta, Instagram) actualizados a `?section=meta` / `?section=calendario`
+- Revertir: `git revert <hash>`
+
+## APP_VERSION actual: 1.12.0
 
 ---
 
