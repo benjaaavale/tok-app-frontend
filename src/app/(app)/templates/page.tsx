@@ -1,19 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { TemplateList } from "@/components/templates/TemplateList";
 import { StaleLeadsList } from "@/components/templates/StaleLeadsList";
-import { Info, X, FileText, Users, ChevronLeft, ChevronRight } from "lucide-react";
+import { Info, X, Megaphone, Users, ChevronLeft, ChevronRight } from "lucide-react";
 
 type SectionId = "plantillas" | "leads";
 
 interface SectionDef {
   id: SectionId;
   label: string;
-  icon: typeof FileText;
+  icon: React.ComponentType<{ size?: number; className?: string; strokeWidth?: number }>;
   description?: string;
 }
 
@@ -26,7 +26,7 @@ const GROUPS: SectionGroup[] = [
   {
     label: "Mensajería",
     items: [
-      { id: "plantillas", label: "Plantillas", icon: FileText, description: "Plantillas aprobadas por Meta" },
+      { id: "plantillas", label: "Plantillas", icon: Megaphone, description: "Plantillas aprobadas por Meta" },
       { id: "leads", label: "Leads sin respuesta", icon: Users, description: "Reactivar contactos inactivos" },
     ],
   },
