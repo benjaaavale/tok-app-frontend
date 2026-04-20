@@ -21,6 +21,7 @@ export interface Conversation {
   channel: 'whatsapp' | 'messenger' | 'instagram';
   platform: string | null;
   platform_id: string | null;
+  is_support: boolean;
 }
 
 export interface Message {
