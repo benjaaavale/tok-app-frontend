@@ -1,25 +1,35 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useAuthStore } from "@/stores/auth-store";
 import { useDashboardLayout } from "@/hooks/useDashboardLayout";
 import { DateRangeFilter } from "@/components/dashboard/DateRangeFilter";
 import { DashboardCustomizerModal } from "@/components/dashboard/DashboardCustomizerModal";
 import { getWidgetById, WIDGET_REGISTRY } from "@/components/dashboard/widgetRegistryComponents";
-import { SlidersHorizontal, GripVertical } from "lucide-react";
+import {
+  SlidersHorizontal,
+  MoreVertical,
+  Check,
+  Trash2,
+  Plus,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { WidgetSize, WidgetDefinition } from "@/types/dashboard";
+import type { WidgetSize, WidgetDefinition, WidgetCategory } from "@/types/dashboard";
+import { CATEGORY_LABELS } from "@/types/dashboard";
 import type { DashboardStats } from "@/types/api";
+import { motion, AnimatePresence } from "framer-motion";
 
-// Map widget size to CSS col-span in a 3-col grid
-const SIZE_TO_COLSPAN: Record<WidgetSize, string> = {
-  sm: "col-span-1",
-  md: "col-span-1 lg:col-span-2",
-  lg: "col-span-1 lg:col-span-3",
+// Colspan de 3 columnas
+const SIZE_TO_SPAN: Record<WidgetSize, number> = { sm: 1, md: 2, lg: 3 };
+const SPAN_TO_CLASS: Record<number, string> = {
+  1: "col-span-1",
+  2: "col-span-1 lg:col-span-2",
+  3: "col-span-1 lg:col-span-3",
 };
+const TOTAL_COLS = 3;
 
-// Auto-sort nuevos widgets por tamaño (lg → md → sm) para minimizar gaps.
+// Ordena widgets nuevos por tamaño (lg → md → sm) para minimizar gaps.
 const SIZE_WEIGHT: Record<WidgetSize, number> = { lg: 0, md: 1, sm: 2 };
 function autoSort(ids: string[]): string[] {
   return [...ids].sort((a, b) => {
@@ -28,6 +38,41 @@ function autoSort(ids: string[]): string[] {
     if (!da || !db) return 0;
     return SIZE_WEIGHT[da.size] - SIZE_WEIGHT[db.size];
   });
+}
+
+/**
+ * Calcula el "span efectivo" de cada widget para evitar huecos:
+ * - Respeta el tamaño base de cada widget.
+ * - Si el último widget no llena la fila, se extiende para ocuparla.
+ * - Si en el medio queda un hueco que podría rellenarse con un widget posterior
+ *   de tamaño menor, el grid-flow-dense de CSS se encarga.
+ */
+function computeEffectiveSpans(ids: string[]): { id: string; span: number; def: WidgetDefinition }[] {
+  const rows: { id: string; span: number; def: WidgetDefinition }[] = [];
+  let col = 0;
+
+  for (let i = 0; i < ids.length; i++) {
+    const def = WIDGET_REGISTRY.find((w) => w.id === ids[i]);
+    if (!def) continue;
+    const baseSpan = SIZE_TO_SPAN[def.size];
+    let span = baseSpan;
+
+    // Si no cabe en la fila actual, empieza nueva fila.
+    if (col + span > TOTAL_COLS) {
+      col = 0;
+    }
+
+    // Si es el último widget y queda espacio en la fila, extiéndelo.
+    const isLast = i === ids.length - 1;
+    if (isLast && col + span < TOTAL_COLS) {
+      span = TOTAL_COLS - col;
+    }
+
+    rows.push({ id: ids[i], span, def });
+    col = (col + span) % TOTAL_COLS;
+  }
+
+  return rows;
 }
 
 export default function DashboardPage() {
@@ -44,29 +89,30 @@ export default function DashboardPage() {
   const { data: stats, isLoading } = useDashboardStats(dateRange.from, dateRange.to);
   const { selectedWidgets, updateLayout } = useDashboardLayout();
 
-  // Drag state
-  const draggingIdRef = useRef<string | null>(null);
-  const [draggingId, setDraggingId] = useState<string | null>(null);
-  const [dragOverId, setDragOverId] = useState<string | null>(null);
-
   const handleDateChange = useCallback((from: string, to: string) => {
     setDateRange({ from, to });
   }, []);
 
-  const handleDrop = (targetId: string) => {
-    const sourceId = draggingIdRef.current;
-    draggingIdRef.current = null;
-    setDraggingId(null);
-    setDragOverId(null);
-    if (!sourceId || sourceId === targetId) return;
+  const items = useMemo(() => computeEffectiveSpans(selectedWidgets), [selectedWidgets]);
 
+  const handleSwap = (currentId: string, newId: string) => {
+    if (currentId === newId) return;
     const next = [...selectedWidgets];
-    const from = next.indexOf(sourceId);
-    const to = next.indexOf(targetId);
-    if (from === -1 || to === -1) return;
-    next.splice(from, 1);
-    next.splice(to, 0, sourceId);
+    const idx = next.indexOf(currentId);
+    if (idx === -1) return;
+    // Si el nuevo ya está en el dashboard, intercambia posiciones.
+    const newIdx = next.indexOf(newId);
+    if (newIdx !== -1) {
+      next[idx] = newId;
+      next[newIdx] = currentId;
+    } else {
+      next[idx] = newId;
+    }
     updateLayout(next);
+  };
+
+  const handleRemove = (id: string) => {
+    updateLayout(selectedWidgets.filter((w) => w !== id));
   };
 
   return (
@@ -114,40 +160,21 @@ export default function DashboardPage() {
           </button>
         </div>
       ) : (
-        <>
-          <div className="flex items-center gap-1.5 text-[11px] text-text-muted">
-            <GripVertical size={12} />
-            Arrastra desde el handle de cada widget para reordenar.
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start grid-flow-dense">
-            {selectedWidgets.map((id) => {
-              const def = getWidgetById(id);
-              if (!def) return null;
-              return (
-                <DraggableWidget
-                  key={id}
-                  id={id}
-                  def={def}
-                  stats={stats ?? undefined}
-                  dateRange={dateRange}
-                  isDragging={draggingId === id}
-                  isDragOver={dragOverId === id && draggingId !== id}
-                  onDragStart={() => {
-                    draggingIdRef.current = id;
-                    setDraggingId(id);
-                  }}
-                  onDragEnd={() => {
-                    draggingIdRef.current = null;
-                    setDraggingId(null);
-                    setDragOverId(null);
-                  }}
-                  onDragEnter={() => setDragOverId(id)}
-                  onDrop={() => handleDrop(id)}
-                />
-              );
-            })}
-          </div>
-        </>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start grid-flow-dense">
+          {items.map(({ id, span, def }) => (
+            <WidgetSlot
+              key={id}
+              id={id}
+              def={def}
+              span={span}
+              stats={stats ?? undefined}
+              dateRange={dateRange}
+              selectedIds={selectedWidgets}
+              onSwap={(newId) => handleSwap(id, newId)}
+              onRemove={() => handleRemove(id)}
+            />
+          ))}
+        </div>
       )}
 
       {/* Customizer modal */}
@@ -165,94 +192,204 @@ export default function DashboardPage() {
   );
 }
 
-function DraggableWidget({
+/* ─────────────────────────────────────────────────────────────────── */
+/* Widget slot con menu para intercambiar qué estadística se muestra    */
+/* ─────────────────────────────────────────────────────────────────── */
+
+function WidgetSlot({
   id,
   def,
+  span,
   stats,
   dateRange,
-  isDragging,
-  isDragOver,
-  onDragStart,
-  onDragEnd,
-  onDragEnter,
-  onDrop,
+  selectedIds,
+  onSwap,
+  onRemove,
 }: {
   id: string;
   def: WidgetDefinition;
+  span: number;
   stats?: DashboardStats;
   dateRange: { from: string; to: string };
-  isDragging: boolean;
-  isDragOver: boolean;
-  onDragStart: () => void;
-  onDragEnd: () => void;
-  onDragEnter: () => void;
-  onDrop: () => void;
+  selectedIds: string[];
+  onSwap: (newId: string) => void;
+  onRemove: () => void;
 }) {
-  const [handleActive, setHandleActive] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const Component = def.component;
+
+  // Cerrar menu al click fuera
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    window.addEventListener("mousedown", handler);
+    return () => window.removeEventListener("mousedown", handler);
+  }, [menuOpen]);
+
   if (!Component) return null;
 
   return (
     <div
-      draggable={handleActive}
-      onDragStart={(e) => {
-        if (!handleActive) {
-          e.preventDefault();
-          return;
-        }
-        e.dataTransfer.effectAllowed = "move";
-        // Necesario para Firefox
-        try {
-          e.dataTransfer.setData("text/plain", id);
-        } catch {}
-        onDragStart();
-      }}
-      onDragEnd={() => {
-        setHandleActive(false);
-        onDragEnd();
-      }}
-      onDragEnter={(e) => {
-        e.preventDefault();
-        onDragEnter();
-      }}
-      onDragOver={(e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = "move";
-      }}
-      onDrop={(e) => {
-        e.preventDefault();
-        setHandleActive(false);
-        onDrop();
-      }}
+      ref={wrapperRef}
       className={cn(
-        SIZE_TO_COLSPAN[def.size],
-        "relative group min-h-[100px] transition-all",
-        isDragging && "opacity-40 scale-[0.98]",
-        isDragOver &&
-          "ring-2 ring-accent ring-offset-2 ring-offset-bg-primary rounded-2xl"
+        SPAN_TO_CLASS[span],
+        "relative group min-h-[100px]"
       )}
     >
-      {/* Drag handle — solo activa draggable cuando el usuario lo toma */}
+      {/* Menu button */}
       <button
         type="button"
-        aria-label="Arrastrar para reordenar"
-        title="Arrastrar para reordenar"
-        onMouseDown={() => setHandleActive(true)}
-        onMouseUp={() => setHandleActive(false)}
-        onTouchStart={() => setHandleActive(true)}
-        onTouchEnd={() => setHandleActive(false)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setMenuOpen((v) => !v);
+        }}
+        aria-label="Opciones del widget"
+        title="Cambiar estadística"
         className={cn(
           "absolute top-2 right-2 z-20 w-7 h-7 rounded-lg",
           "bg-bg-primary/90 border border-border-secondary backdrop-blur-sm",
           "flex items-center justify-center text-text-muted",
-          "hover:text-text-primary hover:bg-bg-hover",
-          "opacity-0 group-hover:opacity-100 transition-opacity",
-          "cursor-grab active:cursor-grabbing"
+          "hover:text-text-primary hover:bg-bg-hover transition-all",
+          menuOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"
         )}
       >
-        <GripVertical size={13} />
+        <MoreVertical size={13} />
       </button>
+
+      {/* Dropdown */}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -4, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.98 }}
+            transition={{ duration: 0.12 }}
+            className={cn(
+              "absolute top-11 right-2 z-30 w-64 max-h-[340px] overflow-y-auto",
+              "rounded-xl bg-bg-primary border border-border-secondary shadow-xl",
+              "p-1"
+            )}
+          >
+            <div className="px-2.5 py-2 border-b border-border-secondary mb-1 flex items-center justify-between">
+              <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider">
+                Mostrar en este cuadro
+              </span>
+              <button
+                onClick={() => {
+                  setMenuOpen(false);
+                  onRemove();
+                }}
+                className="flex items-center gap-1 text-[10px] text-red-500 hover:text-red-600 px-1.5 py-0.5 rounded hover:bg-red-500/10 transition-all"
+                title="Quitar widget"
+              >
+                <Trash2 size={10} />
+                Quitar
+              </button>
+            </div>
+
+            <WidgetPicker
+              currentId={id}
+              selectedIds={selectedIds}
+              onPick={(newId) => {
+                setMenuOpen(false);
+                onSwap(newId);
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <Component stats={stats} dateRange={dateRange} />
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────── */
+/* Lista de widgets agrupada por categoría, marca el actual con check  */
+/* ─────────────────────────────────────────────────────────────────── */
+
+function WidgetPicker({
+  currentId,
+  selectedIds,
+  onPick,
+}: {
+  currentId: string;
+  selectedIds: string[];
+  onPick: (id: string) => void;
+}) {
+  const byCategory = useMemo(() => {
+    const map = new Map<WidgetCategory, WidgetDefinition[]>();
+    for (const w of WIDGET_REGISTRY) {
+      if (!map.has(w.category)) map.set(w.category, []);
+      map.get(w.category)!.push(w);
+    }
+    return map;
+  }, []);
+
+  const categoriesOrdered: WidgetCategory[] = ["general", "conversion", "equipo", "tiempos", "ia"];
+
+  return (
+    <div className="space-y-2">
+      {categoriesOrdered.map((cat) => {
+        const widgets = byCategory.get(cat);
+        if (!widgets || widgets.length === 0) return null;
+        return (
+          <div key={cat}>
+            <p className="px-2.5 py-1 text-[10px] font-semibold text-text-muted uppercase tracking-wider">
+              {CATEGORY_LABELS[cat]}
+            </p>
+            {widgets.map((w) => {
+              const isCurrent = w.id === currentId;
+              const isUsed = selectedIds.includes(w.id) && !isCurrent;
+              return (
+                <button
+                  key={w.id}
+                  onClick={() => onPick(w.id)}
+                  className={cn(
+                    "w-full text-left px-2.5 py-1.5 rounded-lg flex items-start gap-2 transition-all",
+                    isCurrent
+                      ? "bg-accent/10 text-text-primary"
+                      : "hover:bg-bg-hover text-text-primary"
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "w-4 h-4 rounded flex items-center justify-center flex-shrink-0 mt-0.5 border",
+                      isCurrent
+                        ? "bg-accent border-accent"
+                        : "border-border-secondary bg-bg-secondary"
+                    )}
+                  >
+                    {isCurrent && <Check size={10} className="text-white" strokeWidth={3} />}
+                    {!isCurrent && isUsed && (
+                      <span className="w-1 h-1 rounded-full bg-text-muted" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[12px] font-medium text-text-primary leading-tight">
+                      {w.title}
+                    </p>
+                    <p className="text-[10px] text-text-muted mt-0.5 line-clamp-2 leading-snug">
+                      {w.description}
+                    </p>
+                    {isUsed && (
+                      <span className="inline-flex items-center gap-0.5 text-[9px] text-text-muted mt-0.5">
+                        <Plus size={8} className="rotate-45" />
+                        Se intercambiará con el que está en otro cuadro
+                      </span>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        );
+      })}
     </div>
   );
 }
