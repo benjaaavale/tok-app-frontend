@@ -199,37 +199,41 @@ function AgentFormModal({
   const [useKnowledge, setUseKnowledge] = useState(
     agent?.use_knowledge !== false
   );
-  const [optimizing, setOptimizing] = useState(false);
+  const [optimizing, setOptimizing] = useState<null | "description" | "instructions">(null);
 
-  const handleOptimize = async () => {
-    if (instructions.trim().length < 20) return;
-    if (instructions.trim().length >= 20) {
-      const ok = await confirm({
-        title: "Optimizar con IA",
-        description: "¿Reemplazar tu texto con la versión optimizada por IA?",
-        confirmText: "Sí, optimizar",
-        variant: "default",
-      });
-      if (!ok) return;
-    }
-    setOptimizing(true);
+  const runOptimize = async (field: "description" | "instructions") => {
+    const currentValue = field === "description" ? description : instructions;
+    const minLen = field === "description" ? 10 : 20;
+    if (currentValue.trim().length < minLen) return;
+
+    const ok = await confirm({
+      title: "Optimizar con IA",
+      description: "¿Reemplazar tu texto con la versión optimizada por IA?",
+      confirmText: "Sí, optimizar",
+      variant: "default",
+    });
+    if (!ok) return;
+
+    setOptimizing(field);
     try {
       const res = await authFetch(
         "/agents/optimize-prompt",
         {
           method: "POST",
-          body: JSON.stringify({ raw_text: instructions, agent_name: name }),
+          body: JSON.stringify({ raw_text: currentValue, agent_name: name, field }),
         },
         () => getToken()
       );
       if (!res.ok) throw new Error("Error al optimizar");
       const data = await res.json();
-      setInstructions(data.optimized_text || instructions);
-      toast.success("Prompt optimizado por IA");
+      const optimized = data.optimized_text || currentValue;
+      if (field === "description") setDescription(optimized);
+      else setInstructions(optimized);
+      toast.success("Texto optimizado por IA");
     } catch {
-      toast.error("No se pudo optimizar el prompt. Intenta de nuevo.");
+      toast.error("No se pudo optimizar. Intenta de nuevo.");
     } finally {
-      setOptimizing(false);
+      setOptimizing(null);
     }
   };
 
@@ -304,11 +308,26 @@ function AgentFormModal({
               placeholder="Ej: Atiende consultas de ventas, califica leads interesados y agenda reuniones con el equipo comercial"
               rows={3}
               maxLength={500}
-              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all resize-none"
+              disabled={optimizing === "description"}
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all resize-none disabled:opacity-60"
             />
-            <p className="text-[10px] text-text-muted mt-0.5 text-right">
-              {description.length}/500
-            </p>
+            <div className="flex items-center justify-between mt-1">
+              <button
+                type="button"
+                onClick={() => runOptimize("description")}
+                disabled={description.trim().length < 10 || optimizing !== null}
+                title="La IA tomara tu texto y lo optimizara para que el router sepa cuando usar este agente."
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border-primary bg-bg-secondary text-[11px] font-medium text-text-primary hover:bg-bg-hover transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {optimizing === "description" ? (
+                  <Loader2 size={11} className="animate-spin text-accent" />
+                ) : (
+                  <Sparkles size={11} className="text-accent" />
+                )}
+                {optimizing === "description" ? "Optimizando..." : "Optimizalo con IA"}
+              </button>
+              <p className="text-[10px] text-text-muted">{description.length}/500</p>
+            </div>
           </div>
 
           <div>
@@ -321,22 +340,22 @@ function AgentFormModal({
               placeholder="Ej: Tutea al cliente, usa un tono cercano. Siempre ofrece el servicio premium primero..."
               rows={3}
               maxLength={2000}
-              disabled={optimizing}
+              disabled={optimizing === "instructions"}
               className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all resize-none disabled:opacity-60"
             />
             <button
               type="button"
-              onClick={handleOptimize}
-              disabled={instructions.trim().length < 20 || optimizing}
+              onClick={() => runOptimize("instructions")}
+              disabled={instructions.trim().length < 20 || optimizing !== null}
               title="Clickealo cuando hayas escrito todo. La IA tomara tu texto, lo entendera y lo optimizara para que el agente funcione bien."
               className="mt-2 flex items-center gap-2 px-3 py-2 rounded-xl border border-border-primary bg-bg-secondary text-[12px] font-medium text-text-primary hover:bg-bg-hover transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              {optimizing ? (
+              {optimizing === "instructions" ? (
                 <Loader2 size={13} className="animate-spin text-accent" />
               ) : (
                 <Sparkles size={13} className="text-accent" />
               )}
-              {optimizing ? "Optimizando..." : "Optimizalo con IA"}
+              {optimizing === "instructions" ? "Optimizando..." : "Optimizalo con IA"}
             </button>
           </div>
 
