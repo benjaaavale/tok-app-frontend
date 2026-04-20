@@ -12,7 +12,7 @@ import {
   MessageCircle,
   CalendarDays,
   Settings,
-  FileText,
+  Megaphone,
   Bot,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -50,7 +50,7 @@ const navSections: NavSection[] = [
     title: "Herramientas",
     items: [
       { href: "/agents", label: "Agentes IA", icon: Bot },
-      { href: "/templates", label: "Plantillas", icon: FileText },
+      { href: "/templates", label: "Plantillas", icon: Megaphone },
     ],
   },
 ];

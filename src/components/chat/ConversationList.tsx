@@ -473,19 +473,19 @@ export function ConversationList() {
                   {/* Bot / Human indicator — top-left */}
                   <div
                     className={cn(
-                      "absolute -top-0.5 -left-0.5 w-[16px] h-[16px] rounded-full flex items-center justify-center ring-2 ring-bg-secondary shadow-sm",
+                      "absolute -top-1 -left-1 w-[18px] h-[18px] rounded-full flex items-center justify-center ring-2 ring-bg-secondary shadow-sm",
                       conv.bot_desactivado ? "bg-emerald-500" : "bg-blue-500"
                     )}
                   >
                     {conv.bot_desactivado ? (
-                      <User size={9} strokeWidth={2.5} className="text-white" />
+                      <User size={10} strokeWidth={2.5} className="text-white" />
                     ) : (
-                      <Bot size={9} strokeWidth={2.5} className="text-white" />
+                      <Bot size={10} strokeWidth={2.5} className="text-white" />
                     )}
                   </div>
                   {/* Channel badge — bottom-right, más prominente */}
                   <div className="absolute -bottom-0.5 -right-0.5 rounded-full ring-2 ring-bg-secondary shadow-sm overflow-hidden flex items-center justify-center">
-                    <ChannelBadge channel={conv.channel} size={17} />
+                    <ChannelBadge channel={conv.channel} size={13} />
                   </div>
                 </div>
 

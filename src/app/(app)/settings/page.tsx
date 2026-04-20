@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useClerk } from "@clerk/nextjs";
 import { toast } from "sonner";
@@ -25,11 +25,11 @@ import {
   Undo2,
   Building2,
   Briefcase,
-  MessageSquare,
   Bell,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { FaWhatsapp, FaMeta } from "react-icons/fa6";
 
 /* ── Section definitions ── */
 type SectionId =
@@ -45,7 +45,7 @@ type SectionId =
 interface SectionDef {
   id: SectionId;
   label: string;
-  icon: typeof User;
+  icon: React.ComponentType<{ size?: number; className?: string; color?: string; strokeWidth?: number }>;
   description?: string;
 }
 
@@ -72,8 +72,8 @@ const GROUPS: SectionGroup[] = [
   {
     label: "Canales",
     items: [
-      { id: "whatsapp", label: "WhatsApp", icon: MessageSquare, description: "YCloud API" },
-      { id: "meta", label: "Meta", icon: Plug, description: "Messenger e Instagram" },
+      { id: "whatsapp", label: "WhatsApp", icon: FaWhatsapp, description: "YCloud API" },
+      { id: "meta", label: "Meta", icon: FaMeta, description: "Messenger e Instagram" },
     ],
   },
   {
