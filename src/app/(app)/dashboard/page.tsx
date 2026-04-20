@@ -1,15 +1,17 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { Reorder, useDragControls } from "framer-motion";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useAuthStore } from "@/stores/auth-store";
 import { useDashboardLayout } from "@/hooks/useDashboardLayout";
 import { DateRangeFilter } from "@/components/dashboard/DateRangeFilter";
 import { DashboardCustomizerModal } from "@/components/dashboard/DashboardCustomizerModal";
-import { getWidgetById } from "@/components/dashboard/widgetRegistryComponents";
-import { SlidersHorizontal } from "lucide-react";
+import { getWidgetById, WIDGET_REGISTRY } from "@/components/dashboard/widgetRegistryComponents";
+import { SlidersHorizontal, GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { WidgetSize } from "@/types/dashboard";
+import type { WidgetSize, WidgetDefinition } from "@/types/dashboard";
+import type { DashboardStats } from "@/types/api";
 
 // Map widget size to CSS col-span in a 3-col grid
 const SIZE_TO_COLSPAN: Record<WidgetSize, string> = {
@@ -17,6 +19,18 @@ const SIZE_TO_COLSPAN: Record<WidgetSize, string> = {
   md: "col-span-1 lg:col-span-2",
   lg: "col-span-1 lg:col-span-3",
 };
+
+// Orden interno recomendado: los widgets nuevos se insertan en el orden de tamaño
+// (lg → md → sm) para evitar gaps visuales. El usuario puede reordenar con drag.
+const SIZE_WEIGHT: Record<WidgetSize, number> = { lg: 0, md: 1, sm: 2 };
+function autoSort(ids: string[]): string[] {
+  return [...ids].sort((a, b) => {
+    const da = WIDGET_REGISTRY.find((w) => w.id === a);
+    const db = WIDGET_REGISTRY.find((w) => w.id === b);
+    if (!da || !db) return 0;
+    return SIZE_WEIGHT[da.size] - SIZE_WEIGHT[db.size];
+  });
+}
 
 export default function DashboardPage() {
   const { companyNombre } = useAuthStore();
@@ -67,42 +81,48 @@ export default function DashboardPage() {
       {/* Widget grid */}
       {isLoading ? (
         <DashboardSkeleton count={selectedWidgets.length} />
+      ) : selectedWidgets.length === 0 ? (
+        <div className="py-16 flex flex-col items-center gap-3 text-center">
+          <SlidersHorizontal size={32} className="text-text-muted opacity-40" />
+          <p className="text-[14px] text-text-muted">
+            No hay widgets seleccionados.
+          </p>
+          <button
+            onClick={() => setCustomizerOpen(true)}
+            className="btn-gradient px-4 py-2 rounded-xl text-[13px] font-medium mt-1"
+          >
+            Personalizar dashboard
+          </button>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
-          {selectedWidgets.map((id) => {
-            const def = getWidgetById(id);
-            if (!def) return null;
-            const Component = def.component;
-            if (!Component) return null;
-
-            return (
-              <div
-                key={id}
-                className={cn(SIZE_TO_COLSPAN[def.size], "min-h-[100px]")}
-              >
-                <Component
+        <>
+          <div className="flex items-center gap-1.5 text-[11px] text-text-muted">
+            <GripVertical size={12} />
+            Arrastra los widgets para reordenar. Click en &quot;Personalizar&quot; para
+            agregar más.
+          </div>
+          <Reorder.Group
+            axis="y"
+            values={selectedWidgets}
+            onReorder={updateLayout}
+            as="div"
+            className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start grid-flow-dense"
+          >
+            {selectedWidgets.map((id) => {
+              const def = getWidgetById(id);
+              if (!def) return null;
+              return (
+                <DraggableWidget
+                  key={id}
+                  id={id}
+                  def={def}
                   stats={stats ?? undefined}
                   dateRange={dateRange}
                 />
-              </div>
-            );
-          })}
-
-          {selectedWidgets.length === 0 && (
-            <div className="col-span-1 lg:col-span-3 py-16 flex flex-col items-center gap-3 text-center">
-              <SlidersHorizontal size={32} className="text-text-muted opacity-40" />
-              <p className="text-[14px] text-text-muted">
-                No hay widgets seleccionados.
-              </p>
-              <button
-                onClick={() => setCustomizerOpen(true)}
-                className="btn-gradient px-4 py-2 rounded-xl text-[13px] font-medium mt-1"
-              >
-                Personalizar dashboard
-              </button>
-            </div>
-          )}
-        </div>
+              );
+            })}
+          </Reorder.Group>
+        </>
       )}
 
       {/* Customizer modal */}
@@ -110,9 +130,53 @@ export default function DashboardPage() {
         open={customizerOpen}
         onClose={() => setCustomizerOpen(false)}
         selected={selectedWidgets}
-        onSave={updateLayout}
+        onSave={(ids) => {
+          // Conserva el orden existente para los widgets ya elegidos y
+          // auto-ordena los nuevos por tamaño para evitar gaps visuales.
+          const preserved = selectedWidgets.filter((id) => ids.includes(id));
+          const added = ids.filter((id) => !selectedWidgets.includes(id));
+          updateLayout([...preserved, ...autoSort(added)]);
+        }}
       />
     </div>
+  );
+}
+
+function DraggableWidget({
+  id,
+  def,
+  stats,
+  dateRange,
+}: {
+  id: string;
+  def: WidgetDefinition;
+  stats?: DashboardStats;
+  dateRange: { from: string; to: string };
+}) {
+  const controls = useDragControls();
+  const Component = def.component;
+  if (!Component) return null;
+  return (
+    <Reorder.Item
+      value={id}
+      dragListener={false}
+      dragControls={controls}
+      className={cn(SIZE_TO_COLSPAN[def.size], "relative group min-h-[100px]")}
+      whileDrag={{ scale: 1.02, zIndex: 50, cursor: "grabbing" }}
+      layout
+    >
+      {/* Drag handle */}
+      <button
+        type="button"
+        onPointerDown={(e) => controls.start(e)}
+        className="absolute top-2 right-2 z-20 w-7 h-7 rounded-lg bg-bg-primary/80 border border-border-secondary flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-bg-hover opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing backdrop-blur-sm"
+        title="Arrastrar para reordenar"
+        aria-label="Reordenar widget"
+      >
+        <GripVertical size={13} />
+      </button>
+      <Component stats={stats} dateRange={dateRange} />
+    </Reorder.Item>
   );
 }
 

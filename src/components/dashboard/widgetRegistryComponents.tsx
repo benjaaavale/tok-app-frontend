@@ -12,6 +12,7 @@ import { TasaConversionWidget } from "./widgets/TasaConversionWidget";
 import { TasaAgendamientoWidget } from "./widgets/TasaAgendamientoWidget";
 import { RatioBotHumanoWidget } from "./widgets/RatioBotHumanoWidget";
 import { CitasPorWorkerWidget } from "./widgets/CitasPorWorkerWidget";
+import { TiempoRespuestaPorWorkerWidget } from "./widgets/TiempoRespuestaPorWorkerWidget";
 import { TiempoRespuestaWidget } from "./widgets/TiempoRespuestaWidget";
 import { HorasPicoWidget } from "./widgets/HorasPicoWidget";
 import { MensajesProcesadosIAWidget } from "./widgets/MensajesProcesadosIAWidget";
@@ -27,6 +28,7 @@ const COMPONENT_MAP: Record<string, React.ComponentType<any>> = {
   "tasa-agendamiento": TasaAgendamientoWidget,
   "ratio-bot-humano": RatioBotHumanoWidget,
   "citas-por-worker": CitasPorWorkerWidget,
+  "tiempo-respuesta-worker": TiempoRespuestaPorWorkerWidget,
   "tiempo-respuesta": TiempoRespuestaWidget,
   "horas-pico": HorasPicoWidget,
   "mensajes-ia": MensajesProcesadosIAWidget,
