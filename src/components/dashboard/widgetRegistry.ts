@@ -78,6 +78,14 @@ export const WIDGET_METADATA: Omit<WidgetDefinition, "component">[] = [
     size: "md",
     requiresDateRange: true,
   },
+  {
+    id: "tiempo-respuesta-worker",
+    title: "Tiempo de respuesta por worker",
+    description: "Tiempo promedio que cada worker tarda en responder al cliente. Destaca al más rápido.",
+    category: "equipo",
+    size: "md",
+    requiresDateRange: true,
+  },
 
   // ── TIEMPOS ───────────────────────────────────────────────────────
   {

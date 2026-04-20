@@ -190,7 +190,6 @@ function AgentFormModal({
   isSaving: boolean;
 }) {
   const { getToken } = useAuth();
-  const confirm = useConfirm();
   const isEditing = !!agent?.id;
   const [name, setName] = useState(agent?.name || "");
   const [description, setDescription] = useState(agent?.description || "");
@@ -199,45 +198,27 @@ function AgentFormModal({
   const [useKnowledge, setUseKnowledge] = useState(
     agent?.use_knowledge !== false
   );
-  const [optimizing, setOptimizing] = useState<null | "description" | "instructions">(null);
+  const [optimizing, setOptimizing] = useState<null | "description" | "instructions" | "saving">(null);
 
-  const runOptimize = async (field: "description" | "instructions") => {
-    const currentValue = field === "description" ? description : instructions;
-    const minLen = field === "description" ? 10 : 20;
-    if (currentValue.trim().length < minLen) return;
-
-    const ok = await confirm({
-      title: "Optimizar con IA",
-      description: "¿Reemplazar tu texto con la versión optimizada por IA?",
-      confirmText: "Sí, optimizar",
-      variant: "default",
-    });
-    if (!ok) return;
-
-    setOptimizing(field);
+  const optimizeText = async (field: "description" | "instructions", raw: string): Promise<string> => {
     try {
       const res = await authFetch(
         "/agents/optimize-prompt",
         {
           method: "POST",
-          body: JSON.stringify({ raw_text: currentValue, agent_name: name, field }),
+          body: JSON.stringify({ raw_text: raw, agent_name: name, field }),
         },
         () => getToken()
       );
-      if (!res.ok) throw new Error("Error al optimizar");
+      if (!res.ok) return raw;
       const data = await res.json();
-      const optimized = data.optimized_text || currentValue;
-      if (field === "description") setDescription(optimized);
-      else setInstructions(optimized);
-      toast.success("Texto optimizado por IA");
+      return data.optimized_text || raw;
     } catch {
-      toast.error("No se pudo optimizar. Intenta de nuevo.");
-    } finally {
-      setOptimizing(null);
+      return raw;
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !description.trim()) {
       toast.error("Nombre y descripcion son requeridos");
@@ -247,11 +228,30 @@ function AgentFormModal({
       toast.error("La descripcion debe tener al menos 10 caracteres");
       return;
     }
+
+    // Auto-optimizar SIEMPRE con IA antes de guardar
+    let finalDescription = description.trim();
+    let finalInstructions = instructions.trim();
+
+    try {
+      setOptimizing("description");
+      finalDescription = await optimizeText("description", finalDescription);
+      setDescription(finalDescription);
+
+      if (finalInstructions.length >= 20) {
+        setOptimizing("instructions");
+        finalInstructions = await optimizeText("instructions", finalInstructions);
+        setInstructions(finalInstructions);
+      }
+    } finally {
+      setOptimizing("saving");
+    }
+
     onSave({
       ...(agent?.id ? { id: agent.id } : {}),
       name: name.trim(),
-      description: description.trim(),
-      instructions: instructions.trim(),
+      description: finalDescription,
+      instructions: finalInstructions,
       can_schedule: canSchedule,
       use_knowledge: useKnowledge,
     });
@@ -308,24 +308,14 @@ function AgentFormModal({
               placeholder="Ej: Atiende consultas de ventas, califica leads interesados y agenda reuniones con el equipo comercial"
               rows={3}
               maxLength={500}
-              disabled={optimizing === "description"}
+              disabled={optimizing !== null}
               className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all resize-none disabled:opacity-60"
             />
             <div className="flex items-center justify-between mt-1">
-              <button
-                type="button"
-                onClick={() => runOptimize("description")}
-                disabled={description.trim().length < 10 || optimizing !== null}
-                title="La IA tomara tu texto y lo optimizara para que el router sepa cuando usar este agente."
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border-primary bg-bg-secondary text-[11px] font-medium text-text-primary hover:bg-bg-hover transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                {optimizing === "description" ? (
-                  <Loader2 size={11} className="animate-spin text-accent" />
-                ) : (
-                  <Sparkles size={11} className="text-accent" />
-                )}
-                {optimizing === "description" ? "Optimizando..." : "Optimizalo con IA"}
-              </button>
+              <p className="text-[10px] text-text-muted flex items-center gap-1">
+                <Sparkles size={10} className="text-accent" />
+                Se optimiza con IA al guardar
+              </p>
               <p className="text-[10px] text-text-muted">{description.length}/500</p>
             </div>
           </div>
@@ -340,23 +330,13 @@ function AgentFormModal({
               placeholder="Ej: Tutea al cliente, usa un tono cercano. Siempre ofrece el servicio premium primero..."
               rows={3}
               maxLength={2000}
-              disabled={optimizing === "instructions"}
+              disabled={optimizing !== null}
               className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all resize-none disabled:opacity-60"
             />
-            <button
-              type="button"
-              onClick={() => runOptimize("instructions")}
-              disabled={instructions.trim().length < 20 || optimizing !== null}
-              title="Clickealo cuando hayas escrito todo. La IA tomara tu texto, lo entendera y lo optimizara para que el agente funcione bien."
-              className="mt-2 flex items-center gap-2 px-3 py-2 rounded-xl border border-border-primary bg-bg-secondary text-[12px] font-medium text-text-primary hover:bg-bg-hover transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              {optimizing === "instructions" ? (
-                <Loader2 size={13} className="animate-spin text-accent" />
-              ) : (
-                <Sparkles size={13} className="text-accent" />
-              )}
-              {optimizing === "instructions" ? "Optimizando..." : "Optimizalo con IA"}
-            </button>
+            <p className="text-[10px] text-text-muted mt-1 flex items-center gap-1">
+              <Sparkles size={10} className="text-accent" />
+              Se optimiza con IA al guardar (si tiene 20+ caracteres)
+            </p>
           </div>
 
           <div className="flex gap-3">
@@ -412,22 +392,60 @@ function AgentFormModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 rounded-xl text-[12px] font-medium bg-bg-secondary border border-border-secondary text-text-secondary hover:bg-bg-hover transition-all"
+              disabled={optimizing !== null}
+              className="flex-1 py-2.5 rounded-xl text-[12px] font-medium bg-bg-secondary border border-border-secondary text-text-secondary hover:bg-bg-hover transition-all disabled:opacity-50"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              disabled={isSaving || !name.trim() || description.trim().length < 10}
+              disabled={isSaving || optimizing !== null || !name.trim() || description.trim().length < 10}
               className="flex-1 py-2.5 rounded-xl text-[12px] font-semibold bg-accent text-white hover:bg-accent-hover transition-all disabled:opacity-60 flex items-center justify-center gap-2"
             >
-              {isSaving && (
+              {(isSaving || optimizing !== null) && (
                 <Loader2 size={13} className="animate-spin" />
               )}
-              {isEditing ? "Guardar cambios" : "Crear agente"}
+              {optimizing === "description"
+                ? "Optimizando descripcion..."
+                : optimizing === "instructions"
+                ? "Optimizando instrucciones..."
+                : optimizing === "saving"
+                ? "Guardando..."
+                : isEditing
+                ? "Guardar cambios"
+                : "Crear agente"}
             </button>
           </div>
         </form>
+
+        {/* Optimizing overlay */}
+        <AnimatePresence>
+          {optimizing && optimizing !== "saving" && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 rounded-2xl bg-bg-primary/85 backdrop-blur-sm flex flex-col items-center justify-center gap-3 z-10"
+            >
+              <div className="relative">
+                <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center">
+                  <Sparkles size={22} className="text-accent" />
+                </div>
+                <Loader2 size={48} className="animate-spin text-accent absolute inset-0" />
+              </div>
+              <div className="text-center">
+                <p className="text-[13px] font-semibold text-text-primary">
+                  Optimizando tus textos con IA
+                </p>
+                <p className="text-[11px] text-text-muted mt-0.5">
+                  {optimizing === "description"
+                    ? "Afinando la descripcion para el router..."
+                    : "Afinando las instrucciones del agente..."}
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </div>
   );
