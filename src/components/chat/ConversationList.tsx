@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useConversations } from "@/hooks/useConversations";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { useWorkers } from "@/hooks/useWorkers";
@@ -13,9 +14,15 @@ import type { Conversation } from "@/types/api";
 import { MessengerIcon, InstagramIcon, ChannelBadge } from "./ChannelIcons";
 
 type ChannelOption = "whatsapp" | "messenger" | "instagram";
+type TabOption = "all" | "support";
 
 export function ConversationList() {
-  const { data: conversations, isLoading } = useConversations();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const activeTab = (searchParams.get("tab") === "support" ? "support" : "all") as TabOption;
+
+  const { data: conversations, isLoading } = useConversations(activeTab === "support" ? "support" : undefined);
+  const { data: allConversations } = useConversations(undefined);
   const { data: companySettings } = useCompanySettings();
   const { data: workers } = useWorkers();
   const { activeConversationId, setActiveConversation } = useChatStore();
@@ -119,6 +126,17 @@ export function ConversationList() {
       (c) => c.etiqueta === "Necesita ayuda humana" || !!c.assigned_worker_id
     ).length ?? 0;
   const unassignedCount = conversations?.filter((c) => !c.assigned_worker_id).length ?? 0;
+  const supportCount = allConversations?.filter((c) => c.is_support).length ?? 0;
+
+  const handleTabChange = (tab: TabOption) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (tab === "all") {
+      params.delete("tab");
+    } else {
+      params.set("tab", tab);
+    }
+    router.push(`/conversations?${params.toString()}`);
+  };
 
   const showPhoneSelector =
     hasPhones && filterChannels.size === 1 && filterChannels.has("whatsapp");
@@ -132,6 +150,44 @@ export function ConversationList() {
 
   return (
     <div className="flex flex-col h-full border-r border-border-separator bg-bg-secondary">
+      {/* Tab switcher: Todas / Soporte */}
+      <div className="flex items-center gap-1 px-3 pt-3 pb-1">
+        <button
+          onClick={() => handleTabChange("all")}
+          className={cn(
+            "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all",
+            activeTab === "all"
+              ? "bg-accent text-white shadow-sm"
+              : "bg-bg-primary border border-border-secondary text-text-muted hover:text-text-primary hover:bg-bg-hover"
+          )}
+        >
+          Todas
+        </button>
+        <button
+          onClick={() => handleTabChange("support")}
+          className={cn(
+            "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all",
+            activeTab === "support"
+              ? "bg-accent text-white shadow-sm"
+              : "bg-bg-primary border border-border-secondary text-text-muted hover:text-text-primary hover:bg-bg-hover"
+          )}
+        >
+          Soporte
+          {supportCount > 0 && (
+            <span
+              className={cn(
+                "min-w-[16px] h-[16px] flex items-center justify-center rounded-full text-[9px] font-bold px-1",
+                activeTab === "support"
+                  ? "bg-white/25 text-white"
+                  : "bg-red-500 text-white"
+              )}
+            >
+              {supportCount > 99 ? "99+" : supportCount}
+            </span>
+          )}
+        </button>
+      </div>
+
       {/* Phone selector — solo cuando WhatsApp está seleccionado específicamente */}
       {showPhoneSelector && (
         <div className="px-3 pt-3 pb-0" ref={phoneDropdownRef}>

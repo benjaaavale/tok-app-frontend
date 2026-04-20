@@ -21,6 +21,7 @@ import {
   Pencil,
   Power,
   X,
+  Sparkles,
 } from "lucide-react";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { AnimatePresence, motion } from "framer-motion";
@@ -188,6 +189,8 @@ function AgentFormModal({
   onClose: () => void;
   isSaving: boolean;
 }) {
+  const { getToken } = useAuth();
+  const confirm = useConfirm();
   const isEditing = !!agent?.id;
   const [name, setName] = useState(agent?.name || "");
   const [description, setDescription] = useState(agent?.description || "");
@@ -196,6 +199,39 @@ function AgentFormModal({
   const [useKnowledge, setUseKnowledge] = useState(
     agent?.use_knowledge !== false
   );
+  const [optimizing, setOptimizing] = useState(false);
+
+  const handleOptimize = async () => {
+    if (instructions.trim().length < 20) return;
+    if (instructions.trim().length >= 20) {
+      const ok = await confirm({
+        title: "Optimizar con IA",
+        description: "¿Reemplazar tu texto con la versión optimizada por IA?",
+        confirmText: "Sí, optimizar",
+        variant: "default",
+      });
+      if (!ok) return;
+    }
+    setOptimizing(true);
+    try {
+      const res = await authFetch(
+        "/agents/optimize-prompt",
+        {
+          method: "POST",
+          body: JSON.stringify({ raw_text: instructions, agent_name: name }),
+        },
+        () => getToken()
+      );
+      if (!res.ok) throw new Error("Error al optimizar");
+      const data = await res.json();
+      setInstructions(data.optimized_text || instructions);
+      toast.success("Prompt optimizado por IA");
+    } catch {
+      toast.error("No se pudo optimizar el prompt. Intenta de nuevo.");
+    } finally {
+      setOptimizing(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -285,8 +321,23 @@ function AgentFormModal({
               placeholder="Ej: Tutea al cliente, usa un tono cercano. Siempre ofrece el servicio premium primero..."
               rows={3}
               maxLength={2000}
-              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all resize-none"
+              disabled={optimizing}
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary border border-border-secondary text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all resize-none disabled:opacity-60"
             />
+            <button
+              type="button"
+              onClick={handleOptimize}
+              disabled={instructions.trim().length < 20 || optimizing}
+              title="Clickealo cuando hayas escrito todo. La IA tomara tu texto, lo entendera y lo optimizara para que el agente funcione bien."
+              className="mt-2 flex items-center gap-2 px-3 py-2 rounded-xl border border-border-primary bg-bg-secondary text-[12px] font-medium text-text-primary hover:bg-bg-hover transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {optimizing ? (
+                <Loader2 size={13} className="animate-spin text-accent" />
+              ) : (
+                <Sparkles size={13} className="text-accent" />
+              )}
+              {optimizing ? "Optimizando..." : "Optimizalo con IA"}
+            </button>
           </div>
 
           <div className="flex gap-3">

@@ -27,6 +27,7 @@ import {
   X,
   ArrowUpRight,
   ChevronDown,
+  HeadphonesIcon,
 } from "lucide-react";
 
 export function ContactPanel() {
@@ -34,6 +35,7 @@ export function ContactPanel() {
   const queryClient = useQueryClient();
   const {
     activePhone,
+    activeConversationId,
     showContactPanel,
     setActiveConversation,
     setShowContactPanel,
@@ -99,6 +101,23 @@ export function ContactPanel() {
     },
   });
 
+  const toggleSupport = useMutation({
+    mutationFn: async () => {
+      const res = await authFetch(
+        `/conversations/${activeConversationId}/toggle-support`,
+        { method: "POST" },
+        () => getToken()
+      );
+      if (!res.ok) throw new Error("Error al actualizar");
+      return res.json();
+    },
+    onSuccess: (data: { is_support: boolean }) => {
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      toast.success(data.is_support ? "Marcada como soporte" : "Quitada de soporte");
+    },
+    onError: () => toast.error("Error al actualizar el estado de soporte"),
+  });
+
   if (!showContactPanel || !activePhone) return null;
 
   const loader = (
@@ -123,6 +142,7 @@ export function ContactPanel() {
                 botToggle={botToggle}
                 updateEtapa={updateEtapa}
                 deleteContact={deleteContact}
+                toggleSupport={toggleSupport}
               />
             )}
       </div>
@@ -147,6 +167,7 @@ export function ContactPanel() {
               botToggle={botToggle}
               updateEtapa={updateEtapa}
               deleteContact={deleteContact}
+              toggleSupport={toggleSupport}
               mobile
             />
           ) : null}
@@ -162,12 +183,14 @@ function ContactPanelBody({
   botToggle,
   updateEtapa,
   deleteContact,
+  toggleSupport,
   mobile = false,
 }: {
   contact: any;
   botToggle: any;
   updateEtapa: any;
   deleteContact: any;
+  toggleSupport: any;
   mobile?: boolean;
 }) {
   const confirm = useConfirm();
@@ -333,8 +356,20 @@ function ContactPanelBody({
         </div>
       </FlatSection>
 
-      {/* ── Eliminar ── */}
-      <div className="pt-2 border-t border-border-secondary">
+      {/* ── Soporte / Eliminar ── */}
+      <div className="pt-2 border-t border-border-secondary space-y-1">
+        <button
+          onClick={() => toggleSupport.mutate()}
+          disabled={toggleSupport.isPending}
+          className={`flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-[12px] transition-all ${
+            contact.is_support
+              ? "text-amber-600 dark:text-amber-400 hover:bg-amber-500/10"
+              : "text-text-secondary hover:bg-bg-hover"
+          }`}
+        >
+          <HeadphonesIcon size={13} />
+          {contact.is_support ? "Quitar de soporte" : "Marcar como soporte"}
+        </button>
         <button
           onClick={async () => {
             const ok1 = await confirm({

@@ -5,13 +5,14 @@ import { useAuth } from "@clerk/nextjs";
 import { authFetch } from "@/lib/api";
 import type { Conversation } from "@/types/api";
 
-export function useConversations() {
+export function useConversations(filter?: "support") {
   const { getToken } = useAuth();
 
   return useQuery<Conversation[]>({
-    queryKey: ["conversations"],
+    queryKey: ["conversations", filter ?? "all"],
     queryFn: async () => {
-      const res = await authFetch("/conversations", {}, () => getToken());
+      const url = filter ? `/conversations?filter=${filter}` : "/conversations";
+      const res = await authFetch(url, {}, () => getToken());
       return res.json();
     },
   });
