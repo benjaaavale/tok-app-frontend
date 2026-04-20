@@ -88,7 +88,7 @@ export function AbandonedCheckouts() {
     isFetching,
   } = useShopifyAbandonedCheckouts();
 
-  const checkouts: any[] = data?.checkouts ?? [];
+  const checkouts: any[] = data ?? [];
 
   return (
     <SettingsSection

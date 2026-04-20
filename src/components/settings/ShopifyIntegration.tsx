@@ -47,7 +47,7 @@ export function ShopifyIntegration() {
   const disconnectShopify = useDisconnectShopify();
 
   const isConnected = status?.connected ?? false;
-  const shopName = status?.shop_name ?? null;
+  const shopName = status?.shopName ?? null;
   const shopifyDomain = status?.domain ?? null;
 
   const handleConnect = () => {
