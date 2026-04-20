@@ -40,13 +40,139 @@ const CATEGORY_BADGE: Record<KnowledgeSectionCategory, string> = {
   servicios: "bg-cyan-100    text-cyan-700    dark:bg-cyan-900/40    dark:text-cyan-400",
 };
 
-const SECTION_TEMPLATES = [
-  { title: "Información General", description: "Nombre del negocio, dirección, contacto e introducción", always_include: true },
-  { title: "Servicios y Precios", description: "Lista de servicios con precios y duraciones" },
-  { title: "Horarios de Atención", description: "Días y horas en que el negocio atiende" },
-  { title: "Ubicación y Acceso", description: "Dirección, cómo llegar, estacionamiento" },
-  { title: "Reservas y Citas", description: "Cómo agendar, políticas de reserva y cancelación" },
-  { title: "Preguntas Frecuentes", description: "Preguntas y respuestas comunes de los clientes" },
+type SectionTemplate = {
+  title: string;
+  description: string;
+  category: KnowledgeSectionCategory;
+  content: string;
+  always_include?: boolean;
+};
+
+const SECTION_TEMPLATES: SectionTemplate[] = [
+  {
+    title: "Información General",
+    description: "Nombre del negocio, dirección, contacto e introducción",
+    category: "general",
+    always_include: true,
+    content: `Nombre del negocio: [nombre de tu empresa]
+Descripción breve: [1-2 líneas explicando qué hace tu negocio]
+Dirección: [calle, comuna, ciudad]
+Teléfono de contacto: [+56 9 ...]
+Email: [contacto@tu-empresa.cl]
+Sitio web: [www.tu-empresa.cl]
+Redes sociales: [@instagram, @tiktok, etc.]`,
+  },
+  {
+    title: "Servicios y Precios",
+    description: "Lista de servicios con precios y duraciones",
+    category: "precios",
+    content: `Servicio: [nombre del servicio 1]
+Descripción: [breve explicación]
+Precio: [valor en CLP]
+Duración: [minutos / horas]
+
+Servicio: [nombre del servicio 2]
+Descripción: [breve explicación]
+Precio: [valor en CLP]
+Duración: [minutos / horas]
+
+Servicio: [nombre del servicio 3]
+Descripción: [breve explicación]
+Precio: [valor en CLP]
+Duración: [minutos / horas]
+
+Formas de pago aceptadas: [efectivo, transferencia, tarjetas, etc.]
+Descuentos: [si aplican — ej: 10% primera visita]`,
+  },
+  {
+    title: "Horarios de Atención",
+    description: "Días y horas en que el negocio atiende",
+    category: "horarios",
+    content: `Lunes a viernes: [09:00 - 18:00]
+Sábado: [10:00 - 14:00]
+Domingo: [cerrado]
+Feriados: [cerrado / horario especial]
+
+Horario especial para: [festividades, verano, etc.]
+Última reserva del día: [ej: 17:30]`,
+  },
+  {
+    title: "Ubicación y Acceso",
+    description: "Dirección, cómo llegar, estacionamiento",
+    category: "general",
+    content: `Dirección exacta: [calle + número, comuna, ciudad]
+Referencia: [punto conocido cercano]
+
+Transporte público: [metro / micro más cercana]
+Estacionamiento: [sí / no / paga / gratis]
+Accesibilidad: [rampa, ascensor, etc.]
+
+Google Maps: [link o cómo buscarlo]`,
+  },
+  {
+    title: "Reservas y Citas",
+    description: "Cómo agendar, políticas de reserva y cancelación",
+    category: "servicios",
+    content: `Cómo agendar: [WhatsApp, web, teléfono]
+Confirmación: [el cliente recibe confirmación por WhatsApp / email]
+Tiempo de anticipación mínima: [ej: 24 horas]
+
+Política de cancelación: [ej: hasta 12 horas antes sin cargo]
+Política de no-show: [qué pasa si el cliente no se presenta]
+Reprogramación: [condiciones]
+
+Abono o seña: [sí / no, monto]`,
+  },
+  {
+    title: "Preguntas Frecuentes",
+    description: "Preguntas y respuestas comunes de los clientes",
+    category: "faq",
+    content: `P: [pregunta frecuente 1]
+R: [respuesta clara y completa]
+
+P: [pregunta frecuente 2]
+R: [respuesta clara y completa]
+
+P: [pregunta frecuente 3]
+R: [respuesta clara y completa]
+
+P: [pregunta frecuente 4]
+R: [respuesta clara y completa]`,
+  },
+  {
+    title: "Catálogo de Productos",
+    description: "Productos en venta con precio, stock y detalles",
+    category: "catalogo",
+    content: `Producto: [nombre del producto 1]
+Descripción: [qué es, para qué sirve]
+Precio: [valor CLP]
+Stock: [disponible / agotado / unidades]
+Variantes: [colores, tallas, modelos]
+
+Producto: [nombre del producto 2]
+Descripción: [qué es]
+Precio: [valor CLP]
+Stock: [disponible]
+Variantes: [opciones]
+
+Producto: [nombre del producto 3]
+Descripción: [qué es]
+Precio: [valor CLP]
+Stock: [disponible]
+Variantes: [opciones]`,
+  },
+  {
+    title: "Políticas y Garantías",
+    description: "Devoluciones, garantías, términos y condiciones",
+    category: "politicas",
+    content: `Garantía: [duración y cobertura]
+Devoluciones: [plazo, condiciones, qué productos aplican]
+Cambios: [condiciones para cambiar producto o servicio]
+
+Facturación: [boleta / factura — requisitos]
+Envíos: [zonas, costo, tiempos]
+Privacidad: [breve política de uso de datos]`,
+  },
 ];
 
 interface SectionFormProps {
@@ -168,12 +294,13 @@ export function KnowledgeSections() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [templateInitial, setTemplateInitial] = useState<Partial<KnowledgeSection> | null>(null);
 
   if (isLoading) return <div className="h-[200px] bg-bg-secondary rounded-2xl animate-pulse" />;
 
   const handleCreate = (data: Omit<KnowledgeSection, "id" | "created_at">) => {
     create.mutate(data, {
-      onSuccess: () => { toast.success("Sección creada"); setShowForm(false); setShowTemplates(false); },
+      onSuccess: () => { toast.success("Sección creada"); setShowForm(false); setShowTemplates(false); setTemplateInitial(null); },
       onError: (err: Error) => toast.error(err.message),
     });
   };
@@ -256,7 +383,12 @@ export function KnowledgeSections() {
 
         {/* Add section form */}
         {showForm && !showTemplates && (
-          <SectionForm onSave={handleCreate} onCancel={() => setShowForm(false)} isSaving={create.isPending} />
+          <SectionForm
+            initial={templateInitial ?? undefined}
+            onSave={handleCreate}
+            onCancel={() => { setShowForm(false); setTemplateInitial(null); }}
+            isSaving={create.isPending}
+          />
         )}
 
         {/* Templates picker */}
@@ -270,6 +402,13 @@ export function KnowledgeSections() {
                   key={t.title}
                   disabled={exists}
                   onClick={() => {
+                    setTemplateInitial({
+                      title: t.title,
+                      description: t.description,
+                      category: t.category,
+                      content: t.content,
+                      always_include: t.always_include ?? false,
+                    });
                     setShowTemplates(false);
                     setShowForm(true);
                   }}
@@ -303,14 +442,12 @@ export function KnowledgeSections() {
               <Plus size={13} />
               Nueva sección
             </button>
-            {(!sections || sections.length === 0) && (
-              <button
-                onClick={() => setShowTemplates(true)}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent/10 border border-accent/20 text-[12px] font-medium text-accent hover:bg-accent/20 transition-all"
-              >
-                Usar plantillas
-              </button>
-            )}
+            <button
+              onClick={() => setShowTemplates(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent/10 border border-accent/20 text-[12px] font-medium text-accent hover:bg-accent/20 transition-all"
+            >
+              Usar plantillas
+            </button>
           </div>
         )}
       </div>
