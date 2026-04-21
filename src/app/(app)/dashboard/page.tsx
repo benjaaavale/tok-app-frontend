@@ -6,8 +6,21 @@ import { useAuthStore } from "@/stores/auth-store";
 import { useDashboardLayout } from "@/hooks/useDashboardLayout";
 import { DateRangeFilter } from "@/components/dashboard/DateRangeFilter";
 import { DashboardCustomizerModal } from "@/components/dashboard/DashboardCustomizerModal";
-import { getWidgetById, WIDGET_REGISTRY } from "@/components/dashboard/widgetRegistryComponents";
+import { KPIGrid } from "@/components/dashboard/KPICard";
+import { ServiciosChart } from "@/components/dashboard/ServiciosChart";
+import { HorariosChart } from "@/components/dashboard/HorariosChart";
+import { FunnelChart } from "@/components/dashboard/FunnelChart";
+import { LeadsChart } from "@/components/dashboard/LeadsChart";
+import { InfoTooltip } from "@/components/dashboard/InfoTooltip";
+import { UsageCard } from "@/components/settings/UsageCard";
 import {
+  getWidgetById,
+  WIDGET_REGISTRY,
+} from "@/components/dashboard/widgetRegistryComponents";
+import {
+  MessageSquare,
+  BarChart3,
+  Clock,
   SlidersHorizontal,
   MoreVertical,
   Check,
@@ -15,12 +28,16 @@ import {
   Plus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { WidgetSize, WidgetDefinition, WidgetCategory } from "@/types/dashboard";
+import type {
+  WidgetSize,
+  WidgetDefinition,
+  WidgetCategory,
+} from "@/types/dashboard";
 import { CATEGORY_LABELS } from "@/types/dashboard";
 import type { DashboardStats } from "@/types/api";
 import { motion, AnimatePresence } from "framer-motion";
 
-// Colspan de 3 columnas
+// Colspan en grid de 3 columnas
 const SIZE_TO_SPAN: Record<WidgetSize, number> = { sm: 1, md: 2, lg: 3 };
 const SPAN_TO_CLASS: Record<number, string> = {
   1: "col-span-1",
@@ -40,14 +57,11 @@ function autoSort(ids: string[]): string[] {
   });
 }
 
-/**
- * Calcula el "span efectivo" de cada widget para evitar huecos:
- * - Respeta el tamaño base de cada widget.
- * - Si el último widget no llena la fila, se extiende para ocuparla.
- * - Si en el medio queda un hueco que podría rellenarse con un widget posterior
- *   de tamaño menor, el grid-flow-dense de CSS se encarga.
- */
-function computeEffectiveSpans(ids: string[]): { id: string; span: number; def: WidgetDefinition }[] {
+// Calcula el "span efectivo" de cada widget extra para evitar huecos:
+// si el último widget deja espacio vacío en su fila, se extiende.
+function computeEffectiveSpans(
+  ids: string[]
+): { id: string; span: number; def: WidgetDefinition }[] {
   const rows: { id: string; span: number; def: WidgetDefinition }[] = [];
   let col = 0;
 
@@ -57,12 +71,8 @@ function computeEffectiveSpans(ids: string[]): { id: string; span: number; def: 
     const baseSpan = SIZE_TO_SPAN[def.size];
     let span = baseSpan;
 
-    // Si no cabe en la fila actual, empieza nueva fila.
-    if (col + span > TOTAL_COLS) {
-      col = 0;
-    }
+    if (col + span > TOTAL_COLS) col = 0;
 
-    // Si es el último widget y queda espacio en la fila, extiéndelo.
     const isLast = i === ids.length - 1;
     if (isLast && col + span < TOTAL_COLS) {
       span = TOTAL_COLS - col;
@@ -93,14 +103,16 @@ export default function DashboardPage() {
     setDateRange({ from, to });
   }, []);
 
-  const items = useMemo(() => computeEffectiveSpans(selectedWidgets), [selectedWidgets]);
+  const extras = useMemo(
+    () => computeEffectiveSpans(selectedWidgets),
+    [selectedWidgets]
+  );
 
   const handleSwap = (currentId: string, newId: string) => {
     if (currentId === newId) return;
     const next = [...selectedWidgets];
     const idx = next.indexOf(currentId);
     if (idx === -1) return;
-    // Si el nuevo ya está en el dashboard, intercambia posiciones.
     const newIdx = next.indexOf(newId);
     if (newIdx !== -1) {
       next[idx] = newId;
@@ -143,37 +155,114 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Widget grid */}
       {isLoading ? (
-        <DashboardSkeleton count={selectedWidgets.length} />
-      ) : selectedWidgets.length === 0 ? (
-        <div className="py-16 flex flex-col items-center gap-3 text-center">
-          <SlidersHorizontal size={32} className="text-text-muted opacity-40" />
-          <p className="text-[14px] text-text-muted">
-            No hay widgets seleccionados.
-          </p>
-          <button
-            onClick={() => setCustomizerOpen(true)}
-            className="btn-gradient px-4 py-2 rounded-xl text-[13px] font-medium mt-1"
-          >
-            Personalizar dashboard
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start grid-flow-dense">
-          {items.map(({ id, span, def }) => (
-            <WidgetSlot
-              key={id}
-              id={id}
-              def={def}
-              span={span}
-              stats={stats ?? undefined}
-              dateRange={dateRange}
-              selectedIds={selectedWidgets}
-              onSwap={(newId) => handleSwap(id, newId)}
-              onRemove={() => handleRemove(id)}
+        <DashboardSkeleton />
+      ) : stats ? (
+        <>
+          {/* ── Layout fijo ─────────────────────────────────────── */}
+
+          {/* KPIs principales */}
+          <KPIGrid
+            totalConversations={stats.conversaciones_recibidas}
+            qualifiedLeads={stats.leads_calificados}
+            scheduledAppointments={stats.citas_generadas}
+            conversionRate={stats.conversion_a_cita}
+            deltas={
+              stats.deltas
+                ? {
+                    conversaciones: stats.deltas.conversaciones,
+                    leads: stats.deltas.leads,
+                    citas: stats.deltas.citas,
+                    conversion: stats.deltas.conversion,
+                  }
+                : undefined
+            }
+          />
+
+          {/* Consumo del mes */}
+          <UsageCard />
+
+          {/* Mini stats */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+            <MiniStat
+              icon={<MessageSquare size={14} />}
+              label="Total mensajes"
+              value={stats.mensajes_totales}
+              delta={stats.deltas?.mensajes}
+              description="Suma total de mensajes enviados y recibidos en todas las conversaciones del período."
             />
-          ))}
+            <MiniStat
+              icon={<BarChart3 size={14} />}
+              label="Promedio msg/conv"
+              value={stats.promedio_mensajes}
+              delta={stats.deltas?.promedio}
+              description="Mensajes promedio por conversación. Conversaciones más largas suelen indicar mayor interés o dudas del cliente."
+            />
+            <MiniStat
+              icon={<Clock size={14} />}
+              label="Leads fuera de horario"
+              value={stats.leads_fuera_de_horario}
+              delta={stats.deltas?.fuera_horario}
+              description="Clientes que escribieron fuera de tu horario de atención. El agente IA responde igualmente para no perder oportunidades."
+            />
+          </div>
+
+          {/* Charts */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <ServiciosChart data={stats.servicios_mas_solicitados} />
+            <HorariosChart data={stats.horarios_mas_actividad} />
+            <FunnelChart data={stats.funnel} />
+            <LeadsChart data={stats.funnel} />
+          </div>
+
+          {/* ── Extras configurables ───────────────────────────── */}
+          {extras.length > 0 && (
+            <div className="pt-2">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-[13px] font-semibold text-text-secondary uppercase tracking-wider">
+                  Estadísticas adicionales
+                </h2>
+                <span className="text-[10px] text-text-muted">
+                  {extras.length} widget{extras.length !== 1 ? "s" : ""}
+                </span>
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start grid-flow-dense">
+                {extras.map(({ id, span, def }) => (
+                  <WidgetSlot
+                    key={id}
+                    id={id}
+                    def={def}
+                    span={span}
+                    stats={stats ?? undefined}
+                    dateRange={dateRange}
+                    selectedIds={selectedWidgets}
+                    onSwap={(newId) => handleSwap(id, newId)}
+                    onRemove={() => handleRemove(id)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Call-to-action para agregar estadísticas */}
+          {extras.length === 0 && (
+            <button
+              onClick={() => setCustomizerOpen(true)}
+              className={cn(
+                "w-full py-4 rounded-2xl border border-dashed",
+                "border-border-secondary text-text-muted",
+                "hover:border-accent hover:text-accent hover:bg-accent/5",
+                "transition-all flex items-center justify-center gap-2 text-[12px] font-medium"
+              )}
+            >
+              <Plus size={14} />
+              Agregar más estadísticas al dashboard
+            </button>
+          )}
+        </>
+      ) : (
+        <div className="text-center py-20 text-text-muted text-[14px]">
+          No hay datos para el período seleccionado
         </div>
       )}
 
@@ -193,7 +282,78 @@ export default function DashboardPage() {
 }
 
 /* ─────────────────────────────────────────────────────────────────── */
-/* Widget slot con menu para intercambiar qué estadística se muestra    */
+/* MiniStat (del layout clásico)                                        */
+/* ─────────────────────────────────────────────────────────────────── */
+
+function MiniStat({
+  icon,
+  label,
+  value,
+  delta,
+  description,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+  delta?: number;
+  description?: string;
+}) {
+  return (
+    <div className="bg-bg-secondary border border-border-secondary rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2.5 sm:gap-3 shadow-sm overflow-visible">
+      <div className="w-7 h-7 rounded-lg bg-accent/10 text-accent flex items-center justify-center flex-shrink-0">
+        {icon}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1 min-w-0">
+          <p className="text-[10px] sm:text-[11px] text-text-muted truncate">
+            {label}
+          </p>
+          {description && <InfoTooltip text={description} />}
+        </div>
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <p className="text-[15px] sm:text-[16px] font-semibold text-text-primary">
+            {value}
+          </p>
+          {delta !== undefined && (
+            <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold sm:px-1.5 sm:py-0.5 sm:rounded-md sm:border sm:border-border-secondary sm:bg-bg-primary">
+              <svg
+                width="6"
+                height="5"
+                viewBox={delta === 0 ? "0 0 6 8" : "0 0 8 6"}
+                fill="currentColor"
+                className={cn(
+                  delta === 0 && "text-gray-400",
+                  delta > 0 && "text-emerald-500",
+                  delta < 0 && "text-red-500"
+                )}
+              >
+                {delta === 0 ? (
+                  <path d="M6 4L0 8V0L6 4Z" />
+                ) : delta > 0 ? (
+                  <path d="M4 0L8 6H0L4 0Z" />
+                ) : (
+                  <path d="M4 6L0 0H8L4 6Z" />
+                )}
+              </svg>
+              <span
+                className={cn(
+                  delta === 0 && "text-gray-400",
+                  delta > 0 && "text-emerald-500",
+                  delta < 0 && "text-red-500"
+                )}
+              >
+                {Math.abs(delta)}%
+              </span>
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────── */
+/* Extras: widget con menu swap/remove                                  */
 /* ─────────────────────────────────────────────────────────────────── */
 
 function WidgetSlot({
@@ -219,7 +379,6 @@ function WidgetSlot({
   const wrapperRef = useRef<HTMLDivElement>(null);
   const Component = def.component;
 
-  // Cerrar menu al click fuera
   useEffect(() => {
     if (!menuOpen) return;
     const handler = (e: MouseEvent) => {
@@ -236,12 +395,8 @@ function WidgetSlot({
   return (
     <div
       ref={wrapperRef}
-      className={cn(
-        SPAN_TO_CLASS[span],
-        "relative group min-h-[100px]"
-      )}
+      className={cn(SPAN_TO_CLASS[span], "relative group min-h-[100px]")}
     >
-      {/* Menu button */}
       <button
         type="button"
         onClick={(e) => {
@@ -261,7 +416,6 @@ function WidgetSlot({
         <MoreVertical size={13} />
       </button>
 
-      {/* Dropdown */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
@@ -271,8 +425,7 @@ function WidgetSlot({
             transition={{ duration: 0.12 }}
             className={cn(
               "absolute top-11 right-2 z-30 w-64 max-h-[340px] overflow-y-auto",
-              "rounded-xl bg-bg-primary border border-border-secondary shadow-xl",
-              "p-1"
+              "rounded-xl bg-bg-primary border border-border-secondary shadow-xl p-1"
             )}
           >
             <div className="px-2.5 py-2 border-b border-border-secondary mb-1 flex items-center justify-between">
@@ -309,10 +462,6 @@ function WidgetSlot({
   );
 }
 
-/* ─────────────────────────────────────────────────────────────────── */
-/* Lista de widgets agrupada por categoría, marca el actual con check  */
-/* ─────────────────────────────────────────────────────────────────── */
-
 function WidgetPicker({
   currentId,
   selectedIds,
@@ -331,7 +480,13 @@ function WidgetPicker({
     return map;
   }, []);
 
-  const categoriesOrdered: WidgetCategory[] = ["general", "conversion", "equipo", "tiempos", "ia"];
+  const categoriesOrdered: WidgetCategory[] = [
+    "general",
+    "conversion",
+    "equipo",
+    "tiempos",
+    "ia",
+  ];
 
   return (
     <div className="space-y-2">
@@ -365,7 +520,9 @@ function WidgetPicker({
                         : "border-border-secondary bg-bg-secondary"
                     )}
                   >
-                    {isCurrent && <Check size={10} className="text-white" strokeWidth={3} />}
+                    {isCurrent && (
+                      <Check size={10} className="text-white" strokeWidth={3} />
+                    )}
                     {!isCurrent && isUsed && (
                       <span className="w-1 h-1 rounded-full bg-text-muted" />
                     )}
@@ -379,8 +536,7 @@ function WidgetPicker({
                     </p>
                     {isUsed && (
                       <span className="inline-flex items-center gap-0.5 text-[9px] text-text-muted mt-0.5">
-                        <Plus size={8} className="rotate-45" />
-                        Se intercambiará con el que está en otro cuadro
+                        Se intercambiará con el cuadro donde está ahora
                       </span>
                     )}
                   </div>
@@ -394,20 +550,33 @@ function WidgetPicker({
   );
 }
 
-function DashboardSkeleton({ count }: { count: number }) {
-  const heights = ["h-[100px]", "h-[280px]", "h-[280px]", "h-[200px]", "h-[100px]"];
+function DashboardSkeleton() {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 animate-pulse">
-      {Array.from({ length: Math.max(count, 2) }).map((_, i) => (
-        <div
-          key={i}
-          className={cn(
-            "bg-bg-secondary rounded-xl border border-border-secondary",
-            heights[i % heights.length],
-            i % 3 === 1 ? "lg:col-span-2" : ""
-          )}
-        />
-      ))}
+    <div className="space-y-6 animate-pulse">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[...Array(4)].map((_, i) => (
+          <div
+            key={i}
+            className="h-[100px] bg-bg-secondary rounded-xl border border-border-secondary"
+          />
+        ))}
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        {[...Array(3)].map((_, i) => (
+          <div
+            key={i}
+            className="h-[56px] sm:h-[60px] bg-bg-secondary rounded-xl border border-border-secondary"
+          />
+        ))}
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {[...Array(4)].map((_, i) => (
+          <div
+            key={i}
+            className="h-[280px] bg-bg-secondary rounded-xl border border-border-secondary"
+          />
+        ))}
+      </div>
     </div>
   );
 }

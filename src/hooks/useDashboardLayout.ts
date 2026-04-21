@@ -9,7 +9,7 @@ function loadFromStorage(): string[] {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_WIDGET_IDS;
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    if (Array.isArray(parsed)) return parsed;
     return DEFAULT_WIDGET_IDS;
   } catch {
     return DEFAULT_WIDGET_IDS;

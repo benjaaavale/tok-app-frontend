@@ -35,11 +35,11 @@ export const CATEGORY_DESCRIPTIONS: Record<WidgetCategory, string> = {
   ia: "Metricas del agente IA y escalaciones",
 };
 
-export const DEFAULT_WIDGET_IDS = [
-  "kpi-conversaciones",
-  "funnel-etapas",
-  "leads-por-dia",
-  "citas-por-worker",
-];
+// El dashboard ya tiene una sección "clásica" fija arriba (KPIs + consumo + charts).
+// DEFAULT_WIDGET_IDS son widgets EXTRA que el usuario puede agregar abajo,
+// vacío por defecto para que la vista se vea limpia y packed.
+export const DEFAULT_WIDGET_IDS: string[] = [];
 
-export const STORAGE_KEY = "tok-dashboard-widgets";
+// v2: se resetea el storage cuando el layout cambia de estructura
+// (fixed + extras en vez de todo-widgets).
+export const STORAGE_KEY = "tok-dashboard-widgets-v2";
