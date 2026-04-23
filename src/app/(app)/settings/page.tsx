@@ -15,6 +15,8 @@ import { WorkerManager } from "@/components/settings/WorkerManager";
 import { ServiceTypeManager } from "@/components/settings/ServiceTypeManager";
 import { UserProfileSettings } from "@/components/settings/UserProfileSettings";
 import { WorkerAssignmentSettings } from "@/components/settings/WorkerAssignmentSettings";
+import { ShopifyIntegration } from "@/components/settings/ShopifyIntegration";
+import { AbandonedCheckouts } from "@/components/settings/AbandonedCheckouts";
 import {
   LogOut,
   User,
@@ -28,6 +30,7 @@ import {
   Bell,
   ChevronLeft,
   ChevronRight,
+  ShoppingBag,
 } from "lucide-react";
 import { FaWhatsapp, FaMeta } from "react-icons/fa6";
 
@@ -39,6 +42,7 @@ type SectionId =
   | "servicios"
   | "whatsapp"
   | "meta"
+  | "shopify"
   | "calendario"
   | "notificaciones";
 
@@ -74,6 +78,12 @@ const GROUPS: SectionGroup[] = [
     items: [
       { id: "whatsapp", label: "WhatsApp", icon: FaWhatsapp, description: "YCloud API" },
       { id: "meta", label: "Meta", icon: FaMeta, description: "Messenger e Instagram" },
+    ],
+  },
+  {
+    label: "E-commerce",
+    items: [
+      { id: "shopify", label: "Shopify", icon: ShoppingBag, description: "Tienda y carritos abandonados" },
     ],
   },
   {
@@ -486,6 +496,13 @@ function SectionContent({
         <div className="bg-bg-secondary rounded-2xl border border-border-secondary px-5 py-4">
           <MetaIntegration />
         </div>
+      );
+    case "shopify":
+      return (
+        <>
+          <ShopifyIntegration />
+          <AbandonedCheckouts />
+        </>
       );
     case "calendario":
       return <GoogleCalendarSettings />;
