@@ -13,7 +13,7 @@ export default function AbandonedCartsPage() {
             <ShoppingCart size={18} className="text-accent" />
           </div>
           <div>
-            <h1 className="text-[18px] font-semibold text-text-primary">Carritos abandonados</h1>
+            <h1 className="text-[18px] font-semibold text-text-primary">Carritos</h1>
             <p className="text-[12px] text-text-muted mt-0.5">
               Recupera ventas perdidas con recordatorios automáticos
             </p>
