@@ -16,7 +16,6 @@ import { ServiceTypeManager } from "@/components/settings/ServiceTypeManager";
 import { UserProfileSettings } from "@/components/settings/UserProfileSettings";
 import { WorkerAssignmentSettings } from "@/components/settings/WorkerAssignmentSettings";
 import { ShopifyIntegration } from "@/components/settings/ShopifyIntegration";
-import { AbandonedCheckouts } from "@/components/settings/AbandonedCheckouts";
 import {
   WhatsAppLogo,
   MetaLogo,
@@ -81,7 +80,7 @@ const GROUPS: SectionGroup[] = [
     items: [
       { id: "whatsapp", label: "WhatsApp", icon: WhatsAppLogo, description: "YCloud API" },
       { id: "meta", label: "Meta", icon: MetaLogo, description: "Messenger e Instagram" },
-      { id: "shopify", label: "Shopify", icon: ShopifyLogoColored, description: "Tienda y carritos abandonados" },
+      { id: "shopify", label: "Shopify", icon: ShopifyLogoColored, description: "Tienda Shopify" },
       { id: "calendario", label: "Google Calendar", icon: GoogleCalendarLogo, description: "Agenda sincronizada" },
     ],
   },
@@ -496,12 +495,7 @@ function SectionContent({
         </div>
       );
     case "shopify":
-      return (
-        <>
-          <ShopifyIntegration />
-          <AbandonedCheckouts />
-        </>
-      );
+      return <ShopifyIntegration />;
     case "calendario":
       return <GoogleCalendarSettings />;
     case "notificaciones":

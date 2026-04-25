@@ -52,7 +52,7 @@ const navSections: NavSection[] = [
     items: [
       { href: "/agents", label: "Agentes IA", icon: Bot },
       { href: "/templates", label: "Plantillas", icon: Megaphone },
-      { href: "/abandoned-carts", label: "Carritos abandonados", icon: ShoppingCart },
+      { href: "/abandoned-carts", label: "Carritos", icon: ShoppingCart },
     ],
   },
 ];
