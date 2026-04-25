@@ -14,6 +14,7 @@ import {
   Settings,
   Megaphone,
   Bot,
+  ShoppingCart,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { CompanySelector } from "@/components/layout/CompanySelector";
@@ -51,6 +52,7 @@ const navSections: NavSection[] = [
     items: [
       { href: "/agents", label: "Agentes IA", icon: Bot },
       { href: "/templates", label: "Plantillas", icon: Megaphone },
+      { href: "/abandoned-carts", label: "Carritos abandonados", icon: ShoppingCart },
     ],
   },
 ];

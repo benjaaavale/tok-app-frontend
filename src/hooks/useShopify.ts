@@ -113,6 +113,36 @@ export function useConnectShopify() {
   });
 }
 
+export interface CartRecoveryEmailPayload {
+  to: string;
+  subject: string;
+  message: string;
+  checkout_url?: string;
+  customer_name?: string;
+}
+
+export function useSendCartRecoveryEmail() {
+  const { getToken } = useAuth();
+  return useMutation({
+    mutationFn: async (payload: CartRecoveryEmailPayload) => {
+      const res = await authFetch(
+        "/shopify/abandoned-checkouts/send-email",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        },
+        () => getToken()
+      );
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Error enviando email");
+      }
+      return res.json();
+    },
+  });
+}
+
 export function useDisconnectShopify() {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
