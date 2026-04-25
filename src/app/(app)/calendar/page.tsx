@@ -134,19 +134,19 @@ export default function CalendarPage() {
             </div>
             <div>
               <h3 className="text-[15px] font-semibold text-text-primary mb-1">
-                Conecta Google Calendar
+                Conecta tu Google Calendar para usar esta función
               </h3>
               <p className="text-[12px] text-text-muted leading-relaxed">
-                Para ver y gestionar la agenda, primero debes conectar tu cuenta de Google Calendar desde la configuración.
+                Sin conexión a Google Calendar no podemos ver tu agenda ni crear citas automáticamente desde los chats.
               </p>
             </div>
             {isAdmin && (
               <Link
-                href="/settings"
+                href="/settings?section=calendario"
                 className="btn-gradient flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-medium"
               >
                 <Settings size={13} />
-                Ir a Configuración
+                Conectar Google Calendar
               </Link>
             )}
             {!isAdmin && (

@@ -4,13 +4,15 @@ import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useTheme } from "next-themes";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, Eye, EyeOff, KeyRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SignInPageProps {
   className?: string;
   onGoogleSignIn?: () => void;
-  onEmailSubmit?: (email: string) => Promise<void>;
+  onEmailSubmit?: (email: string) => Promise<{ hasPassword: boolean } | void>;
+  onPasswordSubmit?: (email: string, password: string) => Promise<void>;
+  onRequestCode?: (email: string) => Promise<void>;
   onCodeSubmit?: (code: string) => Promise<void>;
   onResendCode?: () => void;
 }
@@ -19,11 +21,15 @@ export const SignInPage = ({
   className,
   onGoogleSignIn,
   onEmailSubmit,
+  onPasswordSubmit,
+  onRequestCode,
   onCodeSubmit,
   onResendCode,
 }: SignInPageProps) => {
   const [email, setEmail] = useState("");
-  const [step, setStep] = useState<"email" | "code" | "success">("email");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [step, setStep] = useState<"email" | "password" | "code" | "success">("email");
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,10 +47,45 @@ export const SignInPage = ({
     setIsLoading(true);
     setError(null);
     try {
-      await onEmailSubmit(email);
-      setStep("code");
+      const result = await onEmailSubmit(email);
+      // If the email belongs to an existing account with password, default to password.
+      // Otherwise (new signup) fall back to code flow.
+      if (result && result.hasPassword && onPasswordSubmit) {
+        setStep("password");
+      } else {
+        setStep("code");
+      }
     } catch (err: any) {
       setError(err.message || "Algo salió mal. Intenta de nuevo.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!password || !onPasswordSubmit) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      await onPasswordSubmit(email, password);
+      setStep("success");
+    } catch (err: any) {
+      setError(err.message || "Contraseña incorrecta.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSwitchToCode = async () => {
+    if (!onRequestCode) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      await onRequestCode(email);
+      setStep("code");
+    } catch (err: any) {
+      setError(err.message || "No se pudo enviar el código.");
     } finally {
       setIsLoading(false);
     }
@@ -111,6 +152,7 @@ export const SignInPage = ({
   const handleBackClick = () => {
     setStep("email");
     setCode(["", "", "", "", "", ""]);
+    setPassword("");
     setError(null);
   };
 
@@ -356,8 +398,119 @@ export const SignInPage = ({
                     </form>
                   </div>
                 </motion.div>
+              ) : step === "password" ? (
+                /* ── Step 2a: Password (default) ── */
+                <motion.div
+                  key="password-step"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.35, ease: "easeOut" }}
+                  className="space-y-6 text-center"
+                >
+                  <div className="space-y-2">
+                    <h1 className="text-2xl font-bold tracking-tight text-text-primary">
+                      Ingresa tu contraseña
+                    </h1>
+                    <p className="text-sm text-text-muted font-light">
+                      Inicia sesión como{" "}
+                      <span className="text-text-secondary font-medium">{email}</span>
+                    </p>
+                  </div>
+
+                  {error && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-danger text-sm bg-danger-light/50 rounded-[var(--radius-lg)] px-3 py-2"
+                    >
+                      {error}
+                    </motion.p>
+                  )}
+
+                  <form onSubmit={handlePasswordSubmit} className="space-y-3">
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Tu contraseña"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        autoFocus
+                        className={cn(
+                          "w-full text-text-primary rounded-xl py-3 px-4 pr-12 transition-all duration-200",
+                          "focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent",
+                          "placeholder:text-text-muted/60",
+                          isDark
+                            ? "bg-bg-primary/60 border border-border-primary"
+                            : "bg-bg-secondary border border-border-primary"
+                        )}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((v) => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary transition-colors"
+                        tabIndex={-1}
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isLoading || !password}
+                      className={cn(
+                        "w-full rounded-xl font-medium py-3 transition-all duration-200 active:scale-[0.98]",
+                        password
+                          ? "bg-accent text-white hover:bg-accent-hover shadow-sm hover:shadow-md"
+                          : isDark
+                            ? "bg-bg-primary/60 text-text-muted border border-border-primary cursor-not-allowed"
+                            : "bg-bg-secondary text-text-muted border border-border-primary cursor-not-allowed"
+                      )}
+                    >
+                      {isLoading ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25" />
+                            <path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                          </svg>
+                          Verificando...
+                        </span>
+                      ) : (
+                        "Iniciar sesión"
+                      )}
+                    </button>
+                  </form>
+
+                  <div className="flex items-center gap-4 py-1">
+                    <div className="h-px bg-border-primary flex-1" />
+                    <span className="text-text-muted text-xs uppercase tracking-wider">o</span>
+                    <div className="h-px bg-border-primary flex-1" />
+                  </div>
+
+                  <button
+                    onClick={handleSwitchToCode}
+                    disabled={isLoading}
+                    className={cn(
+                      "w-full flex items-center justify-center gap-2 rounded-xl py-2.5 px-4 text-sm font-medium transition-all duration-200 active:scale-[0.98] disabled:opacity-50",
+                      isDark
+                        ? "bg-bg-primary/60 hover:bg-bg-hover text-text-secondary border border-border-primary"
+                        : "bg-bg-secondary hover:bg-bg-hover text-text-secondary border border-border-primary"
+                    )}
+                  >
+                    <KeyRound size={14} />
+                    Recibir código por email
+                  </button>
+
+                  <button
+                    onClick={handleBackClick}
+                    className="text-text-muted hover:text-accent text-sm transition-colors duration-200"
+                  >
+                    ← Cambiar email
+                  </button>
+                </motion.div>
               ) : step === "code" ? (
-                /* ── Step 2: OTP Code ── */
+                /* ── Step 2b: OTP Code ── */
                 <motion.div
                   key="code-step"
                   initial={{ opacity: 0, y: 20 }}

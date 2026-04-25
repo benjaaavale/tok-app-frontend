@@ -18,10 +18,15 @@ import { WorkerAssignmentSettings } from "@/components/settings/WorkerAssignment
 import { ShopifyIntegration } from "@/components/settings/ShopifyIntegration";
 import { AbandonedCheckouts } from "@/components/settings/AbandonedCheckouts";
 import {
+  WhatsAppLogo,
+  MetaLogo,
+  GoogleCalendarLogo,
+  ShopifyLogoColored,
+} from "@/components/ui/BrandLogos";
+import {
   LogOut,
   User,
   Users,
-  CalendarDays,
   Plug,
   Save,
   Undo2,
@@ -30,9 +35,7 @@ import {
   Bell,
   ChevronLeft,
   ChevronRight,
-  ShoppingBag,
 } from "lucide-react";
-import { FaWhatsapp, FaMeta } from "react-icons/fa6";
 
 /* ── Section definitions ── */
 type SectionId =
@@ -74,22 +77,17 @@ const GROUPS: SectionGroup[] = [
     ],
   },
   {
-    label: "Canales",
+    label: "Integraciones",
     items: [
-      { id: "whatsapp", label: "WhatsApp", icon: FaWhatsapp, description: "YCloud API" },
-      { id: "meta", label: "Meta", icon: FaMeta, description: "Messenger e Instagram" },
-    ],
-  },
-  {
-    label: "E-commerce",
-    items: [
-      { id: "shopify", label: "Shopify", icon: ShoppingBag, description: "Tienda y carritos abandonados" },
+      { id: "whatsapp", label: "WhatsApp", icon: WhatsAppLogo, description: "YCloud API" },
+      { id: "meta", label: "Meta", icon: MetaLogo, description: "Messenger e Instagram" },
+      { id: "shopify", label: "Shopify", icon: ShopifyLogoColored, description: "Tienda y carritos abandonados" },
+      { id: "calendario", label: "Google Calendar", icon: GoogleCalendarLogo, description: "Agenda sincronizada" },
     ],
   },
   {
     label: "Automatización",
     items: [
-      { id: "calendario", label: "Calendario", icon: CalendarDays, description: "Google Calendar" },
       { id: "notificaciones", label: "Notificaciones", icon: Bell, description: "Recordatorios" },
     ],
   },
