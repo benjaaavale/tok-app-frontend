@@ -104,7 +104,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!synced) return;
     if (isSuperadmin) return; // superadmin can view any company regardless of subscription
-    const needsPlan = subscriptionStatus !== "active";
+    const needsPlan = subscriptionStatus !== "active" && subscriptionStatus !== "trialing";
     const isOnPlansPage = pathname === "/plans";
 
     if (needsPlan && !isOnPlansPage) {

@@ -94,7 +94,7 @@ export default function PlansPage() {
   const [loadingPlan, setLoadingPlan] = useState<PlanKey | null>(null);
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
 
-  const isActive = subscriptionStatus === "active";
+  const isActive = subscriptionStatus === "active" || subscriptionStatus === "trialing";
 
   // VentiPay redirect feedback
   useEffect(() => {
