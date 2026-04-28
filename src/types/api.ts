@@ -260,7 +260,7 @@ export interface Plan {
 
 export interface SubscriptionInfo {
   plan: PlanKey | null;
-  subscription_status: "none" | "incomplete" | "active" | "past_due" | "unpaid" | "canceled" | "suspended";
+  subscription_status: "none" | "incomplete" | "trialing" | "active" | "past_due" | "unpaid" | "canceled" | "suspended";
   current_period_start: string | null;
   current_period_end: string | null;
   plan_limits: {

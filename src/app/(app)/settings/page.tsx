@@ -16,6 +16,7 @@ import { ServiceTypeManager } from "@/components/settings/ServiceTypeManager";
 import { UserProfileSettings } from "@/components/settings/UserProfileSettings";
 import { WorkerAssignmentSettings } from "@/components/settings/WorkerAssignmentSettings";
 import { ShopifyIntegration } from "@/components/settings/ShopifyIntegration";
+import { BillingSettings } from "@/components/settings/BillingSettings";
 import {
   WhatsAppLogo,
   MetaLogo,
@@ -32,6 +33,7 @@ import {
   Building2,
   Briefcase,
   Bell,
+  CreditCard,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -46,7 +48,8 @@ type SectionId =
   | "meta"
   | "shopify"
   | "calendario"
-  | "notificaciones";
+  | "notificaciones"
+  | "pagos";
 
 interface SectionDef {
   id: SectionId;
@@ -65,6 +68,7 @@ const GROUPS: SectionGroup[] = [
     label: "Cuenta",
     items: [
       { id: "perfil", label: "Perfil", icon: User, description: "Datos personales y sesión" },
+      { id: "pagos", label: "Pagos", icon: CreditCard, description: "Plan, consumo y facturación" },
     ],
   },
   {
@@ -500,6 +504,8 @@ function SectionContent({
       return <GoogleCalendarSettings />;
     case "notificaciones":
       return <NotificationSettings onDirtyChange={onNotifDirty} />;
+    case "pagos":
+      return <BillingSettings />;
     default:
       return null;
   }
