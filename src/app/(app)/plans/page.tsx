@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCreateSubscription } from "@/hooks/useSubscription";
 import { useAuthStore } from "@/stores/auth-store";
 import { toast } from "sonner";
@@ -90,10 +90,26 @@ export default function PlansPage() {
   const createSubscription = useCreateSubscription();
   const { subscriptionStatus } = useAuthStore();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loadingPlan, setLoadingPlan] = useState<PlanKey | null>(null);
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
 
-  const isActive = subscriptionStatus === "active";
+  const isActive = subscriptionStatus === "active" || subscriptionStatus === "trialing";
+
+  // VentiPay redirect feedback
+  useEffect(() => {
+    const status = searchParams.get("status");
+    if (status === "success") {
+      toast.success("¡Pago autorizado! Activando tu suscripción...", { duration: 5000 });
+      // Limpiar query y redirigir al dashboard tras un par de segundos
+      // (el webhook subscription.active actualizará el estado)
+      window.history.replaceState({}, "", "/plans");
+      setTimeout(() => router.push("/dashboard"), 3000);
+    } else if (status === "canceled") {
+      toast.error("Pago cancelado. Puedes intentar nuevamente cuando quieras.");
+      window.history.replaceState({}, "", "/plans");
+    }
+  }, [searchParams, router]);
 
   const handleSelectPlan = async (planId: PlanKey) => {
     setLoadingPlan(planId);
