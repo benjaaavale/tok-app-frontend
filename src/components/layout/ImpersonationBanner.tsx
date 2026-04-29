@@ -19,7 +19,12 @@ export function ImpersonationBanner() {
         </span>
       </div>
       <button
-        onClick={() => setImpersonating(null, null)}
+        onClick={() => {
+          setImpersonating(null, null);
+          setTimeout(() => {
+            window.location.href = "/dashboard";
+          }, 100);
+        }}
         className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/20 hover:bg-white/30 transition-colors"
       >
         <X size={12} />

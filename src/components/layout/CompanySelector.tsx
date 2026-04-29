@@ -99,6 +99,10 @@ export function CompanySelector() {
                     setImpersonating(c.id, c.nombre);
                     setOpen(false);
                     setSearch("");
+                    // Hard reload para que TODAS las queries refresquen con la nueva empresa
+                    setTimeout(() => {
+                      window.location.href = "/dashboard";
+                    }, 100);
                   }}
                   className={`w-full text-left px-3 py-2.5 text-[12px] transition-colors border-b border-border-secondary last:border-0 ${
                     impersonatingCompanyId === c.id

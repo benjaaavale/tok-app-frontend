@@ -48,6 +48,21 @@ interface AuthState {
   reset: () => void;
 }
 
+// Hidratar impersonación desde localStorage para que persista entre reloads
+function getStoredImpersonation(): { id: number | null; name: string | null } {
+  if (typeof window === "undefined") return { id: null, name: null };
+  try {
+    const raw = localStorage.getItem("tok-impersonate");
+    if (!raw) return { id: null, name: null };
+    const parsed = JSON.parse(raw);
+    return { id: parsed.id ?? null, name: parsed.name ?? null };
+  } catch {
+    return { id: null, name: null };
+  }
+}
+
+const storedImpersonation = getStoredImpersonation();
+
 export const useAuthStore = create<AuthState>((set) => ({
   companyToken: null,
   companyNombre: null,
@@ -67,8 +82,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   shopifyShopName: null,
   shopifyDomain: null,
   isSuperadmin: false,
-  impersonatingCompanyId: null,
-  impersonatingCompanyName: null,
+  impersonatingCompanyId: storedImpersonation.id,
+  impersonatingCompanyName: storedImpersonation.name,
 
   setAuth: ({ companyToken, companyNombre, avatarUrl, email, role, workerId, canRespondChats, canViewAllCalendar, hasSeenTutorial, plan, subscriptionStatus, planLimits, conversationsThisPeriod, shopifyConnected, shopifyShopName, shopifyDomain, is_superadmin }) => {
     const initials = email
@@ -98,7 +113,19 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   setAvatarUrl: (url) => set({ userAvatarUrl: url }),
   setTutorialSeen: (seen) => set({ hasSeenTutorial: seen }),
-  setImpersonating: (companyId, companyName) => set({ impersonatingCompanyId: companyId, impersonatingCompanyName: companyName }),
+  setImpersonating: (companyId, companyName) => {
+    if (typeof window !== "undefined") {
+      if (companyId) {
+        localStorage.setItem(
+          "tok-impersonate",
+          JSON.stringify({ id: companyId, name: companyName })
+        );
+      } else {
+        localStorage.removeItem("tok-impersonate");
+      }
+    }
+    set({ impersonatingCompanyId: companyId, impersonatingCompanyName: companyName });
+  },
 
   reset: () =>
     set({
